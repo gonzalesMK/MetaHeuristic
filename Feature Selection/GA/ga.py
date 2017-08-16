@@ -2,6 +2,7 @@
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
+
 from deap import benchmarks
 from deap import base, creator
 from deap import tools
@@ -12,26 +13,28 @@ from itertools import compress
 from sklearn.preprocessing import StandardScaler
 from sklearn.svm import  SVC
 from sklearn.model_selection import cross_val_score
+from sklearn.preprocessing import LabelEncoder
 
 from random import sample
 from random import randint
 import random
 
 from datetime import datetime
-
-# Constants 
-N_FEATURES = 10000; # Number of features in the Dataset
-
+import arff
 # Importing the dataset
-X_train = pd.read_csv('arcene_train.data', delim_whitespace = True, header = None)
-y_train = pd.read_csv('arcene_train.labels', delim_whitespace = True, header = None)
-y_train = y_train.as_matrix().flatten()
-X_test  = pd.read_csv('arcene_valid.DATA', delim_whitespace = True, header = None)
-y_test  = pd.read_csv('arcene_valid.labels', delim_whitespace = True, header = None)
-y_test  = (y_test.as_matrix()).flatten()
-X = np.concatenate( (X_train, X_test), axis = 0).astype(float)
-Y = np.concatenate( (y_train, y_test), axis = 0)
-del X_train, y_train, X_test, y_test
+dataset = arff.load(open('Colon.arff'))
+data = np.array(dataset['data'])
+label = data[:,-1]
+X = data[:,:-1].astype(float)
+
+# Encoding categorical data in Y
+labelencoder_y = LabelEncoder()
+Y = labelencoder_y.fit_transform(label)
+
+# Cleaning variabels
+del dataset, data, label
+
+N_FEATURES = len(X[0])
 
 # Individual initialization Function
 def gen_in():
@@ -68,30 +71,34 @@ toolbox.register("mate", tools.cxTwoPoint)
 toolbox.register("mutate", tools.mutUniformInt,low = 0, up = 1, indpb = 0.05)
 toolbox.register("select", tools.selTournament, tournsize=3)
 toolbox.register("evaluate", evaluate)
-toolbox.register("map", futures.map)
-#toolbox.register("map", map)
+#toolbox.register("map", futures.map)
+toolbox.register("map", map)
 
 # Statistics
-stats_fit = tools.Statistics(key=lambda ind: ind.fitness.values[0])
-stats_n = tools.Statistics( key=sum)
-stats = tools.MultiStatistics( Accuracy = stats_fit, N = stats_n)
+#stats_fit = tools.Statistics(key=lambda ind: ind.fitness.values[0])
+#stats_n = tools.Statistics( key=sum)
+#stats = tools.MultiStatistics( Accuracy = stats_fit, N = stats_n)
+stats = tools.Statistics(lambda ind: ind.fitness.values)
 stats.register("avg", np.mean)
 stats.register("std", np.std)
 stats.register("min", np.min)
 stats.register("max", np.max)
 
 # Logbook
+#logbook = tools.Logbook()
+#logbook.header = ["gen"] + stats.fields
+#logbook.chapters["Accuracy"].header = "min", "avg", "max", "std"
+#logbook.chapters["# of Features"].header = "min", "avg", "max", "std" # number of features
+
 logbook = tools.Logbook()
-logbook.header = ["gen"] + stats.fields
-logbook.chapters["Accuracy"].header = "min", "avg", "max", "std"
-logbook.chapters["# of Features"].header = "min", "avg", "max", "std" # number of features
+logbook.header = ["gen", "evals"] + stats.fields
 
 def main(graph = False, log = True):
     scoop.logger.info("Generating Population")
 
     pop = toolbox.population(n=40) 
     hof = tools.HallOfFame(1)
-    CXPB, MUTPB, NGEN = 0.5, 0.2, 3
+    CXPB, MUTPB, NGEN = 0.5, 0.2, 10
 
     # Evaluate the entire population
     fitnesses = toolbox.map(toolbox.evaluate, pop)
@@ -129,7 +136,7 @@ def main(graph = False, log = True):
         hof.update(pop)
         logbook.record(gen=g, **stats.compile(pop))
         print("Generation: ", g + 1 , "/", NGEN, "TIME: ", datetime.now().time().minute, ":", datetime.now().time().second)
-        scoop.logger.info("Generation: %d", g)
+        #scoop.logger.info("Generation: %d", g)
         
         
     # Plottig Estatistics 

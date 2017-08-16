@@ -57,9 +57,11 @@ def generate():
 
 # Evaluation Function
 def evaluate(individual):
-    # Select Features
+    # First Check
     if( sum(individual) == 0):
         return 0 , 
+    
+    # Select Features
     features = list( compress( range(len(individual)), individual))
     train =  np.reshape([X[:, i] for i in features], [ len(features),  len(X)]  ).T
     
