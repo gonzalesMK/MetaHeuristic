@@ -85,3 +85,31 @@ pca = PCA( n_components = 20)
 X_train = pca.fit_transform(X_train)
 X_test =  pca.transform(X_test)
 reseexplained_variance = pca.explained_variance_ratio_
+
+## Plot Statistics
+    # Plottig Estatistics 
+    if( graph ):
+        gen = logbook.select("gen")
+        acc_mins = logbook.chapters["Accuracy"].select("min")
+        acc_maxs = logbook.chapters["Accuracy"].select("max")
+        acc_avgs = logbook.chapters["Accuracy"].select("avg")
+        n_feat = logbook.chapters["N"].select("avg")
+        
+        fig, ax1 = plt.subplots()
+        line1 = ax1.plot(gen, acc_mins, "r-", label="Minimun Acc")
+        line2 = ax1.plot(gen, acc_maxs, "g-", label="Maximun Acc")
+        line3 = ax1.plot(gen, acc_avgs, "b-", label="Average Acc")
+        ax1.set_xlabel("Generation")
+        ax1.set_ylabel("Accuracy")
+        
+        ax2 = ax1.twinx()
+        line4 = ax2.plot(gen, n_feat, "y-", label="Avg Features")
+        ax2.set_ylabel("Size", color="y")
+        for tl in ax2.get_yticklabels():
+            tl.set_color("y")
+        
+        lns = line1 + line2 + line3 + line4
+        labs = [l.get_label() for l in lns]
+        ax1.legend(lns, labs, loc="center right")
+        
+        plt.show()
