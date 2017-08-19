@@ -1,3 +1,7 @@
+import sys
+import os
+import argparse
+
 # Importing Libraries 
 import numpy as np
 import pandas as pd
@@ -37,6 +41,7 @@ del dataset, data, label
 
 N_FEATURES = len(X[0])
 #N_FEATURES = 5
+
 # Harmony initialization Function
 def gen_in():
     RND = randint(0,N_FEATURES)
@@ -75,7 +80,54 @@ def improvise(pop, HMCR):
     
     return new_harmony
     
+def entropy(vec, base=2):
+	" Returns the empirical entropy H(X) in the input vector."
+	_ , vec = np.unique(vec, return_counts=True)
+	prob_vec = np.array(vec/float(sum(vec)))
+	if base == 2:
+		logfn = np.log2
+	elif base == 10:
+		logfn = np.log10
+	else:
+		logfn = np.log
+	return prob_vec.dot(-logfn(prob_vec))
+    
+def conditional_entropy(x, y):
+	"Returns H(X|Y)."
+	uy, uyc = np.unique(y, return_counts=True)
+	prob_uyc = uyc/float(sum(uyc))
+	cond_entropy_x = np.array([entropy(x[y == v]) for v in uy])
+	return prob_uyc.dot(cond_entropy_x)
+	
+def mutual_information(x, y):
+	" Returns the information gain/mutual information [H(X)-H(X|Y)] between two random vars x & y."
+	return entropy(x) - conditional_entropy(x, y)
 
+def symmetrical_uncertainty(x, y):
+	" Returns 'symmetrical uncertainty' (SU) - a symmetric mutual information measure."
+	return 2.0*mutual_information(x, y)/(entropy(x) + entropy(y))    
+
+def c_correlation(X, y):
+	"""
+	Returns SU values between each feature and class.
+	
+	Parameters:
+	-----------
+	X : 2-D ndarray
+		Feature matrix.
+	y : ndarray
+		Class label vector
+		
+	Returns:
+	--------
+	su : ndarray
+		Symmetric Uncertainty (SU) values for each feature.
+	"""
+	su = np.zeros(X.shape[1])
+	for i in np.arange(X.shape[1]):
+		su[i] = symmetrical_uncertainty(X[:,i], y)
+	return su
+    
 creator.create("Fitness", base.Fitness, weights=(1.0, ))
 creator.create("Individual", list, fitness=creator.Fitness)
 
@@ -107,7 +159,7 @@ def main(graph = False, log = False):
     harmony_mem = toolbox.population(n=50) 
     hof = tools.HallOfFame(1)
     NGEN = 1000
-
+    a = c_correlation(X,Y)
     # Evaluate the entire population
     fitnesses = toolbox.map(toolbox.evaluate, harmony_mem)
     for ind, fit in zip(harmony_mem, fitnesses):
@@ -117,8 +169,11 @@ def main(graph = False, log = False):
 
         # Improvise a New Harmony 
         new_harmony = toolbox.improvise(harmony_mem)
-        new_harmony.fitness.values = toolbox.evaluate(new_harmony)
+
+        # Calculate SU for each gene gi
         
+        new_harmony.fitness.values = toolbox.evaluate(new_harmony)
+            
         # Select the Worst Harmony
         worst = toolbox.get_worst(harmony_mem)[0]
         
@@ -127,16 +182,13 @@ def main(graph = False, log = False):
             worst[:] = new_harmony[:]
             worst.fitness.values = new_harmony.fitness.values
             
-        
         # Log statistic
         hof.update(harmony_mem)
         logbook.record(gen=g, best_fit= hof[0].fitness.values[0], **stats.compile(harmony_mem))
         if( g % 100 == 0):
             print("Generation: ", g + 1 , "/", NGEN, "TIME: ", datetime.now().time().minute, ":", datetime.now().time().second)
         #scoop.logger.info("Generation: %d", g)
-        
-        
-    
+  
     if(log):  
         print(logbook)
     
@@ -145,7 +197,6 @@ def main(graph = False, log = False):
         acc_mins = logbook.select("min")
         acc_maxs = logbook.select("max")
         acc_avgs = logbook.select("avg")
-
         
         fig, ax1 = plt.subplots()
         line1 = ax1.plot(gen, acc_mins, "r-", label="Minimun Acc")
