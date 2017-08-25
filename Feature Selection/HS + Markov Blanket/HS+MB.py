@@ -1,7 +1,3 @@
-import sys
-import os
-import argparse
-
 # Importing Libraries 
 import numpy as np
 import pandas as pd
@@ -19,6 +15,8 @@ from sklearn.preprocessing import StandardScaler
 from sklearn.svm import  SVC
 from sklearn.model_selection import cross_val_score
 from sklearn.preprocessing import LabelEncoder
+from sklearn import preprocessing
+from sklearn.mixture import GaussianMixture
 
 from random import sample
 from random import randint
@@ -29,15 +27,21 @@ import arff
 # Importing the dataset
 dataset = arff.load(open('Colon.arff'))
 data = np.array(dataset['data'])
-label = data[:,-1]
+label = data[:, -1]
 X = data[:,:-1].astype(float)
 
 # Encoding categorical data in Y
 labelencoder_y = LabelEncoder()
-Y = labelencoder_y.fit_transform(label)
+Y = labelencoder_y.fit_transform(label) #.reshape((-1,1))
+Y.shape = (len(Y),1)
+
+# Feature Scaling in X
+sc_X = StandardScaler()
+X = sc_X.fit_transform(X)
 
 # Cleaning variabels
 del dataset, data, label
+
 
 N_FEATURES = len(X[0])
 #N_FEATURES = 5
@@ -81,53 +85,89 @@ def improvise(pop, HMCR):
     return new_harmony
     
 def entropy(vec, base=2):
-	" Returns the empirical entropy H(X) in the input vector."
-	_ , vec = np.unique(vec, return_counts=True)
-	prob_vec = np.array(vec/float(sum(vec)))
-	if base == 2:
-		logfn = np.log2
-	elif base == 10:
-		logfn = np.log10
-	else:
-		logfn = np.log
-	return prob_vec.dot(-logfn(prob_vec))
+    " Returns the empirical entropy H(X) in the input vector."
+    # Calcula a densidade de probabilidade de vec - P(vec)
+    if (vec.dtype != np.int64): # To continuous variables
+        GM = GaussianMixture(verbose=False, n_components = 2)
+        GM.fit(vec)
+        prob_vec = np.exp(GM.score_samples(vec))
+    else: # For discrete variabes
+        _, vec = np.unique(vec, return_counts=True)
+        prob_vec = np.array(vec/float(sum(vec)))
     
-def conditional_entropy(x, y):
-	"Returns H(X|Y)."
-	uy, uyc = np.unique(y, return_counts=True)
-	prob_uyc = uyc/float(sum(uyc))
-	cond_entropy_x = np.array([entropy(x[y == v]) for v in uy])
-	return prob_uyc.dot(cond_entropy_x)
-	
+    if base == 2:
+        logfn = np.log2
+    if base == 10:
+        logfn = np.log10
+    else:
+        logfn = np.log
+    return -(prob_vec.dot(logfn(prob_vec)))
+    
+
+def conditional_entropy(x,y):
+    "Returns H(X|Y)."
+
+    if( y.dtype != np.int64 ):
+        # Calcula a densidade de probabilidade de y - P(y)
+        GM = GaussianMixture(verbose=False, n_components = 2)
+        GM.fit(y)
+        Py = np.exp(GM.score_samples(y))
+
+        # Calcula a probabilidade de x e y- P(x,y)
+        GM = GaussianMixture(verbose=False, n_components = 2)
+        GM.fit(np.append(x,y, axis=1))
+        Pxy = np.exp(GM.score_samples(np.append(x,y, axis=1)))
+        
+        return -sum( Pxy * np.log( Pxy / Py))
+    else:
+        GM = GaussianMixture(verbose=False, n_components = 2)
+        GM.means_init = np.array([x[y == 1].mean(axis=0) for i in range(2)]).reshape(-1,1)    
+        GM.fit(x)
+        Px_y = GM.predict_proba(x)[:,0:1]  # P(x|y)
+        _ , ny = np.unique(y, return_counts=True) 
+        Py = np.array(ny/float(sum(ny))).reshape((-1,1))    # P(y)
+        Pxy = Px_y.copy()
+        Pxy[y==0] = Px_y[y==0] * Py[0]
+        Pxy[y==1] = Px_y[y==1] * Py[1]
+            
+        return - sum(Pxy * np.log(Px_y))
+
+     
 def mutual_information(x, y):
-	" Returns the information gain/mutual information [H(X)-H(X|Y)] between two random vars x & y."
-	return entropy(x) - conditional_entropy(x, y)
+    " Returns the information gain/mutual information [H(X)-H(X|Y)] between two random vars x & y."
+    return entropy(x) - conditional_entropy(x, y)
 
 def symmetrical_uncertainty(x, y):
-	" Returns 'symmetrical uncertainty' (SU) - a symmetric mutual information measure."
-	return 2.0*mutual_information(x, y)/(entropy(x) + entropy(y))    
+    " Returns 'symmetrical uncertainty' (SU) - a symmetric mutual information measure."
+    return 2.0*mutual_information(x, y)/(entropy(x) + entropy(y))    
 
 def c_correlation(X, y):
-	"""
-	Returns SU values between each feature and class.
-	
-	Parameters:
-	-----------
-	X : 2-D ndarray
-		Feature matrix.
-	y : ndarray
-		Class label vector
-		
-	Returns:
-	--------
-	su : ndarray
-		Symmetric Uncertainty (SU) values for each feature.
-	"""
-	su = np.zeros(X.shape[1])
-	for i in np.arange(X.shape[1]):
-		su[i] = symmetrical_uncertainty(X[:,i], y)
-	return su
+    """
+    Returns SU values between each feature and class.
     
+    Parameters:
+    -----------
+    X : 2-D ndarray
+        Feature matrix.
+    y : ndarray
+        Class label vector
+        
+    Returns:
+    --------
+    su : ndarray
+        Symmetric Uncertainty (SU) values for each feature.
+    """
+    su = np.zeros(X.shape[1])
+    for i in np.arange(X.shape[1]):
+        print(i)
+        su[i] = symmetrical_uncertainty(X[:,i:i+1], y)
+    return su
+
+    
+#GM.fit(X[:,f:f+1])
+#Post = GM.predict_proba(X[:,f+1:f+2])
+#Pred = GM.predict(X[:,f+1:f+2])
+        
 creator.create("Fitness", base.Fitness, weights=(1.0, ))
 creator.create("Individual", list, fitness=creator.Fitness)
 
@@ -154,12 +194,13 @@ stats.register("max", np.max)
 logbook = tools.Logbook()
 logbook.header = ["gen"] + ["best_fit"] + stats.fields
 
+
 def main(graph = False, log = False):
     
-    harmony_mem = toolbox.population(n=50) 
+    harmony_mem = toolbox.population(n=5) 
     hof = tools.HallOfFame(1)
-    NGEN = 1000
-    a = c_correlation(X,Y)
+    NGEN = 100
+    C = c_correlation(X,X[:,1:2])
     # Evaluate the entire population
     fitnesses = toolbox.map(toolbox.evaluate, harmony_mem)
     for ind, fit in zip(harmony_mem, fitnesses):
@@ -230,3 +271,41 @@ if __name__ == "__main__":
 ## Problema na inicialização acima: a maioria dos indivíduos terá um número de 
     
 ## atributos selecionados próximo de 50 % 
+
+### Check the distribuition 
+## Checking the data to gene f
+#f = 10
+#
+## Check the real distribution
+#plt.hist(X[Y==1,f:f+1], alpha = 0.75, normed= True, color = "red")
+#plt.hist(X[Y==0,f:f+1], alpha = 0.75, normed= True, color = "blue")
+#
+## Feature Quantization
+#plt.figure()
+#GM = GaussianMixture(verbose=True, n_components = 2)
+#GM.fit(X[:,f:f+1], y = Y)
+#Samples, labels = GM.sample(500)
+#plt.hist(Samples[labels==1], alpha = 0.75, normed= True, color = "red")
+#plt.hist(Samples[labels==0], alpha = 0.75, normed= True, color = "blue")
+# Gaussian Mix
+#f = 10
+#GM = GaussianMixture(verbose=True, n_components = 2)
+#GM.fit(X[:,f:f+1])
+#Post = GM.predict_proba(X[:,f+1:f+2])
+#Pred = GM.predict(X[:,f+1:f+2])
+#Score2 = np.exp(GM.score_samples(X[:,f:f+1]))
+#
+#del f
+
+
+# Calcula o erro bayesiano    
+def state_gene(x,y,Y):
+    GM = GaussianMixture(verbose=True, n_components = 2)
+    GM.means_init = np.array([x[Y == 1].mean(axis=0) for i in range(2)]).reshape(-1,1)    
+    GM.fit(x)
+    Px1 = np.exp(GM.score_samples(x)) # Probabilistic Density: the change to get each gene
+    Pz0 = GM.predict_proba(x)[:,0]
+    Pz1 = GM.predict_proba(x)[:,1]
+    df0 = np.asarray(~(Pz0 > 0.5), dtype = int)    
+    e = (sum((Pz0[Y==1]*(Y[Y==1] == df0[Y==1])))+ sum(Pz1[Y==0]*(Y[Y==0] != df0[Y==0])))/len(Y) # (Falta relacionar cada Pz0 com o fato de estar certo ou errado)
+    Px2_x1 = GM.predict_proba(y) 
