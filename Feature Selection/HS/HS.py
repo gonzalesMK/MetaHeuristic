@@ -54,6 +54,7 @@ def evaluate(individual):
     
     # Create SVM Classifier
     classifier = SVC(kernel = 'linear')
+    classifier.fit(X,y)
 
     # Applying K-Fold Cross Validation
     accuracies = cross_val_score( estimator = classifier, X = train, y = Y, cv = 3)

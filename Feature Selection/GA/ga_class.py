@@ -17,6 +17,8 @@ from datetime import datetime
 from abc import ABCMeta
 from warnings import warn
 
+from sklearn.preprocessing import StandardScaler
+
 def safe_mask(X, mask):
     """Return a mask which is safe to use on X.
     Parameters
@@ -183,12 +185,38 @@ class genetic_algorithm(_BaseFilter):
         self.logbook = tools.Logbook()
         self.logbook.header = ["gen"] + self.stats.fields        
         
-        print("Got data")
-        self.toolbox.register("evaluate", self._evaluate, X = X, y = y)        
+        if(( type(X) != type(None) and type(y) == type(None)) or (type(X) == type(None) and type(y) != type(None))):
+                print("It's necessary to input both X and y datasets")
         
-    def fit(self,X,y):
+        if(type(X) != type(None) and type(y) != type(None)):
+            print("Got data")
+            self.toolbox.register("evaluate", self._evaluate, X = X, y = y)
+            self.X = X
+            self.y = y
+        else:   
+            self.X = None
+            self.y = None
+        
+    def fit(self,X = None, y = None, normalize = True):
+        
+        if( type(X) == type(None)):
+            if(type(self.X) == type(None)):
+                print("You need to input X data")
+            else:
+                X = self.X
 
+        if( type(y) == type(None)):
+            if(type(self.y) == type(None)):
+                print("You need to input y data")
+            else:
+                y = self.y
+                        
         self.n_features = len(X)   
+        
+        if( normalize ):
+            sc_X = StandardScaler()
+            X = sc_X.fit_transform(X)
+
         self.toolbox.register("evaluate", self._evaluate, X = X, y = y)        
         
         pop = self.toolbox.population(self.size_pop) 
@@ -253,7 +281,6 @@ class genetic_algorithm(_BaseFilter):
             return 0,
                
         # Applying K-Fold Cross Validation
-        print("cross")
         accuracies = cross_val_score( estimator = clone(self.estimator) , X = train, y = y, cv = 3)
         
         return accuracies.mean() - accuracies.std(), pow(sum(individual)/(len(X)*5),2),
