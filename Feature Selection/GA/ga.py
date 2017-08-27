@@ -6,6 +6,10 @@ import networkx
 from deap import benchmarks
 from deap import base, creator
 from deap import tools
+
+from ga_class import genetic_algorithm
+
+
 import scoop
 from scoop import futures
 
