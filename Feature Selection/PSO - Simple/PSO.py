@@ -20,6 +20,7 @@ from sklearn.preprocessing import LabelEncoder
 
 from scipy.special import expit
 
+import networkx
 import arff
 
 dataset = arff.load(open('Colon.arff'))
@@ -88,6 +89,8 @@ def updateParticle(part, best, phi1, phi2):
             part.speed[i] = part.smax
     
     part[:] = (expit(part) > random.uniform(0,1)).astype(int)
+    
+    return part,
 
 creator.create("FitnessMax", base.Fitness, weights=(1.0,))
 creator.create("Particle", list, fitness=creator.FitnessMax, speed=list, smin=None, smax=None, best=None)
@@ -112,13 +115,17 @@ hof = tools.HallOfFame(1)
 logbook = tools.Logbook()
 logbook.header = ["gen", "evals"] + stats.fields
 
+# history
+history = tools.History()
+toolbox.decorate("update", history.decorator)
 
-def main():
+def main(flag = True):
     swarm = toolbox.swarm(n=10)
-    GEN = 30
+    history.update(swarm)
+    GEN = 2
 
     for g in range(GEN):
-        
+        print(g)
         # Evaluate the entire population
         fitnesses = toolbox.map(toolbox.evaluate, swarm)
         for ind, fit in zip(swarm, fitnesses):
@@ -135,6 +142,14 @@ def main():
         logbook.record(gen=g, evals=len(swarm), **stats.compile(swarm))
 
     print(logbook)
+    
+    if( flag):
+        graph = networkx.DiGraph(history.genealogy_tree)
+        graph = graph.reverse()     # Make the grah top-down
+        colors = [toolbox.evaluate(history.genealogy_history[i])[0] for i in graph]
+        networkx.draw(graph, node_color=colors)
+        plt.show()
+    
     
     return swarm, logbook, hof[0]
 

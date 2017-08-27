@@ -2,7 +2,7 @@
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
-
+import networkx
 from deap import benchmarks
 from deap import base, creator
 from deap import tools
@@ -47,6 +47,8 @@ def evaluate(individual):
     features = list( compress( range(len(individual)), individual))
     train =  np.reshape([X[:, i] for i in features], [ len(features),  len(X)]  ).T
     
+    if( len(train) == 0 ):
+        return 0,
     # Feature Scaling
     sc_X = StandardScaler()
     train = sc_X.fit_transform(train)
@@ -57,7 +59,7 @@ def evaluate(individual):
     # Applying K-Fold Cross Validation
     accuracies = cross_val_score( estimator = classifier, X = train, y = Y, cv = 3)
     
-    return accuracies.mean() - accuracies.std(), pow(sum(individual)/10000,2)
+    return accuracies.mean() - accuracies.std(), pow(sum(individual)/10000,2),
 
 creator.create("FitnessMin", base.Fitness, weights=(1.0, -1.0))
 creator.create("Individual", list, fitness=creator.FitnessMin)
@@ -89,16 +91,20 @@ stats.register("max", np.max)
 #logbook.header = ["gen"] + stats.fields
 #logbook.chapters["Accuracy"].header = "min", "avg", "max", "std"
 #logbook.chapters["# of Features"].header = "min", "avg", "max", "std" # number of features
-
 logbook = tools.Logbook()
-logbook.header = ["gen", "evals"] + stats.fields
+logbook.header = ["gen"] + stats.fields
+
+
+#history = tools.History()
+#toolbox.decorate("mate", history.decorator)
+#toolbox.decorate("mutate", history.decorator)
 
 def main(graph = False, log = True):
     scoop.logger.info("Generating Population")
 
     pop = toolbox.population(n=40) 
     hof = tools.HallOfFame(1)
-    CXPB, MUTPB, NGEN = 0.5, 0.2, 10
+    CXPB, MUTPB, NGEN = 0.5, 0.2, 20
 
     # Evaluate the entire population
     fitnesses = toolbox.map(toolbox.evaluate, pop)
@@ -142,10 +148,9 @@ def main(graph = False, log = True):
     # Plottig Estatistics 
     if( graph ):
         gen = logbook.select("gen")
-        acc_mins = logbook.chapters["Accuracy"].select("min")
-        acc_maxs = logbook.chapters["Accuracy"].select("max")
-        acc_avgs = logbook.chapters["Accuracy"].select("avg")
-        n_feat = logbook.chapters["N"].select("avg")
+        acc_mins = logbook.select("min")
+        acc_maxs = logbook.select("max")
+        acc_avgs = logbook.select("avg")
         
         fig, ax1 = plt.subplots()
         line1 = ax1.plot(gen, acc_mins, "r-", label="Minimun Acc")
@@ -154,13 +159,8 @@ def main(graph = False, log = True):
         ax1.set_xlabel("Generation")
         ax1.set_ylabel("Accuracy")
         
-        ax2 = ax1.twinx()
-        line4 = ax2.plot(gen, n_feat, "y-", label="Avg Features")
-        ax2.set_ylabel("Size", color="y")
-        for tl in ax2.get_yticklabels():
-            tl.set_color("y")
         
-        lns = line1 + line2 + line3 + line4
+        lns = line1 + line2 + line3
         labs = [l.get_label() for l in lns]
         ax1.legend(lns, labs, loc="center right")
         
@@ -168,6 +168,13 @@ def main(graph = False, log = True):
     
     if(log):  
         print(logbook)
+    
+    if(history):
+        graph = networkx.DiGraph(history.genealogy_tree)
+        graph = graph.reverse()     # Make the grah top-down
+        colors = [toolbox.evaluate(history.genealogy_history[i])[0] for i in graph]
+        networkx.draw(graph, node_color=colors)
+        plt.show()
     
     return hof[0]
 
