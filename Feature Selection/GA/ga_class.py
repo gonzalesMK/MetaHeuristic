@@ -111,8 +111,8 @@ class _BaseFilter(BaseEstimator, SelectorMixin):
         (scores, pvalues) or a single array with scores.
     """
 
-    def __init__(self, score_func):
-        self.score_func = score_func
+    def __init__(self):
+        self.score_func = None
 
     def fit(self, X, y):
         """Run score function on (X, y) and get the appropriate features.
@@ -154,15 +154,57 @@ class _BaseFilter(BaseEstimator, SelectorMixin):
 
     
 class genetic_algorithm(_BaseFilter):
+    """Implementation of a Genetic Algorithm for Feature Selection 
     
-    def __init__(self, estimator,score_func = lambda x:x, X=None, y=None, cross_over_prob = 0.2, individual_mutation_probability = 0.05, gene_mutation_prob = 0.05, number_gen = 20, size_pop = 40):
+    Parameters
+    ----------
+    predict_with : strin
+        'all' - will predict the X with all masks and return the mean
+        'best' - will predict the X wihtl the mask with the best fitness
+        you may use 'all' to make grid search for hyperparameters
+    
+    X : array of shape [n_samples, n_features]
+            The input samples.
+    
+    y : array of shape [n_samples, 1]            
+            The input of labels 
+    
+    Cross_over_prob :  float in [0,1]
+            Probability of happening a cross-over in a chromosome 
+    
+    individual_mutation_probability : float in [0,1]
+            Probability of happening mutation in a chromosome 
+            
+    gene_mutation_prob : float in [0,1]
+            For each gene in the chromosome chosen for mutation, 
+            is the probability of it being mutate
+            
+    number_gen : positive integer
+            Number of generations
+            
+    size_pop : positive integer
+            Number of individuals in the population
+            
+    verbose : boolean
+            Print information
+            
+    repeat : positive int
+            Number of times to repeat the fitting process
+    """
+
+    def __init__(self, estimator, X=None, y=None, cross_over_prob = 0.2, individual_mutation_probability = 0.05, gene_mutation_prob = 0.05, number_gen = 20, size_pop = 40, verbose = False, repeat_ = 1, predict_with = 'best'):
+        
         self.mutation_prob = individual_mutation_probability
         self.number_gen = number_gen
         self.cross_over_prob = 0.2
         self.size_pop = size_pop
-        self.score_func = score_func
+        self.score_func = None
         self.estimator = estimator
-    
+        self.repeat = repeat_
+        self.fitness = []
+        self.mask = []
+        self.predict_with =  predict_with
+        
         creator.create("FitnessMin", base.Fitness, weights=(1.0, -1.0))
         creator.create("Individual", list, fitness=creator.FitnessMin)
         
@@ -185,11 +227,15 @@ class genetic_algorithm(_BaseFilter):
         self.logbook = tools.Logbook()
         self.logbook.header = ["gen"] + self.stats.fields        
         
+        if( verbose):
+            self.toolbox.register("print", print)
+        else:
+            self.toolbox.register("print", lambda *args, **kwargs: None)
+        
         if(( type(X) != type(None) and type(y) == type(None)) or (type(X) == type(None) and type(y) != type(None))):
-                print("It's necessary to input both X and y datasets")
+                raise ValueError("It's necessary to input both X and y datasets")
         
         if(type(X) != type(None) and type(y) != type(None)):
-            print("Got data")
             self.toolbox.register("evaluate", self._evaluate, X = X, y = y)
             self.X = X
             self.y = y
@@ -201,15 +247,19 @@ class genetic_algorithm(_BaseFilter):
         
         if( type(X) == type(None)):
             if(type(self.X) == type(None)):
-                print("You need to input X data")
+                raise ValueError("You need to input X data")
             else:
                 X = self.X
+        else:
+            self.x = X
 
         if( type(y) == type(None)):
             if(type(self.y) == type(None)):
-                print("You need to input y data")
+                raise ValueError("You need to input y data")
             else:
                 y = self.y
+        else:
+            self.y = y
                         
         self.n_features = len(X)   
         
@@ -219,52 +269,55 @@ class genetic_algorithm(_BaseFilter):
 
         self.toolbox.register("evaluate", self._evaluate, X = X, y = y)        
         
-        pop = self.toolbox.population(self.size_pop) 
-        hof = tools.HallOfFame(1)
-
-        # Evaluate the entire population
-        print("Fit")
-        fitnesses = self.toolbox.map(self.toolbox.evaluate, pop)
-        for ind, fit in zip(pop, fitnesses):
-            ind.fitness.values = fit
-        
-        print("Starting")
-        for g in range(self.number_gen):
-            # Select the next generation individuals
-            offspring = self.toolbox.select(pop, len(pop))
-            # Clone the selected individuals
-            offspring = list(map(self.toolbox.clone, offspring)) 
-        
-            # Apply crossover and mutation on the offspring
-            for child1, child2 in zip(offspring[::2], offspring[1::2]):
-                if random.random() < self.cross_over_prob:
-                    self.toolbox.mate(child1, child2)
-                    del child1.fitness.values
-                    del child2.fitness.values
-        
-            for mutant in offspring:
-                if random.random() < self.mutation_prob:
-                    self.toolbox.mutate(mutant)
-                    del mutant.fitness.values
-        
-            # Evaluate the individuals with an invalid fitness ( new individuals)
-            invalid_ind = [ind for ind in offspring if not ind.fitness.valid]
-            fitnesses = self.toolbox.map(self.toolbox.evaluate, invalid_ind)
-            for ind, fit in zip(invalid_ind, fitnesses):
+        for i in range(self.repeat):
+            pop = self.toolbox.population(self.size_pop) 
+            hof = tools.HallOfFame(1)
+            # Evaluate the entire population
+            fitnesses = self.toolbox.map(self.toolbox.evaluate, pop)
+            for ind, fit in zip(pop, fitnesses):
                 ind.fitness.values = fit
-        
-            # The population is entirely replaced by the offspring
-            pop[:] = offspring
             
-            # Log statistic
-            hof.update(pop)
-            self.logbook.record(gen=g, **self.stats.compile(pop))
-            print("Generation: ", g + 1 , "/", self.number_gen, "TIME: ", datetime.now().time().minute, ":", datetime.now().time().second)
-        
-        self.mask = hof[0][:]
-        self.fitness = hof[0].fitness.values
-    
+            for g in range(self.number_gen):
+                # Select the next generation individuals
+                offspring = self.toolbox.select(pop, len(pop))
+                # Clone the selected individuals
+                offspring = list(map(self.toolbox.clone, offspring)) 
             
+                # Apply crossover and mutation on the offspring
+                for child1, child2 in zip(offspring[::2], offspring[1::2]):
+                    if random.random() < self.cross_over_prob:
+                        self.toolbox.mate(child1, child2)
+                        del child1.fitness.values
+                        del child2.fitness.values
+            
+                for mutant in offspring:
+                    if random.random() < self.mutation_prob:
+                        self.toolbox.mutate(mutant)
+                        del mutant.fitness.values
+            
+                # Evaluate the individuals with an invalid fitness ( new individuals)
+                invalid_ind = [ind for ind in offspring if not ind.fitness.valid]
+                fitnesses = self.toolbox.map(self.toolbox.evaluate, invalid_ind)
+                for ind, fit in zip(invalid_ind, fitnesses):
+                    ind.fitness.values = fit
+            
+                # The population is entirely replaced by the offspring
+                pop[:] = offspring
+                
+                # Log statistic
+                hof.update(pop)
+                self.logbook.record(gen=g, **self.stats.compile(pop))
+                self.toolbox.print("Generation: ", g + 1 , "/", self.number_gen, "TIME: ", datetime.now().time().minute, ":", datetime.now().time().second)
+                
+            self.mask.append(hof[0][:])
+            self.fitness.append(hof[0].fitness.values)
+        
+        indx, indy = np.argmax(self.fitness, axis = 0)
+        self.best_mask = self.mask[indx]
+        features = list( compress( range(len(self.best_mask)), self.best_mask))
+        train =  np.reshape([self.X[:, i] for i in features], [ len(features),  len(self.X)]).T
+        self.estimator.fit(X = train, y = self.y)
+        
     def _gen_in(self):
         RND = randint(0,self.n_features)
         
@@ -277,7 +330,7 @@ class genetic_algorithm(_BaseFilter):
         features = list( compress( range(len(individual)), individual))
         train =  np.reshape([X[:, i] for i in features], [ len(features),  len(X)]).T
         
-        if( len(train) == 0 ):
+        if( train.shape[1] == 0 ):
             return 0,
                
         # Applying K-Fold Cross Validation
@@ -285,10 +338,34 @@ class genetic_algorithm(_BaseFilter):
         
         return accuracies.mean() - accuracies.std(), pow(sum(individual)/(len(X)*5),2),
 
-    def transform(self,X):
-        features = list( compress( range(len(self.mask)), self.mask))
-        return np.reshape([X[:, i] for i in features], [ len(features),  len(X)]).T
+    def transform(self, X,mask = None):
+        if( type(mask) == type(None)):
+            features = list( compress( range(len(self.best_mask)), self.best_mask))
+            return np.reshape([X[:, i] for i in features], [ len(features),  len(X)]).T
+        else:
+            features = list( compress( range(len(mask)), mask))
+            return np.reshape([X[:, i] for i in features], [ len(features),  len(X)]).T
 
     def _get_support_mask(self):
         check_is_fitted(self, 'support_')
         return self.support_
+    
+    def predict(self,X):
+        if( self.predict_with == 'best'):
+            X_ = self.transform(X)
+            return self.estimator.predict(X_)
+        
+        elif(self.predict_with == 'all'):
+            predict = []
+            for mask in self.mask:
+                X_ = self.transform(X, mask = mask)
+                self.estimator.fit(X = self.transform(self.X, mask = mask), y = self.y)                    
+                predict.append(self.estimator.predict(X))
+                     
+            return predict
+    
+    def score_func_to_grid_search(y_true, y_pred):
+        p1 = 0
+        for y in y_pred:
+            p1 = sum(y_true == y_pred) + p1
+        return p1/( len(y_true) + len(y_pred))
