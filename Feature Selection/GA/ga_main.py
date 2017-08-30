@@ -75,7 +75,18 @@ def main():
                     'size_pop': [40],
                     'cross_over_prob': [0.1, 0.3, 0.7, 1],
                     'gene_mutation_prob': [0, 0.05, 0.1],
-                    'individual_mutation_probability': [0, 0.05, 0.1],
+                    'individual_mut_prob': [0, 0.05, 0.1],
                     'repeat_': [10]}]
-     ga_ = partial(ga, estimator = classifier, repeat_ = 10)
-    clf = GridSearchCV(estimator = ga, param_grid= , scoring = ga.score_func_to_grid_search)    
+    parameters =[ {  'number_gen': [50],
+                    'size_pop': [40],
+                    'cross_over_prob': [0.1],
+                    'gene_mutation_prob': [0.1],
+                    'individual_mut_prob': [0.1],
+                    'repeat_': [1]}]
+    classifier = SVC(kernel = 'linear', verbose=  False, max_iter = 10000)
+    ga_ = genetic_algorithm( estimator = classifier, repeat_ = 10, size_pop = 40)
+    clf = GridSearchCV(estimator = ga_, param_grid= parameters, scoring = ga_.score_func_to_grid_search, verbose = 10)    
+    clf.fit(X,Y)
+    ga_.get_params()
+    
+    
