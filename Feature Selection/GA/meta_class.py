@@ -295,7 +295,10 @@ class GeneticAlgorithm(_BaseMetaHeurisct):
             If True, a logbook from DEAP will be made
     """
 
-    def __init__(self, estimator, X=None, y=None, cross_over_prob = 0.2, individual_mut_prob = 0.05, gene_mutation_prob = 0.05, number_gen = 20, size_pop = 40, verbose = True, repeat_ = 1, predict_with = 'best', make_logbook = False):
+    def __init__(self, estimator, X=None, y=None, cross_over_prob = 0.2, 
+                 individual_mut_prob = 0.05, gene_mutation_prob = 0.05, 
+                 number_gen = 20, size_pop = 40, verbose = 0, repeat_ = 1, 
+                 predict_with = 'best', make_logbook = False):
         
         self.individual_mut_prob = individual_mut_prob
         self.number_gen = number_gen
@@ -309,6 +312,7 @@ class GeneticAlgorithm(_BaseMetaHeurisct):
         self.predict_with =  predict_with
         self.gene_mutation_prob = gene_mutation_prob
         self.make_logbook = make_logbook
+        self.verbose = verbose
         
         creator.create("FitnessMin", base.Fitness, weights=(1.0, -1.0))
         creator.create("Individual", list, fitness=creator.FitnessMin)
@@ -331,11 +335,6 @@ class GeneticAlgorithm(_BaseMetaHeurisct):
         if( make_logbook ):
             self.logbook = tools.Logbook()
             self.logbook.header = ["gen"] + self.stats.fields        
-        
-        if( verbose):
-            self.toolbox.register("print", print)
-        else:
-            self.toolbox.register("print", lambda *args, **kwargs: None)
         
         if(( type(X) != type(None) and type(y) == type(None) ) or (type(X) == type(None) and type(y) != type(None))):
                 raise ValueError("It's necessary to input both X and y datasets")
@@ -432,7 +431,9 @@ class GeneticAlgorithm(_BaseMetaHeurisct):
                 hof.update(pop)
                 if(self.make_logbook):
                     self.logbook.record(gen=g, **self.stats.compile(pop))
-                self.toolbox.print("Generation: ", g + 1 , "/", self.number_gen, "TIME: ", datetime.now().time().minute, ":", datetime.now().time().second)
+                if(self.verbose):
+                    if( g % self.verbose == 0)
+                    print("Generation: ", g + 1 , "/", self.number_gen, "TIME: ", datetime.now().time().minute, ":", datetime.now().time().second)
                     
             best.update(hof)
         
@@ -487,7 +488,9 @@ class HarmonicSearch(_BaseMetaHeurisct):
             If True, a logbook from DEAP will be made
     """
 
-    def __init__(self, estimator, X=None, y=None, HMCR = 0.95, indpb = 0.05, pitch = 0.05, number_gen = 20, size_pop = 40, verbose = True, repeat_ = 1, predict_with = 'best', make_logbook = False):
+    def __init__(self, estimator, X=None, y=None, HMCR = 0.95, indpb = 0.05, 
+                 pitch = 0.05, number_gen = 20, size_pop = 40, verbose = 0,
+                 repeat_ = 1, predict_with = 'best', make_logbook = False):
 
         creator.create("Fitness", base.Fitness, weights=(1.0, -1.0))
         creator.create("Individual", list, fitness=creator.Fitness)
@@ -504,6 +507,7 @@ class HarmonicSearch(_BaseMetaHeurisct):
         self.mask = []
         self.predict_with =  predict_with
         self.make_logbook = make_logbook
+        self.verbose = verbose
         
         self.toolbox = base.Toolbox()
         self.toolbox.register("attribute", self._gen_in)
@@ -597,8 +601,9 @@ class HarmonicSearch(_BaseMetaHeurisct):
                 hof.update(harmony_mem)
                 if( self.make_logbook):
                     self.logbook.record(gen=g, best_fit= hof[0].fitness.values[0], **self.stats.compile(harmony_mem))
-                if( g % 100 == 0):
-                    print("Generation: ", g + 1 , "/", self.number_gen, "TIME: ", datetime.now().time().minute, ":", datetime.now().time().second)
+                if(self.verbose):
+                    if( g % self.verbose == 0):
+                        print("Generation: ", g + 1 , "/", self.number_gen, "TIME: ", datetime.now().time().minute, ":", datetime.now().time().second)
                 #scoop.logger.info("Generation: %d", g)
             best.update(hof)
         
