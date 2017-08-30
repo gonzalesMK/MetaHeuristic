@@ -259,7 +259,7 @@ class GeneticAlgorithm(_BaseMetaHeurisct):
     predict_with : one of { 'all' , 'best' }
         'all' - will predict the X with all masks and return the mean
         
-        'best' - will predict the X wihtl the mask with the best fitness
+        'best' - will predict the X using the mask with the best fitness
         
         obs: If you are going to make grid search in hyperparameters, use 'all'
     
@@ -445,7 +445,48 @@ class GeneticAlgorithm(_BaseMetaHeurisct):
         return self
     
 class HarmonicSearch(_BaseMetaHeurisct):    
+    """Implementation of a Harmonic Search Algorithm for Feature Selection 
     
+    Parameters
+    ----------
+    predict_with : one of { 'all' , 'best' }
+        'all' - will predict the X with all masks and return the mean
+        
+        'best' - will predict the X using the mask with the best fitness
+        
+        obs: If you are going to make grid search in hyperparameters, use 'all'
+    
+    HMCR : float in [0,1]
+            Is the Harmonic Memory Considering Rate
+
+    indpb : float in [0,1]
+            Is the mutation rate of each new harmony
+            
+    pitch : float in [0,1]
+            Is the Pitch Adjustament factor
+    
+    X : array of shape [n_samples, n_features]
+            The input samples
+    
+    y : array of shape [n_samples, 1]            
+            The input of labels 
+    
+    number_gen : positive integer
+            Number of generations
+            
+    size_pop : positive integer
+            Size of the Harmonic Memory
+            
+    verbose : boolean
+            Print information
+            
+    repeat_ : positive int
+            Number of times to repeat the fitting process
+        
+    make_logbook: boolean
+            If True, a logbook from DEAP will be made
+    """
+
     def __init__(self, estimator, X=None, y=None, HMCR = 0.95, indpb = 0.05, pitch = 0.05, number_gen = 20, size_pop = 40, verbose = True, repeat_ = 1, predict_with = 'best', make_logbook = False):
 
         creator.create("Fitness", base.Fitness, weights=(1.0, -1.0))
