@@ -432,8 +432,8 @@ class GeneticAlgorithm(_BaseMetaHeurisct):
                 if(self.make_logbook):
                     self.logbook.record(gen=g, **self.stats.compile(pop))
                 if(self.verbose):
-                    if( g % self.verbose == 0)
-                    print("Generation: ", g + 1 , "/", self.number_gen, "TIME: ", datetime.now().time().minute, ":", datetime.now().time().second)
+                    if( g % self.verbose == 0):
+                        print("Generation: ", g + 1 , "/", self.number_gen, "TIME: ", datetime.now().time().minute, ":", datetime.now().time().second)
                     
             best.update(hof)
         
@@ -530,11 +530,6 @@ class HarmonicSearch(_BaseMetaHeurisct):
         if( make_logbook ):
             self.logbook = tools.Logbook()
             self.logbook.header = ["gen"] + ["best_fit"] + self.stats.fields
-        
-        if( verbose):
-            self.toolbox.register("print", print)
-        else:
-            self.toolbox.register("print", lambda *args, **kwargs: None)
         
         if(( type(X) != type(None) and type(y) == type(None) ) or (type(X) == type(None) and type(y) != type(None))):
                 raise ValueError("It's necessary to input both X and y datasets")

@@ -1,5 +1,5 @@
-# Binary Particle Swarm Optimization - Implemented as the paper in this directory 
-# Still not working.
+""" Binary Particle Swarm Optimization - Implemented as the paper in this directory 
+Still not working."""
 
 import operator
 import random
@@ -143,14 +143,7 @@ def main(flag = True):
 
     print(logbook)
     
-    if( flag):
-        graph = networkx.DiGraph(history.genealogy_tree)
-        graph = graph.reverse()     # Make the grah top-down
-        colors = [toolbox.evaluate(history.genealogy_history[i])[0] for i in graph]
-        networkx.draw(graph, node_color=colors)
-        plt.show()
-    
-    
+   
     return swarm, logbook, hof[0]
 
 if __name__ == "__main__":
@@ -170,3 +163,10 @@ if __name__ == "__main__":
 #    a = np.asarray(swarm)
 #    plt.scatter(x = a[:,0] ,y = a[:,1], c = np.asarray([i.fitness.values for i in swarm ]) , cmap= plt.get_cmap('inferno'), marker = '.', norm = norm)
 
+#if( flag):
+#        graph = networkx.DiGraph(history.genealogy_tree)
+#        graph = graph.reverse()     # Make the grah top-down
+#        colors = [toolbox.evaluate(history.genealogy_history[i])[0] for i in graph]
+#        networkx.draw(graph, node_color=colors)
+#        plt.show()
+#    

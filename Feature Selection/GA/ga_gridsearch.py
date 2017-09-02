@@ -42,7 +42,7 @@ def main():
 #    clf = GridSearchCV(estimator = ga_, param_grid= parameters, scoring = ga_.score_func_to_grid_search, verbose = 1)    
 #    clf.fit(X,Y)
     ga = GeneticAlgorithm(estimator = classifier)
-    hs = HarmonicSearch(estimator = classifier, repeat_ = 2)
+    hs = HarmonicSearch(estimator = classifier, repeat_ = 1, size_pop = 50, number_gen = 10000)
     
     hs.fit(X= X, y = Y)
     ga.fit(X= X, y = Y)

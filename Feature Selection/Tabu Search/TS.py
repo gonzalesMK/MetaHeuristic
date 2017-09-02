@@ -1,7 +1,7 @@
 # Importing Libraries
-"Simple Tabu search does not seem as a good algorithm for feature selection for big feature"
-" sets. It is too slow to look for one different feature at a time. So, there is a need for "
-" more complex moves. I still need to do more research "
+"""Simple Tabu search does not seem as a good algorithm for feature selection in big feature
+sets. It is too slow to look for one different feature at a time. So, there is a need for
+more complex moves... so I still need to do more research on it"""
  
 import numpy as np
 import pandas as pd
@@ -127,9 +127,8 @@ def main():
     GEN = 30
 
     for g in range(GEN):
-    
-#    individual.fitness.values = toolbox.evaluate(individual)
-    hof.update([individual])
+        individual.fitness.values = toolbox.evaluate(individual)
+        hof.update([individual])
     
     
 if __name__ == "__main__":
