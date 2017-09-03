@@ -44,8 +44,8 @@ def main():
 #    clf.fit(X,Y)
 
     hs =  HarmonicSearch(classifier = classifier,
-                         number_gen = 200,
-                         mem_size = 50,
+                         number_gen = 2000,
+                         mem_size = 100,
                          make_logbook = True,
                          random_state = 2,
                          repeat_ = 1)
