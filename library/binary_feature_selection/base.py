@@ -1,9 +1,10 @@
 import numpy as np
+import matplotlib.pyplot as plt
 
 from sklearn.base import BaseEstimator, ClassifierMixin, TransformerMixin, clone
+
 from sklearn.model_selection import cross_val_score
 from sklearn.utils.validation import check_X_y, check_array, check_is_fitted,column_or_1d
-from sklearn.utils import assert_all_finite
 from sklearn.externals import six
 from sklearn.utils.multiclass import check_classification_targets
 from abc import ABCMeta
@@ -11,27 +12,28 @@ from warnings import warn
 from itertools import compress
 
 from random import sample
+
 def safe_mask(X, mask):
-    """Return a mask which is safe to use on X.
-    Parameters
-    ----------
-    X : {array-like, sparse matrix}
-        Data on which to apply mask.
-    mask : array
-        Mask to be used on X.
-    Returns
-    -------
-        mask
-    """
-    mask = np.asarray(mask)
-    if np.issubdtype(mask.dtype, np.int):
+        """Return a mask which is safe to use on X.
+        Parameters
+        ----------
+        X : {array-like, sparse matrix}
+            Data on which to apply mask.
+        mask : array
+            Mask to be used on X.
+        Returns
+        -------
+            mask
+        """
+        mask = np.asarray(mask)
+
+        if np.issubdtype(mask.dtype, np.int):
+            return mask
+    
+        if hasattr(X, "toarray"):
+            ind = np.arange(mask.shape[0])
+            mask = ind[mask]
         return mask
-
-    if hasattr(X, "toarray"):
-        ind = np.arange(mask.shape[0])
-        mask = ind[mask]
-    return mask
-
 
 class SelectorMixin(six.with_metaclass(ABCMeta, TransformerMixin)):
     """
@@ -61,7 +63,7 @@ class SelectorMixin(six.with_metaclass(ABCMeta, TransformerMixin)):
         """
         mask = self._get_support_mask()
         return mask if not indices else np.where(mask)[0]
-
+    
     def _get_support_mask(self):
         """
         Get the boolean mask indicating which features are selected
@@ -71,8 +73,11 @@ class SelectorMixin(six.with_metaclass(ABCMeta, TransformerMixin)):
             An element is True iff its corresponding feature is selected for
             retention.
         """
+        check_is_fitted(self, 'support_')
+        return self.support_
 
-    def transform(self, X):
+    
+    def transform(self, X,mask = None):
         """Reduce X to the selected features.
         Parameters
         ----------
@@ -83,67 +88,25 @@ class SelectorMixin(six.with_metaclass(ABCMeta, TransformerMixin)):
         X_r : array of shape [n_samples, n_selected_features]
             The input samples with only the selected features.
         """
-        X = check_array(X, accept_sparse='csr')
-        mask = self.get_support()
+
+        X = check_array(X, accept_sparse='csr')        
+        
+        if mask == None:
+            mask = self.get_support()
+            
         if not mask.any():
             warn("No features were selected: either the data is"
                  " too noisy or the selection test too strict.",
                  UserWarning)
             return np.empty(0).reshape((X.shape[0], 0))
+        
         if len(mask) != X.shape[1]:
             raise ValueError("X has a different shape than during fitting.")
+            
         return X[:, safe_mask(X, mask)]
 
-class _BaseFilter(BaseEstimator, SelectorMixin):
-    """Initialize the univariate feature selection.
-    Parameters
-    ----------
-    score_func : callable
-        Function taking two arrays X and y, and returning a pair of arrays
-        (scores, pvalues) or a single array with scores.
-    """
-
-    def __init__(self):
-        self.score_func = None
-
-    def fit(self, X, y):
-        """Run score function on (X, y) and get the appropriate features.
-        Parameters
-        ----------
-        X : array-like, shape = [n_samples, n_features]
-            The training input samples.
-        y : array-like, shape = [n_samples]
-            The target values (class labels in classification, real numbers in
-            regression).
-        Returns
-        -------
-        self : object
-            Returns self.
-        """
-        X, y = check_X_y(X, y, ['csr', 'csc'], multi_output=True)
-
-        if not callable(self.score_func):
-            raise TypeError("The score function should be a callable, %s (%s) "
-                            "was passed."
-                            % (self.score_func, type(self.score_func)))
-
-        self._check_params(X, y)
-        score_func_ret = self.score_func(X, y)
-        if isinstance(score_func_ret, (list, tuple)):
-            self.scores_, self.pvalues_ = score_func_ret
-            self.pvalues_ = np.asarray(self.pvalues_)
-        else:
-            self.scores_ = score_func_ret
-            self.pvalues_ = None
-
-        self.scores_ = np.asarray(self.scores_)
-
-        return self
-
-    def _check_params(self, X, y):
-        pass
     
-class _BaseMetaHeuristic(_BaseFilter, ClassifierMixin):
+class _BaseMetaHeuristic(BaseEstimator,SelectorMixin, ClassifierMixin):
     
     def _gen_in(self):
         """ Generate a individual, DEAP function
@@ -177,48 +140,22 @@ class _BaseMetaHeuristic(_BaseFilter, ClassifierMixin):
         
         return accuracies.mean() - accuracies.std(), pow(sum(individual)/(X.shape[1]*5),2),
 
-    def transform(self, X,mask = None):
-        """ Transform method
-    
-        Parameters
-        ----------
-        
-        X : array of shape [n_samples, n_features]
-                The input samples
-                
-        mask : list of {0,1} or boolean  [n_features]    
-                The features with 1 will be selected, otherwise discarted
-                
-    
-        Return
-        ----------
-        
-        X' : new array of shape [n_samples, sum(n_features)]
-        """
-        assert_all_finite(X)
-        if( mask is None):
-            features = list( compress( range(len(self.best_mask)), self.best_mask))
-            return np.reshape([X[:, i] for i in features], [ len(features),  len(X)]).T
-        else:
-            features = list( compress( range(len(mask)), mask))
-            return np.reshape([X[:, i] for i in features], [ len(features),  len(X)]).T
-
-    def _get_support_mask(self):
-        check_is_fitted(self, 'support_')
-        return self.support_
     
     def predict(self,X):
         
         if( self.predict_with == 'best'):
             X_ = self.transform(X)
-            return self.estimator.predict(X_)
+            y_pred = self.estimator.predict(X_)
+            
+            return   self.classes_.take(np.asarray(y_pred, dtype=np.intp))
         
         elif(self.predict_with == 'all'):
             predict_ = []
             for mask in self.mask:
                 X_ = self.transform(X, mask = mask)
                 self.estimator.fit(X = self.transform(self.X, mask = mask), y = self.y)                    
-                predict_.append(self.estimator.predict(self.transform(X, mask = mask)))
+                y_pred = self.estimator.predict(self.transform(X, mask = mask))
+                predict_.append(self.classes_.take(np.asarray(y_pred, dtype=np.intp)))
                      
             return predict_
     
@@ -246,7 +183,6 @@ class _BaseMetaHeuristic(_BaseFilter, ClassifierMixin):
         y_ = column_or_1d(y, warn=True)
         check_classification_targets(y)
         cls, y = np.unique(y_, return_inverse=True)
-#        self.class_weight_ = compute_class_weight(self.class_weight, cls, y_)
         if len(cls) < 2:
             raise ValueError(
                 "The number of classes has to be greater than one; got %d"
@@ -255,3 +191,24 @@ class _BaseMetaHeuristic(_BaseFilter, ClassifierMixin):
         self.classes_ = cls
 
         return np.asarray(y, dtype=np.float64, order='C')
+    
+    def plot_results(self):
+        
+        for i in range(self.repeat_):
+            gen = self.logbook[i].select("gen")
+            acc_mins = self.logbook[i].select("min")
+            acc_maxs = self.logbook[i].select("max")
+            acc_avgs = self.logbook[i].select("avg")
+                    
+            fig, ax1 = plt.subplots()
+            line1 = ax1.plot(gen, acc_mins, "r-", label="Minimun Acc")
+            line2 = ax1.plot(gen, acc_maxs, "g-", label="Maximun Acc")
+            line3 = ax1.plot(gen, acc_avgs, "b-", label="Average Acc")
+            ax1.set_xlabel("Generation")
+            ax1.set_ylabel("Accuracy")
+
+            lns = line1 + line2 + line3
+            labs = [l.get_label() for l in lns]
+            ax1.legend(lns, labs, loc="center right")
+            ax1.set_title("Repetition: " + str(i+1) )
+            plt.show()
