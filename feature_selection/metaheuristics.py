@@ -8,11 +8,11 @@ from datetime import datetime
 from deap import base, creator
 from deap import tools
 
-from base import _BaseMetaHeuristic
+from .base import _BaseMetaHeuristic
 from sklearn.preprocessing import StandardScaler
 from sklearn.utils import check_X_y
 from sklearn.svm import  SVC
-
+from sklearn.base import clone
 from sklearn.utils import check_random_state
 
 class GeneticAlgorithm(_BaseMetaHeuristic):
@@ -81,7 +81,7 @@ class GeneticAlgorithm(_BaseMetaHeuristic):
         self.make_logbook = make_logbook
         self.verbose = verbose
         self.random_state = random_state
-        self.estimator = SVC(kernel = 'linear', verbose=  False, max_iter = 10000) if classifier is None else classifier
+        self.estimator = SVC(kernel = 'linear', verbose=  False, max_iter = 10000) if classifier is None else clone(classifier)
         self.X = None
         self.y = None
         
@@ -257,7 +257,7 @@ class HarmonicSearch(_BaseMetaHeuristic):
         self.number_gen = number_gen
         self.mem_size = mem_size
         self.score_func = None
-        self.estimator = SVC(kernel = 'linear', verbose=  False, max_iter = 10000) if classifier is None else classifier
+        self.estimator = SVC(kernel = 'linear', verbose=  False, max_iter = 10000) if classifier is None else clone(classifier)
         self.X = None
         self.y = None
           
