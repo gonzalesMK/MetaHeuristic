@@ -7,8 +7,6 @@ from deap import benchmarks
 from deap import base, creator
 from deap import tools
 
-from ga_class import genetic_algorithm
-
 
 import scoop
 from scoop import futures
@@ -84,7 +82,7 @@ toolbox.register("map", map)
 #stats_fit = tools.Statistics(key=lambda ind: ind.fitness.values[0])
 #stats_n = tools.Statistics( key=sum)
 #stats = tools.MultiStatistics( Accuracy = stats_fit, N = stats_n)
-stats = tools.Statistics(lambda ind: ind.fitness.values)
+stats = tools.MultiStatistics(lambda ind: ind.fitness)
 stats.register("avg", np.mean)
 stats.register("std", np.std)
 stats.register("min", np.min)
@@ -172,13 +170,6 @@ def main(graph = False, log = True):
     
     if(log):  
         print(logbook)
-    
-    if(history):
-        graph = networkx.DiGraph(history.genealogy_tree)
-        graph = graph.reverse()     # Make the grah top-down
-        colors = [toolbox.evaluate(history.genealogy_history[i])[0] for i in graph]
-        networkx.draw(graph, node_color=colors)
-        plt.show()
     
     return hof[0]
 

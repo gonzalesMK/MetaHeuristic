@@ -138,7 +138,7 @@ class GeneticAlgorithm(_BaseMetaHeuristic):
         self.toolbox.register("mutate", tools.mutUniformInt,low = 0, up = 1, indpb = self.gene_mutation_prob)        
 
         if( self.make_logbook ):
-            self.stats = tools.Statistics(lambda ind: ind.fitness.values)
+            self.stats = tools.Statistics(lambda ind: ind.fitness.wvalues[0])
             self.stats.register("avg", np.mean)
             self.stats.register("std", np.std)
             self.stats.register("min", np.min)
@@ -317,7 +317,7 @@ class HarmonicSearch(_BaseMetaHeuristic):
         #toolbox.register("map", futures.map)
         
         if( self.make_logbook ):
-            self.stats = tools.Statistics(lambda ind: ind.fitness.values)
+            self.stats = tools.Statistics(lambda ind: ind.fitness.wvalues[0])
             self.stats.register("avg", np.mean)
             self.stats.register("std", np.std)
             self.stats.register("min", np.min)
@@ -345,11 +345,12 @@ class HarmonicSearch(_BaseMetaHeuristic):
     
                 # Select the Worst Harmony
                 worst = self.toolbox.get_worst(harmony_mem)[0]
-    
+                                
                 # Check and Update Harmony Memory
-                if( worst.fitness.values < new_harmony.fitness.values):
+                if( worst.fitness < new_harmony.fitness):
                     worst[:] = new_harmony[:]
                     worst.fitness.values = new_harmony.fitness.values
+                    
                 
                 # Log statistic
                 hof.update(harmony_mem)

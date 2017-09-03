@@ -35,7 +35,7 @@ def main():
 #                    'gene_mutation_prob': [0.1],
 #                    'individual_mut_prob': [0.1],
 #                    'repeat_': [3],
-#                    'verbose': [True],
+#   d                 'verbose': [True],
 #                    'estimator': [classifier],
 #                    'predict_with': ['all']} ]
 #    
@@ -44,14 +44,13 @@ def main():
 #    clf.fit(X,Y)
 
     hs =  HarmonicSearch(classifier = classifier,
-                         number_gen = 100,
+                         number_gen = 200,
                          mem_size = 50,
                          make_logbook = True,
                          random_state = 2,
-                         repeat_ = 2)
+                         repeat_ = 1)
     hs.fit(X= X, y = Y)
-    
-    
+
     return hs
 
 
