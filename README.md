@@ -5,7 +5,7 @@ Most of the code is based on:
 
 ## Installation and Usage
 The package by itself comes with a single module and an estimator. Before
-installing the module you will need `numpy`,`scipy`,'DEAP','Matplotlib'.
+installing the module you will need `numpy`,`scipy`,`DEAP`,`Matplotlib`.
 
 ## DEAP
 DEAP is a novel evolutionary computation framework for rapid prototyping and testing of 
