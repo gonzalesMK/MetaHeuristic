@@ -5,7 +5,7 @@ from sklearn.svm import  SVC
 from sklearn.preprocessing import StandardScaler
 from sklearn.model_selection import GridSearchCV
 
-from meta_class import HarmonicSearch, GeneticAlgorithm
+from metaheuristics import HarmonicSearch, GeneticAlgorithm
 import arff
 
 
@@ -41,18 +41,20 @@ def main():
     
 #    clf = GridSearchCV(estimator = ga_, param_grid= parameters, scoring = ga_.score_func_to_grid_search, verbose = 1)    
 #    clf.fit(X,Y)
-    ga = GeneticAlgorithm(estimator = classifier)
-    hs = HarmonicSearch(estimator = classifier, repeat_ = 1, size_pop = 50, number_gen = 10000)
+#    ga = GeneticAlgorithm(estimator = classifier)
+    hs = HarmonicSearch()
     
     hs.fit(X= X, y = Y)
-    ga.fit(X= X, y = Y)
-    return hs, ga
+    classifier.predict(X=X)
+    
+#    ga.fit(X= X, y = Y)
+    return hs
 
 
 if __name__ == "__main__":
-    hs,ga = main()
+    hs = main()
+    
     print(hs.best_fitness)
-    print(ga.best_fitness)
 
 
      

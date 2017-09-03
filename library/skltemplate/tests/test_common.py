@@ -1,15 +1,14 @@
 from sklearn.utils.estimator_checks import check_estimator
-from skltemplate import (TemplateEstimator, TemplateClassifier,
-                         TemplateTransformer)
-
+import sys
+sys.path.append("..")
+sys.path.insert(0, '')
+#from skltemplate import HarmonicSearch
+from metaheuristics import HarmonicSearch
+from sklearn.svm import  SVC
 
 def test_estimator():
-    return check_estimator(TemplateEstimator)
+    return 
 
-
-def test_classifier():
-    return check_estimator(TemplateClassifier)
-
-
-def test_transformer():
-    return check_estimator(TemplateTransformer)
+if __name__ == "__main__":
+    check_estimator(HarmonicSearch)
+    

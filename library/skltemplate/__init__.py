@@ -1,6 +1,5 @@
-from .template import (TemplateEstimator, TemplateClassifier,
-                       TemplateTransformer)
-from . import template
+from .metaheuristics import HarmonicSearch
+from .metaheuristics import GeneticAlgorithm
 
-__all__ = ['TemplateEstimator', 'TemplateClassifier',
-           'TemplateTransformer', 'template']
+__all__ = ['HarmonicSearch',
+           'GeneticAlgorithm']
