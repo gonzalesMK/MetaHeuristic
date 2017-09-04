@@ -169,7 +169,7 @@ class _BaseMetaHeuristic(BaseEstimator, SelectorMixin, ClassifierMixin):
     def predict(self, X):
         
         if not hasattr(self, "classes_"):        
-            raise ValueError("Fit the class before using predict")
+            raise ValueError('fit')
             
         if self.predict_with == 'best':
             X_ = self.transform(X)
@@ -218,10 +218,15 @@ class _BaseMetaHeuristic(BaseEstimator, SelectorMixin, ClassifierMixin):
 
         return np.asarray(y, dtype=np.float64, order='C')
 
-    def plot_results(self):
+    def plot_results(self, travis = False):
         """ This method plots all the statistics for each repetition
         in a graph.
             The curves are minimun, average and maximun accuracy
+        
+        Parameters
+        -------------
+        travis : boolean
+            If this is a travis build test, set it True
         """
         if not self.make_logbook:
             warn("You need to set make_logbook to true")
@@ -243,7 +248,8 @@ class _BaseMetaHeuristic(BaseEstimator, SelectorMixin, ClassifierMixin):
             labs = [l.get_label() for l in lns]
             ax1.legend(lns, labs, loc="center right")
             ax1.set_title("Repetition: " + str(i+1))
-            plt.show()
+            if not travis:
+                plt.show()
 
     def fit_transform(self, X, y, normalize = False, **fit_params):
         """Fit to data, then transform it.

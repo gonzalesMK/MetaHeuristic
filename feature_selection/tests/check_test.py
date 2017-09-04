@@ -1,4 +1,5 @@
 from sklearn.utils.estimator_checks import check_estimator
+from sklearn.utils.testing import assert_array_equal
 from sklearn.datasets import load_breast_cancer
 from sklearn.svm import SVC
 from feature_selection import HarmonicSearch, GeneticAlgorithm
@@ -16,10 +17,10 @@ def test_plot():
     # Classifier to be used in the metaheuristic
     clf = SVC()
     
-    hs = HarmonicSearch(classifier=clf, random_state=0, verbose = 10,
-                        make_logbook=True, repeat=2)
+    hs = HarmonicSearch(classifier=clf, random_state=0, verbose=10,
+                        make_logbook=True, repeat=2, number_gen=100)
     
-    ga = GeneticAlgorithm(classifier=clf, random_state=1, verbose = 10,
+    ga = GeneticAlgorithm(classifier=clf, random_state=1, verbose=10,
                           make_logbook=True, repeat=2)
     
     # Fit the classifier
@@ -35,15 +36,26 @@ def test_plot():
           ga.fitness_[0])
 
     # Transformed dataset
-    X_hs = hs.transform(X)
-    X_ga = ga.transform(X)
+    X_hs1 = hs.transform(X)
+    X_ga1 = ga.transform(X)
+    
+    
+    hs = HarmonicSearch(classifier=clf, random_state=0, verbose=10,
+                        make_logbook=True, repeat=2, number_gen=100)
+    
+    ga = GeneticAlgorithm(classifier=clf, random_state=1, verbose = 10,
+                          make_logbook=True, repeat=2)
     
     # Fit and Transform
-    X_hs = hs.fit_transform(X=X, y=y)
-    X_ga = ga.fit_transform(X=X, y=y)
+    X_hs2 = hs.fit_transform(X=X, y=y, normalize=True)
+    X_ga2 = ga.fit_transform(X=X, y=y, normalize=True)
+    
+    # Assert equal
+    assert_array_equal(X_hs2, X_hs1)
+    assert_array_equal(X_ga2, X_ga1)
     
     # Plot the results of each test
-    hs.plot_results()
-    ga.plot_results()
+    hs.plot_results(travis=True)
+    ga.plot_results(travis=True)
     
     
