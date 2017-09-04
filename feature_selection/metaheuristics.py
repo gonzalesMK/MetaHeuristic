@@ -83,10 +83,9 @@ class GeneticAlgorithm(_BaseMetaHeuristic):
         self.random_state = random_state
         self.estimator = SVC(kernel='linear', max_iter=10000) if classifier is None else clone(classifier)
         
-        random.seed(self.random_state)
-        self.random_object = check_random_state(self.random_state)
         self.toolbox = base.Toolbox()
         # pylint: disable=E1101
+        self._random_object = check_random_state(self.random_state)
         self.toolbox.register("attribute", self._gen_in)
         self.toolbox.register("individual", tools.initIterate,
                               creator.Individual, self.toolbox.attribute)
@@ -120,6 +119,9 @@ class GeneticAlgorithm(_BaseMetaHeuristic):
         self.X_ = X
         self.y_ = y
 
+        random.seed(self.random_state)
+        self._random_object = check_random_state(self.random_state)
+        
         if normalize:
             sc_X = StandardScaler()
             X = sc_X.fit_transform(X)
@@ -278,9 +280,9 @@ class HarmonicSearch(_BaseMetaHeuristic):
         self.make_logbook = make_logbook
         self.verbose = verbose
         self.random_state = random_state
-        random.seed(self.random_state)        
         
-        self.random_object = check_random_state(self.random_state)
+        random.seed(self.random_state)        
+        self._random_object = check_random_state(self.random_state)
         self.toolbox = base.Toolbox()
         self.toolbox.register("attribute", self._gen_in)
         self.toolbox.register("individual", tools.initIterate,
@@ -327,6 +329,8 @@ class HarmonicSearch(_BaseMetaHeuristic):
 
         self.n_features_ = X.shape[1]
         # pylint: disable=E1101
+        random.seed(self.random_state)        
+        self._random_object = check_random_state(self.random_state)
         self.toolbox.register("attribute", self._gen_in)
         self.toolbox.register("individual", tools.initIterate,
                               creator.Individual, self.toolbox.attribute)
