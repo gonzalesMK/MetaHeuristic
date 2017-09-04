@@ -101,21 +101,3 @@ def test_all_prediction():
 
     assert_array_equal(X_hs2, X_hs1)
     assert_array_equal(X_ga2, X_ga1)
-    
-def test_error():
-    dataset = load_breast_cancer()
-    X, y = dataset['data'], dataset['target_names'].take(dataset['target'])
-    
-    # Classifier to be used in the metaheuristic
-    clf = SVC()
-    
-    hs = HarmonicSearch(classifier=clf, random_state=0, verbose=50,
-                        make_logbook=True, repeat=1, number_gen=100)
-    
-    ga = GeneticAlgorithm(classifier=clf, random_state=1, verbose=10,
-                          make_logbook=True, repeat=1)
-    
-    # Fit the classifier
-    hs.fit(X, y, normalize=True)
-    ga.fit(X, y, normalize=True)
-    

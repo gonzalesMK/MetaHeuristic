@@ -178,11 +178,11 @@ class _BaseMetaHeuristic(BaseEstimator, SelectorMixin, ClassifierMixin):
             return   self.classes_.take(np.asarray(y_pred, dtype=np.intp))
 
         elif self.predict_with == 'all':
+
             predict_ = []
-            X_train, y_train = check_X_y(self.X_, self.y_, dtype=np.float64, order='C', accept_sparse='csr')
             
             for mask in self.mask_:
-                self.estimator.fit(X=self.transform(X_train, mask=mask), y=y_train)
+                self.estimator.fit(X=self.transform(self.X_, mask=mask), y=self.y_)
                 X_ = self.transform(X, mask=mask)
                 y_pred = self.estimator.predict(X_)
                 predict_.append(self.classes_.take(np.asarray(y_pred, dtype=np.intp)))

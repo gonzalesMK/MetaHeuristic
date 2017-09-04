@@ -117,21 +117,16 @@ class GeneticAlgorithm(_BaseMetaHeuristic):
         self.set_params(**arg)
 
         if normalize:
-            sc_X = StandardScaler()
-            X = sc_X.fit_transform(X)
+            self._sc_X = StandardScaler()
+            X = self._sc_X.fit_transform(X)
         
         self.normalize_ = normalize
-        self.X_ = X
-        self.y_ = y
 
         y = self._validate_targets(y)
         X, y = check_X_y(X, y, dtype=np.float64, order='C', accept_sparse='csr')
 
-        if X.shape[0] != y.shape[0]:
-            raise ValueError("X and y have incompatible shapes.\n" +
-                             "X has %s samples, but y has %s." %
-                             (X.shape[0], y.shape[0]))
-
+        self.X_ = X
+        self.y_ = y
 
         self.n_features_ = X.shape[1]
         self.mask_ = []
@@ -317,17 +312,13 @@ class HarmonicSearch(_BaseMetaHeuristic):
             self._sc_X = StandardScaler()
             X = self._sc_X.fit_transform(X)
             
-        self.X_ = X
-        self.y_ = y
         self.normalize_ = normalize
         
         y = self._validate_targets(y)
         X, y = check_X_y(X, y, dtype=np.float64, order='C', accept_sparse='csr')
 
-        if X.shape[0] != y.shape[0]:
-            raise ValueError("X and y have incompatible shapes.\n" +
-                             "X has %s samples, but y has %s." %
-                             (X.shape[0], y.shape[0]))
+        self.X_ = X
+        self.y_ = y
 
         self.n_features_ = X.shape[1]
         self.mask_ = []
