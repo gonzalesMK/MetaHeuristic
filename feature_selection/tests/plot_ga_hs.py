@@ -7,7 +7,7 @@ from feature_selection import HarmonicSearch, GeneticAlgorithm
 from sklearn.datasets import load_breast_cancer
 from sklearn.svm import SVC
 
-def test_plot()
+def test_plot():
     dataset = load_breast_cancer()
     X, y = dataset['data'], dataset['target_names'].take(dataset['target'])
     
