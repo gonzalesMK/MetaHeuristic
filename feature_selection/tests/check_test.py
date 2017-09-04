@@ -31,9 +31,9 @@ def test_plot():
     print("Number of Features Selected: \n \t HS: ", sum(hs.support_)/X.shape[1],
           "% \t GA: ", sum(ga.support_)/X.shape[1], "%")
     
-    print("Accuracy of the classifier: \n \t HS: ", hs.best_fitness[0], "\t GA: ",
-          ga.best_fitness[0])
-    
+    print("Accuracy of the classifier: \n \t HS: ", hs.fitness_[0], "\t GA: ",
+          ga.fitness_[0])
+
     # Transformed dataset
     X_hs = hs.transform(X)
     X_ga = ga.transform(X)
