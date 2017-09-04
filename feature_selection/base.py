@@ -185,7 +185,7 @@ class _BaseMetaHeuristic(BaseEstimator, SelectorMixin, ClassifierMixin):
                 self.estimator.fit(X=self.transform(X_train, mask=mask), y=y_train)
                 X_ = self.transform(X, mask=mask)
                 y_pred = self.estimator.predict(X_)
-                predict_.append(self.classes_.take(np.asarray(y_pred), dtype=np.intp))
+                predict_.append(self.classes_.take(np.asarray(y_pred, dtype=np.intp)))
             return np.asarray(predict_)
 
     @staticmethod
