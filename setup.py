@@ -18,11 +18,11 @@ except ImportError:
     print('scipy is required during installation')
     sys.exit(1)
 
-setup(name='sklearn-template',
+setup(name='metaheuristic',
       version='0.0.3',
-      description='A template for scikit-learn compatible packages',
-      author='Vighnesh Birodkar',
+      description='A package with some metaheuristics to feature selection',
+      author='Juliano D. Negri',
       packages=find_packages(),
       install_requires=INSTALL_REQUIRES,
-      author_email='vighneshbirodkar@nyu.edu',
+      author_email='juliano.negri@usp.br',
       )
