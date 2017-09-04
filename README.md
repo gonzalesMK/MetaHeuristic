@@ -1,3 +1,5 @@
+[![Coverage Status](https://coveralls.io/repos/github/gonzalesMK/MetaHeuristic/badge.svg?branch=master)](https://coveralls.io/github/gonzalesMK/MetaHeuristic?branch=master)
+
 # MetaHeuristic
 A repository with some simple implementation of Meta Heuristics (ie: ga, pso) , using sklearn and other common libraries
 
