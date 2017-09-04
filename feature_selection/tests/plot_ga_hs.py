@@ -7,7 +7,7 @@ from feature_selection import HarmonicSearch, GeneticAlgorithm
 from sklearn.datasets import load_breast_cancer
 from sklearn.svm import SVC
 
-if __name__ == "__main__":
+def test_plot()
     dataset = load_breast_cancer()
     X, y = dataset['data'], dataset['target_names'].take(dataset['target'])
     
@@ -28,6 +28,7 @@ if __name__ == "__main__":
     
     print("Number of Features Selected: \n \t HS: ", sum(hs.support_)/X.shape[1],
           "% \t GA: ", sum(ga.support_)/X.shape[1], "%")
+    
     print("Accuracy of the classifier: \n \t HS: ", hs.best_fitness[0], "\t GA: ",
           ga.best_fitness[0])
     
