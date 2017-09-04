@@ -75,7 +75,6 @@ class GeneticAlgorithm(_BaseMetaHeuristic):
         self.score_func = None
         self.repeat = repeat
         self.fitness = []
-        self.mask = []
         self.predict_with = predict_with
         self.gene_mutation_prob = gene_mutation_prob
         self.make_logbook = make_logbook
@@ -134,6 +133,7 @@ class GeneticAlgorithm(_BaseMetaHeuristic):
 
 
         self.n_features_ = X.shape[1]
+        self.mask_ = []
         # pylint: disable=E1101
         random.seed(self.random_state)
         self._random_object = check_random_state(self.random_state)
@@ -207,9 +207,10 @@ class GeneticAlgorithm(_BaseMetaHeuristic):
 
             best.update(hof)
             if self.predict_with == 'all':
-                self.mask.append(hof[0][:0])
+                self.mask_.append(hof[0][:])
                 self.fitness.append(hof[0].fitness.values)
 
+        self.mask_ = np.array(self.mask_)
         self.support_ = np.asarray(best[0][:], dtype=bool)
         self.fitness_ = best[0].fitness.values
 
@@ -275,7 +276,6 @@ class HarmonicSearch(_BaseMetaHeuristic):
 
         self.repeat = repeat
         self.fitness = []
-        self.mask = []
         self.predict_with = predict_with
         self.make_logbook = make_logbook
         self.verbose = verbose
@@ -328,6 +328,7 @@ class HarmonicSearch(_BaseMetaHeuristic):
                              (X.shape[0], y.shape[0]))
 
         self.n_features_ = X.shape[1]
+        self.mask_ = []
         # pylint: disable=E1101
         random.seed(self.random_state)        
         self._random_object = check_random_state(self.random_state)
@@ -395,10 +396,10 @@ class HarmonicSearch(_BaseMetaHeuristic):
 
             best.update(hof)
             if self.predict_with == 'all':
-                self.mask.append(hof[0][:0])
+                self.mask_.append(hof[0][:])
                 self.fitness.append(hof[0].fitness.values)
 
-
+        self.mask_ = np.array(self.mask_)
         self.support_ = np.asarray(best[0][:], dtype=bool)
         self.fitness_ = best[0].fitness.values
 
