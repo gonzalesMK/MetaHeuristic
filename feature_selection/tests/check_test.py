@@ -59,7 +59,7 @@ def test_plot():
     assert_array_equal(X_hs2, X_hs1)
     assert_array_equal(X_ga2, X_ga1)
     
-def check_all_prediction():
+def test_all_prediction():
     dataset = load_breast_cancer()
     X, y = dataset['data'], dataset['target_names'].take(dataset['target'])
     
