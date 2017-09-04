@@ -87,7 +87,6 @@ def check_all_prediction():
     # Transformed dataset
     X_hs1 = hs.transform(X)
     X_ga1 = ga.transform(X)
-    
 
     hs = HarmonicSearch(classifier=clf, random_state=0, verbose=50,
                         make_logbook=True, repeat=2, number_gen=100,
@@ -99,12 +98,6 @@ def check_all_prediction():
     # Fit and Transform
     X_hs2 = hs.fit_transform(X=X, y=y, normalize=True)
     X_ga2 = ga.fit_transform(X=X, y=y, normalize=True)
-    
 
     assert_array_equal(X_hs2, X_hs1)
     assert_array_equal(X_ga2, X_ga1)
-        
-    
-        
-    
-    
