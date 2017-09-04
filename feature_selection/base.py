@@ -10,7 +10,7 @@ from sklearn.model_selection import cross_val_score
 from sklearn.utils.validation import check_array, check_is_fitted, column_or_1d
 from sklearn.externals import six
 from sklearn.utils.multiclass import check_classification_targets
-from sklearn.utils import check_random_state
+from sklearn.utils import check_random_state,check_X_y
 from sklearn.metrics import accuracy_score
 
 def safe_mask(x, mask):
@@ -166,22 +166,26 @@ class _BaseMetaHeuristic(BaseEstimator, SelectorMixin, ClassifierMixin):
 
 
     def predict(self, X):
-        
         if not hasattr(self, "classes_"):        
             raise ValueError('fit')
+            
+        if self.normalize_:
+            X = self._sc_X.fit_transform(X)
             
         if self.predict_with == 'best':
             X_ = self.transform(X)
             y_pred = self.estimator.predict(X_)
-            return   np.asarray(y_pred)
+            return   self.classes_.take(np.asarray(y_pred, dtype=np.intp))
 
         elif self.predict_with == 'all':
             predict_ = []
+            X_train, y_train = check_X_y(self.X_, self.y_, dtype=np.float64, order='C', accept_sparse='csr')
+            
             for mask in self.mask_:
+                self.estimator.fit(X=self.transform(X_train, mask=mask), y=y_train)
                 X_ = self.transform(X, mask=mask)
-                self.estimator.fit(X=self.transform(self.X_, mask=mask), y=self.y_)
-                y_pred = self.estimator.predict(self.transform(X, mask=mask))
-                predict_.append(y_pred)
+                y_pred = self.estimator.predict(X_)
+                predict_.append(self.classes_.take(np.asarray(y_pred), dtype=np.intp))
             return np.asarray(predict_)
 
     @staticmethod
