@@ -127,7 +127,6 @@ class _BaseMetaHeuristic(BaseEstimator, SelectorMixin, ClassifierMixin):
         self.random_state = random_state
         self.X = None
         self.y = None
-        self.n_features = 0
         self.estimator = classifier
         self.random_object = check_random_state(self.random_state)
         self.random_features = 0
@@ -137,10 +136,10 @@ class _BaseMetaHeuristic(BaseEstimator, SelectorMixin, ClassifierMixin):
         """ Generate a individual, DEAP function
 
         """
-        random_number = self.random_object.randint(0, self.n_features)
-        zeros = (np.zeros([self.n_features-random_number,], dtype=int))
+        random_number = self.random_object.randint(0, self.n_features_)
+        zeros = (np.zeros([self.n_features_-random_number,], dtype=int))
         ones = np.ones([random_number,], dtype=int)
-        return   sample(list(np.concatenate((zeros, ones), axis=0)), self.n_features)
+        return   sample(list(np.concatenate((zeros, ones), axis=0)), self.n_features_)
 
     def _evaluate(self, individual, X, y, cv=3):
         """ Evaluate method
