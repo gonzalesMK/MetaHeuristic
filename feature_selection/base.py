@@ -126,7 +126,7 @@ class _BaseMetaHeuristic(BaseEstimator, SelectorMixin, ClassifierMixin):
         self.verbose = verbose
         self.random_state = random_state
         self.estimator = classifier
-        self.random_object = check_random_state(self.random_state)
+        self._random_object = check_random_state(self.random_state)
         self.random_features = 0
         self.logbook = []
 
@@ -134,7 +134,7 @@ class _BaseMetaHeuristic(BaseEstimator, SelectorMixin, ClassifierMixin):
         """ Generate a individual, DEAP function
 
         """
-        random_number = self.random_object.randint(0, self.n_features_)
+        random_number = self._random_object.randint(0, self.n_features_)
         zeros = (np.zeros([self.n_features_-random_number,], dtype=int))
         ones = np.ones([random_number,], dtype=int)
         return   sample(list(np.concatenate((zeros, ones), axis=0)), self.n_features_)
@@ -169,7 +169,7 @@ class _BaseMetaHeuristic(BaseEstimator, SelectorMixin, ClassifierMixin):
     def predict(self, X):
         
         if not hasattr(self, "classes_"):        
-            raise ValueError("Fit the class before using predict")
+            raise ValueError('fit')
             
         if self.predict_with == 'best':
             X_ = self.transform(X)
@@ -222,6 +222,11 @@ class _BaseMetaHeuristic(BaseEstimator, SelectorMixin, ClassifierMixin):
         """ This method plots all the statistics for each repetition
         in a graph.
             The curves are minimun, average and maximun accuracy
+        
+        Parameters
+        -------------
+        travis : boolean
+            If this is a travis build test, set it True
         """
         if not self.make_logbook:
             warn("You need to set make_logbook to true")
@@ -243,4 +248,29 @@ class _BaseMetaHeuristic(BaseEstimator, SelectorMixin, ClassifierMixin):
             labs = [l.get_label() for l in lns]
             ax1.legend(lns, labs, loc="center right")
             ax1.set_title("Repetition: " + str(i+1))
-            plt.show()
+
+
+    def fit_transform(self, X, y, normalize = False, **fit_params):
+        """Fit to data, then transform it.
+
+        Fits transformer to X and y with optional parameters fit_params
+        and returns a transformed version of X.
+
+        Parameters
+        ----------
+        X : numpy array of shape [n_samples, n_features]
+            Training set.
+
+        y : numpy array of shape [n_samples]
+            Target values.
+
+        Returns
+        -------
+        X_new : numpy array of shape [n_samples, n_features_new]
+            Transformed array.
+
+        """
+
+        # fit method of arity 2 (supervised transformation)
+        return self.fit(X, y, normalize, **fit_params).transform(X)
+
