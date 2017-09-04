@@ -113,23 +113,19 @@ class SelectorMixin(six.with_metaclass(ABCMeta, TransformerMixin)):
 class _BaseMetaHeuristic(BaseEstimator, SelectorMixin, ClassifierMixin):
 
     def __init__(self, classifier=None, number_gen=20, size_pop=40,
-                 verbose=0, repeat_=1, predict_with='best',
+                 verbose=0, repeat=1, predict_with='best',
                  make_logbook=False, random_state=None):
 
         self.number_gen = number_gen
         self.size_pop = size_pop
-        self.repeat_ = repeat_
+        self.repeat = repeat
         self.fitness = []
         self.mask = []
         self.predict_with = predict_with
         self.make_logbook = make_logbook
         self.verbose = verbose
         self.random_state = random_state
-        self.X = None
-        self.y = None
-        self.n_features = 0
         self.estimator = classifier
-        self.classes_ = np.asarray([])
         self.random_object = check_random_state(self.random_state)
         self.random_features = 0
         self.logbook = []
@@ -138,10 +134,10 @@ class _BaseMetaHeuristic(BaseEstimator, SelectorMixin, ClassifierMixin):
         """ Generate a individual, DEAP function
 
         """
-        random_number = self.random_object.randint(0, self.n_features)
-        zeros = (np.zeros([self.n_features-random_number,], dtype=int))
+        random_number = self.random_object.randint(0, self.n_features_)
+        zeros = (np.zeros([self.n_features_-random_number,], dtype=int))
         ones = np.ones([random_number,], dtype=int)
-        return   sample(list(np.concatenate((zeros, ones), axis=0)), self.n_features)
+        return   sample(list(np.concatenate((zeros, ones), axis=0)), self.n_features_)
 
     def _evaluate(self, individual, X, y, cv=3):
         """ Evaluate method
@@ -171,7 +167,10 @@ class _BaseMetaHeuristic(BaseEstimator, SelectorMixin, ClassifierMixin):
 
 
     def predict(self, X):
-
+        
+        if not hasattr(self, "classes_"):        
+            raise ValueError("Fit the class before using predict")
+            
         if self.predict_with == 'best':
             X_ = self.transform(X)
             y_pred = self.estimator.predict(X_)
@@ -181,7 +180,7 @@ class _BaseMetaHeuristic(BaseEstimator, SelectorMixin, ClassifierMixin):
             predict_ = []
             for mask in self.mask:
                 X_ = self.transform(X, mask=mask)
-                self.estimator.fit(X=self.transform(self.X, mask=mask), y=self.y)
+                self.estimator.fit(X=self.transform(self.X_, mask=mask), y=self.y_)
                 y_pred = self.estimator.predict(self.transform(X, mask=mask))
                 predict_.append(self.classes_.take(np.asarray(y_pred, dtype=np.intp)))
 
@@ -227,7 +226,7 @@ class _BaseMetaHeuristic(BaseEstimator, SelectorMixin, ClassifierMixin):
         if not self.make_logbook:
             warn("You need to set make_logbook to true")
 
-        for i in range(self.repeat_):
+        for i in range(self.repeat):
             gen = self.logbook[i].select("gen")
             acc_mins = self.logbook[i].select("min")
             acc_maxs = self.logbook[i].select("max")

@@ -82,8 +82,6 @@ class GeneticAlgorithm(_BaseMetaHeuristic):
         self.verbose = verbose
         self.random_state = random_state
         self.estimator = SVC(kernel='linear', max_iter=10000) if classifier is None else clone(classifier)
-        self.X = None
-        self.y = None
         
         random.seed(self.random_state)
         self.random_object = check_random_state(self.random_state)
@@ -119,8 +117,8 @@ class GeneticAlgorithm(_BaseMetaHeuristic):
         """
         self.set_params(**arg)
 
-        self.X = X
-        self.y = y
+        self.X_ = X
+        self.y_ = y
 
         if normalize:
             sc_X = StandardScaler()
@@ -273,8 +271,6 @@ class HarmonicSearch(_BaseMetaHeuristic):
         self.mem_size = mem_size
         self.score_func = None
         self.estimator = SVC(kernel='linear', verbose=False, max_iter=10000) if classifier is None else clone(classifier)
-        self.X = None
-        self.y = None
 
         self.repeat = repeat
         self.fitness = []
@@ -314,8 +310,8 @@ class HarmonicSearch(_BaseMetaHeuristic):
         y : array of shape [n_samples, 1]
                 The input of labels """
 
-        self.X = X
-        self.y = y
+        self.X_ = X
+        self.y_ = y
 
         if normalize:
             sc_X = StandardScaler()

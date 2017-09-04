@@ -125,8 +125,6 @@ class _BaseMetaHeuristic(BaseEstimator, SelectorMixin, ClassifierMixin):
         self.make_logbook = make_logbook
         self.verbose = verbose
         self.random_state = random_state
-        self.X = None
-        self.y = None
         self.estimator = classifier
         self.random_object = check_random_state(self.random_state)
         self.random_features = 0
@@ -169,7 +167,10 @@ class _BaseMetaHeuristic(BaseEstimator, SelectorMixin, ClassifierMixin):
 
 
     def predict(self, X):
-
+        
+        if not hasattr(self, "classes_"):        
+            raise ValueError("Fit the class before using predict")
+            
         if self.predict_with == 'best':
             X_ = self.transform(X)
             y_pred = self.estimator.predict(X_)
@@ -179,7 +180,7 @@ class _BaseMetaHeuristic(BaseEstimator, SelectorMixin, ClassifierMixin):
             predict_ = []
             for mask in self.mask:
                 X_ = self.transform(X, mask=mask)
-                self.estimator.fit(X=self.transform(self.X, mask=mask), y=self.y)
+                self.estimator.fit(X=self.transform(self.X_, mask=mask), y=self.y_)
                 y_pred = self.estimator.predict(self.transform(X, mask=mask))
                 predict_.append(self.classes_.take(np.asarray(y_pred, dtype=np.intp)))
 

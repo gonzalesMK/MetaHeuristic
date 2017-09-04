@@ -7,7 +7,6 @@ feature_selection/base.py
 feature_selection/metaheuristics.py
 feature_selection/tests/__init__.py
 feature_selection/tests/check_test.py
-feature_selection/tests/plot_ga_hs.py
 metaheuristic.egg-info/PKG-INFO
 metaheuristic.egg-info/SOURCES.txt
 metaheuristic.egg-info/dependency_links.txt

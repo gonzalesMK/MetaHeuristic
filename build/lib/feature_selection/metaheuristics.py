@@ -51,7 +51,7 @@ class GeneticAlgorithm(_BaseMetaHeuristic):
     verbose : boolean
             Print information
 
-    repeat_ : positive int
+    repeat : positive int
             Number of times to repeat the fitting process
 
     make_logbook: boolean
@@ -60,7 +60,7 @@ class GeneticAlgorithm(_BaseMetaHeuristic):
 
     def __init__(self, classifier=None, cross_over_prob=0.2,
                  individual_mut_prob=0.05, gene_mutation_prob=0.05,
-                 number_gen=20, size_pop=40, verbose=0, repeat_=1,
+                 number_gen=20, size_pop=40, verbose=0, repeat=1,
                  predict_with='best', make_logbook=False, random_state=None):
 
 
@@ -73,7 +73,7 @@ class GeneticAlgorithm(_BaseMetaHeuristic):
         self.cross_over_prob = cross_over_prob
         self.size_pop = size_pop
         self.score_func = None
-        self.repeat_ = repeat_
+        self.repeat = repeat
         self.fitness = []
         self.mask = []
         self.predict_with = predict_with
@@ -82,12 +82,9 @@ class GeneticAlgorithm(_BaseMetaHeuristic):
         self.verbose = verbose
         self.random_state = random_state
         self.estimator = SVC(kernel='linear', max_iter=10000) if classifier is None else clone(classifier)
-        self.X = None
-        self.y = None
         
         random.seed(self.random_state)
         self.random_object = check_random_state(self.random_state)
-        self.n_features = 0
         self.toolbox = base.Toolbox()
         # pylint: disable=E1101
         self.toolbox.register("attribute", self._gen_in)
@@ -100,7 +97,6 @@ class GeneticAlgorithm(_BaseMetaHeuristic):
         self.toolbox.register("evaluate", self._evaluate, X= None, y=None)
         self.toolbox.register("mutate", tools.mutUniformInt, low=0, up=1,
                               indpb=self.gene_mutation_prob)
-        self.classes_ = None
 
     def fit(self, X=None, y=None, normalize=False, **arg):
         """ Fit method
@@ -121,8 +117,8 @@ class GeneticAlgorithm(_BaseMetaHeuristic):
         """
         self.set_params(**arg)
 
-        self.X = X
-        self.y = y
+        self.X_ = X
+        self.y_ = y
 
         if normalize:
             sc_X = StandardScaler()
@@ -138,7 +134,7 @@ class GeneticAlgorithm(_BaseMetaHeuristic):
 
         random.seed(self.random_state)
         self.random_object = check_random_state(self.random_state)
-        self.n_features = X.shape[1]
+        self.n_features_ = X.shape[1]
         # pylint: disable=E1101
         self.toolbox.register("attribute", self._gen_in)
         self.toolbox.register("individual", tools.initIterate,
@@ -157,13 +153,13 @@ class GeneticAlgorithm(_BaseMetaHeuristic):
             self.stats.register("std", np.std)
             self.stats.register("min", np.min)
             self.stats.register("max", np.max)
-            self.logbook = [tools.Logbook() for i in range(self.repeat_)]
-            for i in range(self.repeat_):
+            self.logbook = [tools.Logbook() for i in range(self.repeat)]
+            for i in range(self.repeat):
                 self.logbook[i].header = ["gen"] + self.stats.fields
 
 
         best = tools.HallOfFame(1)
-        for i in range(self.repeat_):
+        for i in range(self.repeat):
             pop = self.toolbox.population(self.size_pop)
             hof = tools.HallOfFame(1)
             # Evaluate the entire population
@@ -214,7 +210,7 @@ class GeneticAlgorithm(_BaseMetaHeuristic):
                 self.fitness.append(hof[0].fitness.values)
 
         self.support_ = np.asarray(best[0][:], dtype=bool)
-        self.best_fitness = best[0].fitness.values
+        self.fitness_ = best[0].fitness.values
 
         features = list(compress(range(len(self.support_)), self.support_))
         train = np.reshape([X[:, i] for i in features], [len(features), len(X)]).T
@@ -253,7 +249,7 @@ class HarmonicSearch(_BaseMetaHeuristic):
     verbose : boolean
             Print information
 
-    repeat_ : positive int
+    repeat : positive int
             Number of times to repeat the fitting process
 
     make_logbook: boolean
@@ -261,7 +257,7 @@ class HarmonicSearch(_BaseMetaHeuristic):
     """
 
     def __init__(self, classifier=None, HMCR=0.95, indpb=0.05, pitch=0.05,
-                 number_gen=100, mem_size=50, verbose=0, repeat_=1,
+                 number_gen=100, mem_size=50, verbose=0, repeat=1,
                  predict_with='best', make_logbook=False, random_state=None):
 
         creator.create("Fitness", base.Fitness, weights=(1.0, -1.0))
@@ -275,10 +271,8 @@ class HarmonicSearch(_BaseMetaHeuristic):
         self.mem_size = mem_size
         self.score_func = None
         self.estimator = SVC(kernel='linear', verbose=False, max_iter=10000) if classifier is None else clone(classifier)
-        self.X = None
-        self.y = None
 
-        self.repeat_ = repeat_
+        self.repeat = repeat
         self.fitness = []
         self.mask = []
         self.predict_with = predict_with
@@ -316,8 +310,8 @@ class HarmonicSearch(_BaseMetaHeuristic):
         y : array of shape [n_samples, 1]
                 The input of labels """
 
-        self.X = X
-        self.y = y
+        self.X_ = X
+        self.y_ = y
 
         if normalize:
             sc_X = StandardScaler()
@@ -333,7 +327,7 @@ class HarmonicSearch(_BaseMetaHeuristic):
 
         random.seed(self.random_state)
         self.random_object = check_random_state(self.random_state)
-        self.n_features = X.shape[1]
+        self.n_features_ = X.shape[1]
         # pylint: disable=E1101
         self.toolbox.register("attribute", self._gen_in)
         self.toolbox.register("individual", tools.initIterate,
@@ -355,12 +349,12 @@ class HarmonicSearch(_BaseMetaHeuristic):
             self.stats.register("std", np.std)
             self.stats.register("min", np.min)
             self.stats.register("max", np.max)
-            self.logbook = [tools.Logbook() for i in range(self.repeat_)]
-            for i in range(self.repeat_):
+            self.logbook = [tools.Logbook() for i in range(self.repeat)]
+            for i in range(self.repeat):
                 self.logbook[i].header = ["gen"] + self.stats.fields
 
         best = tools.HallOfFame(1)
-        for i in range(self.repeat_):
+        for i in range(self.repeat):
             harmony_mem = self.toolbox.population(n=self.mem_size)
             hof = tools.HallOfFame(1)
 
@@ -404,7 +398,7 @@ class HarmonicSearch(_BaseMetaHeuristic):
 
 
         self.support_ = np.asarray(best[0][:], dtype=bool)
-        self.best_fitness = best[0].fitness.values
+        self.fitness_ = best[0].fitness.values
 
         features = list(compress(range(len(self.support_)), self.support_))
         train = np.reshape([X[:, i] for i in features], [len(features), len(X)]).T
