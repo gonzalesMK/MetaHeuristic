@@ -83,10 +83,10 @@ class GeneticAlgorithm(_BaseMetaHeuristic):
         self.random_state = random_state
         self.estimator = SVC(kernel='linear', max_iter=10000) if classifier is None else clone(classifier)
         
-        random.seed(self.random_state)
-        self.random_object = check_random_state(self.random_state)
         self.toolbox = base.Toolbox()
         # pylint: disable=E1101
+        random.seed(self.random_state)
+        self._random_object = check_random_state(self.random_state)
         self.toolbox.register("attribute", self._gen_in)
         self.toolbox.register("individual", tools.initIterate,
                               creator.Individual, self.toolbox.attribute)
@@ -132,10 +132,11 @@ class GeneticAlgorithm(_BaseMetaHeuristic):
                              "X has %s samples, but y has %s." %
                              (X.shape[0], y.shape[0]))
 
-        random.seed(self.random_state)
-        self.random_object = check_random_state(self.random_state)
+
         self.n_features_ = X.shape[1]
         # pylint: disable=E1101
+        random.seed(self.random_state)
+        self._random_object = check_random_state(self.random_state)
         self.toolbox.register("attribute", self._gen_in)
         self.toolbox.register("individual", tools.initIterate,
                               creator.Individual, self.toolbox.attribute)
@@ -279,9 +280,9 @@ class HarmonicSearch(_BaseMetaHeuristic):
         self.make_logbook = make_logbook
         self.verbose = verbose
         self.random_state = random_state
-        self.random_object = check_random_state(random_state)
-
-        self.random_object = check_random_state(self.random_state)
+        
+        random.seed(self.random_state)        
+        self._random_object = check_random_state(self.random_state)
         self.toolbox = base.Toolbox()
         self.toolbox.register("attribute", self._gen_in)
         self.toolbox.register("individual", tools.initIterate,
@@ -326,10 +327,10 @@ class HarmonicSearch(_BaseMetaHeuristic):
                              "X has %s samples, but y has %s." %
                              (X.shape[0], y.shape[0]))
 
-        random.seed(self.random_state)
-        self.random_object = check_random_state(self.random_state)
         self.n_features_ = X.shape[1]
         # pylint: disable=E1101
+        random.seed(self.random_state)        
+        self._random_object = check_random_state(self.random_state)
         self.toolbox.register("attribute", self._gen_in)
         self.toolbox.register("individual", tools.initIterate,
                               creator.Individual, self.toolbox.attribute)
@@ -414,7 +415,7 @@ class HarmonicSearch(_BaseMetaHeuristic):
         # pylint: disable=E1101
         new_harmony = self.toolbox.individual()
 
-        rand_list = self.random_object.randint(low=0, high=len(pop),
+        rand_list = self._random_object.randint(low=0, high=len(pop),
                                                size=len(new_harmony))
 
         for i in range(len(new_harmony)):

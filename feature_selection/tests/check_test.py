@@ -17,11 +17,11 @@ def test_plot():
     # Classifier to be used in the metaheuristic
     clf = SVC()
     
-    hs = HarmonicSearch(classifier=clf, random_state=0, verbose=10,
-                        make_logbook=True, repeat=2, number_gen=100)
+    hs = HarmonicSearch(classifier=clf, random_state=0, verbose=50,
+                        make_logbook=True, repeat=1, number_gen=100)
     
     ga = GeneticAlgorithm(classifier=clf, random_state=1, verbose=10,
-                          make_logbook=True, repeat=2)
+                          make_logbook=True, repeat=1)
     
     # Fit the classifier
     hs.fit(X, y, normalize=True)
@@ -40,7 +40,7 @@ def test_plot():
     X_ga1 = ga.transform(X)
     
     
-    hs = HarmonicSearch(classifier=clf, random_state=0, verbose=10,
+    hs = HarmonicSearch(classifier=clf, random_state=0, verbose=50,
                         make_logbook=True, repeat=1, number_gen=100)
     
     ga = GeneticAlgorithm(classifier=clf, random_state=1, verbose = 10,
@@ -50,12 +50,14 @@ def test_plot():
     X_hs2 = hs.fit_transform(X=X, y=y, normalize=True)
     X_ga2 = ga.fit_transform(X=X, y=y, normalize=True)
     
+    # Plot the results of each test
+    hs.plot_results()
+    ga.plot_results()
+    
     # Assert equal
     assert_array_equal(X_hs2, X_hs1)
     assert_array_equal(X_ga2, X_ga1)
     
-    # Plot the results of each test
-    hs.plot_results()
-    ga.plot_results()
+    
     
     

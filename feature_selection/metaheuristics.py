@@ -85,6 +85,7 @@ class GeneticAlgorithm(_BaseMetaHeuristic):
         
         self.toolbox = base.Toolbox()
         # pylint: disable=E1101
+        random.seed(self.random_state)
         self._random_object = check_random_state(self.random_state)
         self.toolbox.register("attribute", self._gen_in)
         self.toolbox.register("individual", tools.initIterate,
@@ -119,9 +120,6 @@ class GeneticAlgorithm(_BaseMetaHeuristic):
         self.X_ = X
         self.y_ = y
 
-        random.seed(self.random_state)
-        self._random_object = check_random_state(self.random_state)
-        
         if normalize:
             sc_X = StandardScaler()
             X = sc_X.fit_transform(X)
@@ -137,6 +135,8 @@ class GeneticAlgorithm(_BaseMetaHeuristic):
 
         self.n_features_ = X.shape[1]
         # pylint: disable=E1101
+        random.seed(self.random_state)
+        self._random_object = check_random_state(self.random_state)
         self.toolbox.register("attribute", self._gen_in)
         self.toolbox.register("individual", tools.initIterate,
                               creator.Individual, self.toolbox.attribute)
@@ -415,7 +415,7 @@ class HarmonicSearch(_BaseMetaHeuristic):
         # pylint: disable=E1101
         new_harmony = self.toolbox.individual()
 
-        rand_list = self.random_object.randint(low=0, high=len(pop),
+        rand_list = self._random_object.randint(low=0, high=len(pop),
                                                size=len(new_harmony))
 
         for i in range(len(new_harmony)):
