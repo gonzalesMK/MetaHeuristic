@@ -141,7 +141,7 @@ class _BaseMetaHeuristic(BaseEstimator, SelectorMixin, ClassifierMixin):
         random_number = self.random_object.randint(0, self.n_features)
         zeros = (np.zeros([self.n_features-random_number,], dtype=int))
         ones = np.ones([random_number,], dtype=int)
-        return   sample(list(np.concatenate(zeros, ones, axis=0)), self.n_features)
+        return   sample(list(np.concatenate((zeros, ones), axis=0)), self.n_features)
 
     def _evaluate(self, individual, X, y, cv=3):
         """ Evaluate method

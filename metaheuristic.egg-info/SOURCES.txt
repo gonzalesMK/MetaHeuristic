@@ -1,0 +1,14 @@
+MANIFEST.in
+requirements.txt
+setup.cfg
+setup.py
+feature_selection/__init__.py
+feature_selection/base.py
+feature_selection/metaheuristics.py
+feature_selection/tests/__init__.py
+feature_selection/tests/check_test.py
+metaheuristic.egg-info/PKG-INFO
+metaheuristic.egg-info/SOURCES.txt
+metaheuristic.egg-info/dependency_links.txt
+metaheuristic.egg-info/requires.txt
+metaheuristic.egg-info/top_level.txt

@@ -84,8 +84,7 @@ class GeneticAlgorithm(_BaseMetaHeuristic):
         self.estimator = SVC(kernel='linear', max_iter=10000) if classifier is None else clone(classifier)
         self.X = None
         self.y = None
-        self.classes_ = []
-
+        
         random.seed(self.random_state)
         self.random_object = check_random_state(self.random_state)
         self.n_features = 0
@@ -101,7 +100,7 @@ class GeneticAlgorithm(_BaseMetaHeuristic):
         self.toolbox.register("evaluate", self._evaluate, X= None, y=None)
         self.toolbox.register("mutate", tools.mutUniformInt, low=0, up=1,
                               indpb=self.gene_mutation_prob)
-        self.classes_ = []
+        self.classes_ = None
 
     def fit(self, X=None, y=None, normalize=False, **arg):
         """ Fit method
@@ -153,7 +152,6 @@ class GeneticAlgorithm(_BaseMetaHeuristic):
         self.toolbox.register("evaluate", self._evaluate, X=X, y=y)
         self.toolbox.register("mutate", tools.mutUniformInt, low=0, up=1,
                               indpb=self.gene_mutation_prob)
-        self.classes_ = []
 
         if self.make_logbook:
             self.stats = tools.Statistics(lambda ind: ind.fitness.wvalues[0])
