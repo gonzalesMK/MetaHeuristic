@@ -10,8 +10,8 @@ from sklearn.model_selection import cross_val_score
 from sklearn.utils.validation import check_array, check_is_fitted, column_or_1d
 from sklearn.externals import six
 from sklearn.utils.multiclass import check_classification_targets
-from sklearn.utils import check_random_state
-
+from sklearn.utils import check_random_state,check_X_y
+from sklearn.metrics import accuracy_score
 
 def safe_mask(x, mask):
     """Return a mask which is safe to use on X.
@@ -120,7 +120,6 @@ class _BaseMetaHeuristic(BaseEstimator, SelectorMixin, ClassifierMixin):
         self.size_pop = size_pop
         self.repeat = repeat
         self.fitness = []
-        self.mask = []
         self.predict_with = predict_with
         self.make_logbook = make_logbook
         self.verbose = verbose
@@ -167,9 +166,11 @@ class _BaseMetaHeuristic(BaseEstimator, SelectorMixin, ClassifierMixin):
 
 
     def predict(self, X):
-        
         if not hasattr(self, "classes_"):        
             raise ValueError('fit')
+            
+        if self.normalize_:
+            X = self._sc_X.fit_transform(X)
             
         if self.predict_with == 'best':
             X_ = self.transform(X)
@@ -177,14 +178,15 @@ class _BaseMetaHeuristic(BaseEstimator, SelectorMixin, ClassifierMixin):
             return   self.classes_.take(np.asarray(y_pred, dtype=np.intp))
 
         elif self.predict_with == 'all':
-            predict_ = []
-            for mask in self.mask:
-                X_ = self.transform(X, mask=mask)
-                self.estimator.fit(X=self.transform(self.X_, mask=mask), y=self.y_)
-                y_pred = self.estimator.predict(self.transform(X, mask=mask))
-                predict_.append(self.classes_.take(np.asarray(y_pred, dtype=np.intp)))
 
-            return predict_
+            predict_ = []
+            
+            for mask in self.mask_:
+                self.estimator.fit(X=self.transform(self.X_, mask=mask), y=self.y_)
+                X_ = self.transform(X, mask=mask)
+                y_pred = self.estimator.predict(X_)
+                predict_.append(self.classes_.take(np.asarray(y_pred, dtype=np.intp)))
+            return np.asarray(predict_)
 
     @staticmethod
     def score_func_to_grid_search(estimator, X_test, y_test):
@@ -193,18 +195,16 @@ class _BaseMetaHeuristic(BaseEstimator, SelectorMixin, ClassifierMixin):
         to an final accuracy score.
         """
         right_predict = 0
-
-        if len(estimator.mask) == 0:
-            print("No masks to test")
-            print(estimator.get_params)
-            return 0
+        if not estimator.mask_.any():
+            raise ValueError("Fit")
 
         y_pred = estimator.predict(X_test)
 
         for y in y_pred:
-            right_predict = sum(y_test == y) + right_predict
+            right_predict = accuracy_score(y_test, y, normalize=False) + right_predict
 
-        return right_predict/(len(y_test) * len(estimator.mask))
+        return right_predict/(len(y_test) * estimator.mask_.shape[0])
+
 
     def _validate_targets(self, y):
         y_ = column_or_1d(y, warn=True)

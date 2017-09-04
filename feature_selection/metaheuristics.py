@@ -75,7 +75,6 @@ class GeneticAlgorithm(_BaseMetaHeuristic):
         self.score_func = None
         self.repeat = repeat
         self.fitness = []
-        self.mask = []
         self.predict_with = predict_with
         self.gene_mutation_prob = gene_mutation_prob
         self.make_logbook = make_logbook
@@ -117,23 +116,20 @@ class GeneticAlgorithm(_BaseMetaHeuristic):
         """
         self.set_params(**arg)
 
-        self.X_ = X
-        self.y_ = y
-
         if normalize:
-            sc_X = StandardScaler()
-            X = sc_X.fit_transform(X)
+            self._sc_X = StandardScaler()
+            X = self._sc_X.fit_transform(X)
+        
+        self.normalize_ = normalize
 
         y = self._validate_targets(y)
         X, y = check_X_y(X, y, dtype=np.float64, order='C', accept_sparse='csr')
 
-        if X.shape[0] != y.shape[0]:
-            raise ValueError("X and y have incompatible shapes.\n" +
-                             "X has %s samples, but y has %s." %
-                             (X.shape[0], y.shape[0]))
-
+        self.X_ = X
+        self.y_ = y
 
         self.n_features_ = X.shape[1]
+        self.mask_ = []
         # pylint: disable=E1101
         random.seed(self.random_state)
         self._random_object = check_random_state(self.random_state)
@@ -207,9 +203,10 @@ class GeneticAlgorithm(_BaseMetaHeuristic):
 
             best.update(hof)
             if self.predict_with == 'all':
-                self.mask.append(hof[0][:0])
+                self.mask_.append(hof[0][:])
                 self.fitness.append(hof[0].fitness.values)
 
+        self.mask_ = np.array(self.mask_)
         self.support_ = np.asarray(best[0][:], dtype=bool)
         self.fitness_ = best[0].fitness.values
 
@@ -275,7 +272,6 @@ class HarmonicSearch(_BaseMetaHeuristic):
 
         self.repeat = repeat
         self.fitness = []
-        self.mask = []
         self.predict_with = predict_with
         self.make_logbook = make_logbook
         self.verbose = verbose
@@ -312,22 +308,20 @@ class HarmonicSearch(_BaseMetaHeuristic):
                 The input of labels """
         self.set_params(**arg)
         
-        self.X_ = X
-        self.y_ = y
-
         if normalize:
-            sc_X = StandardScaler()
-            X = sc_X.fit_transform(X)
-
+            self._sc_X = StandardScaler()
+            X = self._sc_X.fit_transform(X)
+            
+        self.normalize_ = normalize
+        
         y = self._validate_targets(y)
         X, y = check_X_y(X, y, dtype=np.float64, order='C', accept_sparse='csr')
 
-        if X.shape[0] != y.shape[0]:
-            raise ValueError("X and y have incompatible shapes.\n" +
-                             "X has %s samples, but y has %s." %
-                             (X.shape[0], y.shape[0]))
+        self.X_ = X
+        self.y_ = y
 
         self.n_features_ = X.shape[1]
+        self.mask_ = []
         # pylint: disable=E1101
         random.seed(self.random_state)        
         self._random_object = check_random_state(self.random_state)
@@ -395,10 +389,10 @@ class HarmonicSearch(_BaseMetaHeuristic):
 
             best.update(hof)
             if self.predict_with == 'all':
-                self.mask.append(hof[0][:0])
+                self.mask_.append(hof[0][:])
                 self.fitness.append(hof[0].fitness.values)
 
-
+        self.mask_ = np.array(self.mask_)
         self.support_ = np.asarray(best[0][:], dtype=bool)
         self.fitness_ = best[0].fitness.values
 
