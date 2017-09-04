@@ -218,7 +218,7 @@ class _BaseMetaHeuristic(BaseEstimator, SelectorMixin, ClassifierMixin):
 
         return np.asarray(y, dtype=np.float64, order='C')
 
-    def plot_results(self, travis = False):
+    def plot_results(self):
         """ This method plots all the statistics for each repetition
         in a graph.
             The curves are minimun, average and maximun accuracy
@@ -248,8 +248,7 @@ class _BaseMetaHeuristic(BaseEstimator, SelectorMixin, ClassifierMixin):
             labs = [l.get_label() for l in lns]
             ax1.legend(lns, labs, loc="center right")
             ax1.set_title("Repetition: " + str(i+1))
-            if not travis:
-                plt.show()
+
 
     def fit_transform(self, X, y, normalize = False, **fit_params):
         """Fit to data, then transform it.

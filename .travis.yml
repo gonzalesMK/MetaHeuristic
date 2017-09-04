@@ -17,6 +17,11 @@ env:
     - DISTRIB="conda" PYTHON_VERSION="3.6" COVERAGE="true"
       NUMPY_VERSION="1.12.1" SCIPY_VERSION="0.19.0" CYTHON_VERSION="0.25.2" MATPLOTLIB_VERSION="2.0.2"
 
+before_script: 
+- "export DISPLAY=:99.0"
+- "sh -e /etc/init.d/xvfb start"
+- sleep 3 
+
 install: source ci_scripts/travis/install.sh
 script: bash ci_scripts/travis/test.sh
 after_success: source ci_scripts/travis/success.sh
