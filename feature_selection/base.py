@@ -244,3 +244,28 @@ class _BaseMetaHeuristic(BaseEstimator, SelectorMixin, ClassifierMixin):
             ax1.legend(lns, labs, loc="center right")
             ax1.set_title("Repetition: " + str(i+1))
             plt.show()
+
+    def fit_transform(self, X, y, normalize = False, **fit_params):
+        """Fit to data, then transform it.
+
+        Fits transformer to X and y with optional parameters fit_params
+        and returns a transformed version of X.
+
+        Parameters
+        ----------
+        X : numpy array of shape [n_samples, n_features]
+            Training set.
+
+        y : numpy array of shape [n_samples]
+            Target values.
+
+        Returns
+        -------
+        X_new : numpy array of shape [n_samples, n_features_new]
+            Transformed array.
+
+        """
+
+        # fit method of arity 2 (supervised transformation)
+        return self.fit(X, y, normalize, **fit_params).transform(X)
+

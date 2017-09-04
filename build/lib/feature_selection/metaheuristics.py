@@ -299,7 +299,7 @@ class HarmonicSearch(_BaseMetaHeuristic):
 
 
 
-    def fit(self, X=None, y=None, normalize=False):
+    def fit(self, X=None, y=None, normalize=False, **arg):
         """Fit method
 
         Parameters
@@ -309,7 +309,8 @@ class HarmonicSearch(_BaseMetaHeuristic):
 
         y : array of shape [n_samples, 1]
                 The input of labels """
-
+        self.set_params(**arg)
+        
         self.X_ = X
         self.y_ = y
 
