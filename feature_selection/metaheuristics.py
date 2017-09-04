@@ -51,7 +51,7 @@ class GeneticAlgorithm(_BaseMetaHeuristic):
     verbose : boolean
             Print information
 
-    repeat_ : positive int
+    repeat : positive int
             Number of times to repeat the fitting process
 
     make_logbook: boolean
@@ -60,7 +60,7 @@ class GeneticAlgorithm(_BaseMetaHeuristic):
 
     def __init__(self, classifier=None, cross_over_prob=0.2,
                  individual_mut_prob=0.05, gene_mutation_prob=0.05,
-                 number_gen=20, size_pop=40, verbose=0, repeat_=1,
+                 number_gen=20, size_pop=40, verbose=0, repeat=1,
                  predict_with='best', make_logbook=False, random_state=None):
 
 
@@ -73,7 +73,7 @@ class GeneticAlgorithm(_BaseMetaHeuristic):
         self.cross_over_prob = cross_over_prob
         self.size_pop = size_pop
         self.score_func = None
-        self.repeat_ = repeat_
+        self.repeat = repeat
         self.fitness = []
         self.mask = []
         self.predict_with = predict_with
@@ -157,13 +157,13 @@ class GeneticAlgorithm(_BaseMetaHeuristic):
             self.stats.register("std", np.std)
             self.stats.register("min", np.min)
             self.stats.register("max", np.max)
-            self.logbook = [tools.Logbook() for i in range(self.repeat_)]
-            for i in range(self.repeat_):
+            self.logbook = [tools.Logbook() for i in range(self.repeat)]
+            for i in range(self.repeat):
                 self.logbook[i].header = ["gen"] + self.stats.fields
 
 
         best = tools.HallOfFame(1)
-        for i in range(self.repeat_):
+        for i in range(self.repeat):
             pop = self.toolbox.population(self.size_pop)
             hof = tools.HallOfFame(1)
             # Evaluate the entire population
@@ -253,7 +253,7 @@ class HarmonicSearch(_BaseMetaHeuristic):
     verbose : boolean
             Print information
 
-    repeat_ : positive int
+    repeat : positive int
             Number of times to repeat the fitting process
 
     make_logbook: boolean
@@ -261,7 +261,7 @@ class HarmonicSearch(_BaseMetaHeuristic):
     """
 
     def __init__(self, classifier=None, HMCR=0.95, indpb=0.05, pitch=0.05,
-                 number_gen=100, mem_size=50, verbose=0, repeat_=1,
+                 number_gen=100, mem_size=50, verbose=0, repeat=1,
                  predict_with='best', make_logbook=False, random_state=None):
 
         creator.create("Fitness", base.Fitness, weights=(1.0, -1.0))
@@ -278,7 +278,7 @@ class HarmonicSearch(_BaseMetaHeuristic):
         self.X = None
         self.y = None
 
-        self.repeat_ = repeat_
+        self.repeat = repeat
         self.fitness = []
         self.mask = []
         self.predict_with = predict_with
@@ -355,12 +355,12 @@ class HarmonicSearch(_BaseMetaHeuristic):
             self.stats.register("std", np.std)
             self.stats.register("min", np.min)
             self.stats.register("max", np.max)
-            self.logbook = [tools.Logbook() for i in range(self.repeat_)]
-            for i in range(self.repeat_):
+            self.logbook = [tools.Logbook() for i in range(self.repeat)]
+            for i in range(self.repeat):
                 self.logbook[i].header = ["gen"] + self.stats.fields
 
         best = tools.HallOfFame(1)
-        for i in range(self.repeat_):
+        for i in range(self.repeat):
             harmony_mem = self.toolbox.population(n=self.mem_size)
             hof = tools.HallOfFame(1)
 
