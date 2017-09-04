@@ -87,7 +87,6 @@ class GeneticAlgorithm(_BaseMetaHeuristic):
         
         random.seed(self.random_state)
         self.random_object = check_random_state(self.random_state)
-        self.n_features = 0
         self.toolbox = base.Toolbox()
         # pylint: disable=E1101
         self.toolbox.register("attribute", self._gen_in)
@@ -100,7 +99,6 @@ class GeneticAlgorithm(_BaseMetaHeuristic):
         self.toolbox.register("evaluate", self._evaluate, X= None, y=None)
         self.toolbox.register("mutate", tools.mutUniformInt, low=0, up=1,
                               indpb=self.gene_mutation_prob)
-        self.classes_ = None
 
     def fit(self, X=None, y=None, normalize=False, **arg):
         """ Fit method
@@ -138,7 +136,7 @@ class GeneticAlgorithm(_BaseMetaHeuristic):
 
         random.seed(self.random_state)
         self.random_object = check_random_state(self.random_state)
-        self.n_features = X.shape[1]
+        self.n_features_ = X.shape[1]
         # pylint: disable=E1101
         self.toolbox.register("attribute", self._gen_in)
         self.toolbox.register("individual", tools.initIterate,
@@ -214,7 +212,7 @@ class GeneticAlgorithm(_BaseMetaHeuristic):
                 self.fitness.append(hof[0].fitness.values)
 
         self.support_ = np.asarray(best[0][:], dtype=bool)
-        self.best_fitness = best[0].fitness.values
+        self.fitness_ = best[0].fitness.values
 
         features = list(compress(range(len(self.support_)), self.support_))
         train = np.reshape([X[:, i] for i in features], [len(features), len(X)]).T
@@ -333,7 +331,7 @@ class HarmonicSearch(_BaseMetaHeuristic):
 
         random.seed(self.random_state)
         self.random_object = check_random_state(self.random_state)
-        self.n_features = X.shape[1]
+        self.n_features_ = X.shape[1]
         # pylint: disable=E1101
         self.toolbox.register("attribute", self._gen_in)
         self.toolbox.register("individual", tools.initIterate,
@@ -404,7 +402,7 @@ class HarmonicSearch(_BaseMetaHeuristic):
 
 
         self.support_ = np.asarray(best[0][:], dtype=bool)
-        self.best_fitness = best[0].fitness.values
+        self.fitness_ = best[0].fitness.values
 
         features = list(compress(range(len(self.support_)), self.support_))
         train = np.reshape([X[:, i] for i in features], [len(features), len(X)]).T

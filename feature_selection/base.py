@@ -113,12 +113,12 @@ class SelectorMixin(six.with_metaclass(ABCMeta, TransformerMixin)):
 class _BaseMetaHeuristic(BaseEstimator, SelectorMixin, ClassifierMixin):
 
     def __init__(self, classifier=None, number_gen=20, size_pop=40,
-                 verbose=0, repeat_=1, predict_with='best',
+                 verbose=0, repeat=1, predict_with='best',
                  make_logbook=False, random_state=None):
 
         self.number_gen = number_gen
         self.size_pop = size_pop
-        self.repeat_ = repeat_
+        self.repeat = repeat
         self.fitness = []
         self.mask = []
         self.predict_with = predict_with
@@ -129,7 +129,6 @@ class _BaseMetaHeuristic(BaseEstimator, SelectorMixin, ClassifierMixin):
         self.y = None
         self.n_features = 0
         self.estimator = classifier
-        self.classes_ = np.asarray([])
         self.random_object = check_random_state(self.random_state)
         self.random_features = 0
         self.logbook = []
@@ -227,7 +226,7 @@ class _BaseMetaHeuristic(BaseEstimator, SelectorMixin, ClassifierMixin):
         if not self.make_logbook:
             warn("You need to set make_logbook to true")
 
-        for i in range(self.repeat_):
+        for i in range(self.repeat):
             gen = self.logbook[i].select("gen")
             acc_mins = self.logbook[i].select("min")
             acc_maxs = self.logbook[i].select("max")

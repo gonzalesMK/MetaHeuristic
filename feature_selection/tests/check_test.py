@@ -17,10 +17,10 @@ def test_plot():
     clf = SVC()
     
     hs = HarmonicSearch(classifier=clf, random_state=0, verbose = 10,
-                        make_logbook=True, repeat_=2)
+                        make_logbook=True, repeat=2)
     
     ga = GeneticAlgorithm(classifier=clf, random_state=1, verbose = 10,
-                          make_logbook=True, repeat_=2)
+                          make_logbook=True, repeat=2)
     
     # Fit the classifier
     hs.fit(X, y, normalize=True)
