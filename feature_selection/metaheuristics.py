@@ -127,12 +127,6 @@ class GeneticAlgorithm(_BaseMetaHeuristic):
         y = self._validate_targets(y)
         X, y = check_X_y(X, y, dtype=np.float64, order='C', accept_sparse='csr')
 
-        if X.shape[0] != y.shape[0]:
-            raise ValueError("X and y have incompatible shapes.\n" +
-                             "X has %s samples, but y has %s." %
-                             (X.shape[0], y.shape[0]))
-
-
         self.n_features_ = X.shape[1]
         self.mask_ = []
         # pylint: disable=E1101
@@ -323,11 +317,6 @@ class HarmonicSearch(_BaseMetaHeuristic):
         
         y = self._validate_targets(y)
         X, y = check_X_y(X, y, dtype=np.float64, order='C', accept_sparse='csr')
-
-        if X.shape[0] != y.shape[0]:
-            raise ValueError("X and y have incompatible shapes.\n" +
-                             "X has %s samples, but y has %s." %
-                             (X.shape[0], y.shape[0]))
 
         self.n_features_ = X.shape[1]
         self.mask_ = []
