@@ -6,3 +6,4 @@ if __name__ == "__main__":
     check_estimator(GeneticAlgorithm)        
     check_estimator(HarmonicSearch)
     
+    

@@ -121,8 +121,6 @@ class GeneticAlgorithm(_BaseMetaHeuristic):
         """
         self.set_params(**arg)
 
-        y = y if y is not None else self.y
-        X = X if X is not None else self.X
         self.X = X
         self.y = y
 
@@ -317,10 +315,6 @@ class HarmonicSearch(_BaseMetaHeuristic):
 
         y : array of shape [n_samples, 1]
                 The input of labels """
-
-
-        y = y if y is not None else self.y
-        X = X if X is not None else self.X
 
         self.X = X
         self.y = y
