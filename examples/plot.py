@@ -2,6 +2,8 @@
 ============================
 Plotting MetaHeuristics - Basic Use
 ============================
+
+An example plot of :class:`feature_selection.HarmonicSearch
 """
 from feature_selection import HarmonicSearch, GeneticAlgorithm
 from sklearn.datasets import load_breast_cancer
