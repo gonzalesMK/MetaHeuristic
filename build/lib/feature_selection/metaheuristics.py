@@ -19,46 +19,43 @@ class GeneticAlgorithm(_BaseMetaHeuristic):
 
     Parameters
     ----------
-    predict_with : one of { 'all' , 'best' }
+    classifier : sklearn classifier , (default=SVM)
+            Any classifier that adheres to the scikit-learn API
+    
+    cross_over_prob :  float in [0,1], (default=0.5)
+            Probability of happening a cross-over in a individual (chromosome)
+
+    individual_mutation_probability : float in [0,1], (default=0.05)
+            Probability of happening mutation in a individual ( chromosome )
+
+    gene_mutation_prob : float in [0,1], (default=0.05)
+            For each gene in the individual (chromosome) chosen for mutation,
+            is the probability of it being mutate
+
+    number_gen : positive integer, (default=10)
+            Number of generations
+
+    size_pop : positive integer, (default=40)
+            Number of individuals (choromosome ) in the population
+
+    verbose : int, (default=0)
+            Print information in every generation% verbose == 0
+
+    repeat : positive int, (default=1)
+            Number of times to repeat the fitting process
+    
+    predict_with : one of { 'all' , 'best' }, (default='best')
         'all' - will predict the X with all masks and return the mean
 
         'best' - will predict the X using the mask with the best fitness
 
         obs: If you are going to make grid search in hyperparameters, use 'all'
 
-    X : array of shape [n_samples, n_features]
-            The input samples
-
-    y : array of shape [n_samples, 1]
-            The input of labels
-
-    Cross_over_prob :  float in [0,1]
-            Probability of happening a cross-over in a individual (chromosome)
-
-    individual_mutation_probability : float in [0,1]
-            Probability of happening mutation in a individual ( chromosome )
-
-    gene_mutation_prob : float in [0,1]
-            For each gene in the individual (chromosome) chosen for mutation,
-            is the probability of it being mutate
-
-    number_gen : positive integer
-            Number of generations
-
-    size_pop : positive integer
-            Number of individuals (choromosome ) in the population
-
-    verbose : boolean
-            Print information
-
-    repeat : positive int
-            Number of times to repeat the fitting process
-
-    make_logbook: boolean
+    make_logbook : boolean, (default=False)
             If True, a logbook from DEAP will be made
     """
 
-    def __init__(self, classifier=None, cross_over_prob=0.2,
+    def __init__(self, classifier=None, cross_over_prob=0.5,
                  individual_mut_prob=0.05, gene_mutation_prob=0.05,
                  number_gen=10, size_pop=40, verbose=0, repeat=1,
                  predict_with='best', make_logbook=False, random_state=None):
@@ -98,7 +95,7 @@ class GeneticAlgorithm(_BaseMetaHeuristic):
         y : array of shape [n_samples, 1]
                 The input of labels
 
-        normalize : boolean
+        normalize : boolean, (default=False)
                 If true, StandardScaler will be applied to X
 
         **arg : parameters
@@ -213,35 +210,35 @@ class HarmonicSearch(_BaseMetaHeuristic):
     
     Parameters
     ----------
-    predict_with : one of { 'all' , 'best' }
+    HMCR : float in [0,1], (default=0.95)
+            Is the Harmonic Memory Considering Rate
+
+    indpb : float in [0,1], (default=0.05)
+            Is the mutation rate of each new harmony
+
+    pitch : float in [0,1], (default=0.05)
+            Is the Pitch Adjustament factor
+
+    number_gen : positive integer, (default=100)
+            Number of generations
+
+    mem_size : positive integer, (default=50)
+            Size of the Harmonic Memory
+
+    verbose : int, (default=0)
+            Print information in every generation% verbose == 0
+
+    repeat : positive int, (default=1)
+            Number of times to repeat the fitting process
+            
+    predict_with : one of { 'all' , 'best' }, (default='best')
         'all' - will predict the X with all masks and return the mean
 
         'best' - will predict the X using the mask with the best fitness
 
         obs: If you are going to make grid search in hyperparameters, use 'all'
 
-    HMCR : float in [0,1]
-            Is the Harmonic Memory Considering Rate
-
-    indpb : float in [0,1]
-            Is the mutation rate of each new harmony
-
-    pitch : float in [0,1]
-            Is the Pitch Adjustament factor
-
-    number_gen : positive integer
-            Number of generations
-
-    mem_size : positive integer
-            Size of the Harmonic Memory
-
-    verbose : boolean
-            Print information
-
-    repeat : positive int
-            Number of times to repeat the fitting process
-
-    make_logbook: boolean
+    make_logbook: boolean, (default=False)
             If True, a logbook from DEAP will be made
     """
 
@@ -286,7 +283,7 @@ class HarmonicSearch(_BaseMetaHeuristic):
 
 
     def fit(self, X=None, y=None, normalize=False, **arg):
-        """Fit method
+        """ Fit method
 
         Parameters
         ----------
@@ -294,7 +291,15 @@ class HarmonicSearch(_BaseMetaHeuristic):
                 The input samples
 
         y : array of shape [n_samples, 1]
-                The input of labels """
+                The input of labels
+
+        normalize : boolean, (default=False)
+                If true, StandardScaler will be applied to X
+
+        **arg : parameters
+                Set parameters
+        """
+
         self.set_params(**arg)
         
         if normalize:
@@ -410,8 +415,35 @@ class HarmonicSearch(_BaseMetaHeuristic):
         return new_harmony
     
 class RandomSearch(_BaseMetaHeuristic):    
+    """Implementation of a Random Search Algorithm for Feature Selection. 
+    It is useful as the worst case
+    
+    Parameters
+    ----------
+    number_gen : positive integer, (default=5)
+            Number of generations
 
-    def __init__(self, classifier=None, number_gen=1, size_pop=40,verbose=0, 
+    size_pop : positive integer, (default=40)
+            Size of random samples in each iteration
+
+    verbose : int, (default=0)
+            Print information in every generation% verbose == 0
+
+    repeat : positive int, (default=1)
+            Number of times to repeat the fitting process
+            
+    predict_with : one of { 'all' , 'best' }, (default='best')
+        'all' - will predict the X with all masks and return the mean
+
+        'best' - will predict the X using the mask with the best fitness
+
+        obs: If you are going to make grid search in hyperparameters, use 'all'
+
+    make_logbook: boolean, (default=False)
+            If True, a logbook from DEAP will be made
+    """
+
+    def __init__(self, classifier=None, number_gen=5, size_pop=40,verbose=0, 
                  repeat=1, predict_with='best', make_logbook=False,
                  random_state=None):
 
@@ -432,7 +464,7 @@ class RandomSearch(_BaseMetaHeuristic):
         self.toolbox.register("map", map)
 
     def fit(self, X=None, y=None, normalize=False, **arg):
-        """Fit method
+        """ Fit method
 
         Parameters
         ----------
@@ -440,7 +472,14 @@ class RandomSearch(_BaseMetaHeuristic):
                 The input samples
 
         y : array of shape [n_samples, 1]
-                The input of labels """
+                The input of labels
+
+        normalize : boolean, (default=False)
+                If true, StandardScaler will be applied to X
+
+        **arg : parameters
+                Set parameters
+        """
         self.set_params(**arg)
         
         if normalize:
