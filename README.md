@@ -1,6 +1,17 @@
-[![Coverage Status](https://coveralls.io/repos/github/gonzalesMK/MetaHeuristic/badge.svg?branch=master)](https://coveralls.io/github/gonzalesMK/MetaHeuristic?branch=master)
-[![Build Status](https://travis-ci.org/gonzalesMK/MetaHeuristic.svg?branch=master)](https://travis-ci.org/gonzalesMK/MetaHeuristic)
-[![CircleCI](https://circleci.com/gh/gonzalesMK/MetaHeuristic/tree/master.svg?style=svg)](https://circleci.com/gh/gonzalesMK/MetaHeuristic/tree/master)
+.. -*- mode: rst -*-
+
+|Travis|_ |Coverage|_ |CircleCI|_ 
+
+.. |Travis| image:: https://travis-ci.org/gonzalesMK/MetaHeuristic.svg?branch=master
+.. _Travis: https://travis-ci.org/gonzalesMK/MetaHeuristic
+
+.. |Coverage| image:: https://coveralls.io/repos/github/gonzalesMK/MetaHeuristic/badge.svg?branch=master
+.. _Coverage: https://coveralls.io/github/gonzalesMK/MetaHeuristic?branch=master
+
+.. |CircleCI| image:: https://circleci.com/gh/gonzalesMK/MetaHeuristic/tree/master.svg?style=svg
+.. _CircleCI: https://circleci.com/gh/gonzalesMK/MetaHeuristic/tree/master
+
+
 # MetaHeuristic
 A repository with some simple implementation of Meta Heuristics (ie: ga, pso) , using sklearn and other common libraries
 
