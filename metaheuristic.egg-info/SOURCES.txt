@@ -1,10 +1,13 @@
 MANIFEST.in
+README.rst
 requirements.txt
 setup.cfg
 setup.py
 feature_selection/__init__.py
 feature_selection/base.py
-feature_selection/metaheuristics.py
+feature_selection/genetic_algorithm.py
+feature_selection/harmonic_search.py
+feature_selection/random_search.py
 feature_selection/tests/__init__.py
 feature_selection/tests/check_test.py
 metaheuristic.egg-info/PKG-INFO

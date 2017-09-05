@@ -157,7 +157,7 @@ class _BaseMetaHeuristic(BaseEstimator, SelectorMixin, ClassifierMixin):
                            [len(features), len(X)]).T
 
         if train.shape[1] == 0:
-            return 0,
+            return 0,1,
 
         # Applying K-Fold Cross Validation
         accuracies = cross_val_score(estimator=clone(self.estimator), X=train, y=y, cv=cv)

@@ -14,18 +14,27 @@ contains a single estimator with unit tests.
     .. toctree::
        :maxdepth: 2
        
-       api
+       api_reference/index
        auto_examples/index
        ...
 
 See the `README <https://github.com/gonzalesMK/MetaHeuristic/blob/master/README.md>`_
 for more information.
 
+========
+Overview
+========
 
-Indices and tables
-==================
+.. only:: html
 
-* :ref:`genindex`
-* :ref:`modindex`
-* :ref:`search`
+    .. sidebar:: Documentation
 
+        :ref:`API Reference <api>`
+            detailed description of algorithms
+
+
+========
+Citing
+========
+
+Thanks to open source libraries : DEAP, scikit-learn and it's scikit template.
