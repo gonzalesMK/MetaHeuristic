@@ -4,7 +4,8 @@
 # MetaHeuristic
 A repository with some simple implementation of Meta Heuristics (ie: ga, pso) , using sklearn and other common libraries
 
-Most of the code is based on:
+## Important Links
+HTML Documentation - http://metaheuristic.readthedocs.io/en/latest/
 
 ## Installation and Usage
 The package by itself comes with a single module and an estimator. Before
