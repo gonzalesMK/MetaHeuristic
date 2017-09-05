@@ -5,8 +5,8 @@
 .. |Travis| image:: https://travis-ci.org/gonzalesMK/MetaHeuristic.svg?branch=master
 .. _Travis: https://travis-ci.org/gonzalesMK/MetaHeuristic
 
-.. |Coverage| image:: https://coveralls.io/repos/github/gonzalesMK/MetaHeuristic/badge.svg?branch=master
-.. _Coverage: https://coveralls.io/github/gonzalesMK/MetaHeuristic?branch=master
+.. |Coverage| image:: https://coveralls.io/repos/scikit-learn-contrib/project-template/badge.svg?branch=master&service=github
+.. _Coverage: https://coveralls.io/r/scikit-learn-contrib/project-template
 
 .. |CircleCI| image:: https://circleci.com/gh/gonzalesMK/MetaHeuristic/tree/master.svg?style=svg
 .. _CircleCI: https://circleci.com/gh/gonzalesMK/MetaHeuristic/tree/master
