@@ -1,0 +1,394 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>HarmonicSearch &mdash; sklearn-template 0.1.0 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  
+
+  
+    <link rel="stylesheet" href="_static/gallery.css" type="text/css" />
+  
+
+  
+        <link rel="index" title="Index"
+              href="genindex.html"/>
+        <link rel="search" title="Search" href="search.html"/>
+    <link rel="top" title="sklearn-template 0.1.0 documentation" href="index.html"/> 
+
+  
+  <script src="_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+   
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="index.html" class="icon icon-home"> sklearn-template
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.1
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="api.html">API Documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="auto_examples/index.html">General examples</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">sklearn-template</a>
+        
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="index.html">Docs</a> &raquo;</li>
+        
+      <li>HarmonicSearch</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="_sources/HarmonicSearch.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="harmonicsearch">
+<h1>HarmonicSearch<a class="headerlink" href="#harmonicsearch" title="Permalink to this headline">¶</a></h1>
+<p>The documentation of the template module.</p>
+<span class="target" id="module-feature_selection.metaheuristics"></span><dl class="class">
+<dt id="feature_selection.metaheuristics.GeneticAlgorithm">
+<em class="property">class </em><code class="descclassname">feature_selection.metaheuristics.</code><code class="descname">GeneticAlgorithm</code><span class="sig-paren">(</span><em>classifier=None</em>, <em>cross_over_prob=0.2</em>, <em>individual_mut_prob=0.05</em>, <em>gene_mutation_prob=0.05</em>, <em>number_gen=10</em>, <em>size_pop=40</em>, <em>verbose=0</em>, <em>repeat=1</em>, <em>predict_with='best'</em>, <em>make_logbook=False</em>, <em>random_state=None</em><span class="sig-paren">)</span><a class="headerlink" href="#feature_selection.metaheuristics.GeneticAlgorithm" title="Permalink to this definition">¶</a></dt>
+<dd><p>Implementation of a Genetic Algorithm for Feature Selection</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>predict_with</strong> : one of { &#8216;all&#8217; , &#8216;best&#8217; }</p>
+<blockquote>
+<div><p>&#8216;all&#8217; - will predict the X with all masks and return the mean</p>
+<p>&#8216;best&#8217; - will predict the X using the mask with the best fitness</p>
+<p>obs: If you are going to make grid search in hyperparameters, use &#8216;all&#8217;</p>
+</div></blockquote>
+<p><strong>X</strong> : array of shape [n_samples, n_features]</p>
+<blockquote>
+<div><p>The input samples</p>
+</div></blockquote>
+<p><strong>y</strong> : array of shape [n_samples, 1]</p>
+<blockquote>
+<div><p>The input of labels</p>
+</div></blockquote>
+<p><strong>Cross_over_prob</strong> :  float in [0,1]</p>
+<blockquote>
+<div><p>Probability of happening a cross-over in a individual (chromosome)</p>
+</div></blockquote>
+<p><strong>individual_mutation_probability</strong> : float in [0,1]</p>
+<blockquote>
+<div><p>Probability of happening mutation in a individual ( chromosome )</p>
+</div></blockquote>
+<p><strong>gene_mutation_prob</strong> : float in [0,1]</p>
+<blockquote>
+<div><p>For each gene in the individual (chromosome) chosen for mutation,
+is the probability of it being mutate</p>
+</div></blockquote>
+<p><strong>number_gen</strong> : positive integer</p>
+<blockquote>
+<div><p>Number of generations</p>
+</div></blockquote>
+<p><strong>size_pop</strong> : positive integer</p>
+<blockquote>
+<div><p>Number of individuals (choromosome ) in the population</p>
+</div></blockquote>
+<p><strong>verbose</strong> : boolean</p>
+<blockquote>
+<div><p>Print information</p>
+</div></blockquote>
+<p><strong>repeat</strong> : positive int</p>
+<blockquote>
+<div><p>Number of times to repeat the fitting process</p>
+</div></blockquote>
+<p><strong>make_logbook: boolean</strong></p>
+<blockquote class="last">
+<div><p>If True, a logbook from DEAP will be made</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Methods</p>
+<dl class="method">
+<dt id="feature_selection.metaheuristics.GeneticAlgorithm.fit">
+<code class="descname">fit</code><span class="sig-paren">(</span><em>X=None</em>, <em>y=None</em>, <em>normalize=False</em>, <em>**arg</em><span class="sig-paren">)</span><a class="headerlink" href="#feature_selection.metaheuristics.GeneticAlgorithm.fit" title="Permalink to this definition">¶</a></dt>
+<dd><p>Fit method</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>X</strong> : array of shape [n_samples, n_features]</p>
+<blockquote>
+<div><p>The input samples</p>
+</div></blockquote>
+<p><strong>y</strong> : array of shape [n_samples, 1]</p>
+<blockquote>
+<div><p>The input of labels</p>
+</div></blockquote>
+<p><strong>normalize</strong> : boolean</p>
+<blockquote>
+<div><p>If true, StandardScaler will be applied to X</p>
+</div></blockquote>
+<p><strong>**arg</strong> : parameters</p>
+<blockquote class="last">
+<div><p>Set parameters</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="feature_selection.metaheuristics.HarmonicSearch">
+<em class="property">class </em><code class="descclassname">feature_selection.metaheuristics.</code><code class="descname">HarmonicSearch</code><span class="sig-paren">(</span><em>classifier=None</em>, <em>HMCR=0.95</em>, <em>indpb=0.05</em>, <em>pitch=0.05</em>, <em>number_gen=100</em>, <em>mem_size=50</em>, <em>verbose=0</em>, <em>repeat=1</em>, <em>predict_with='best'</em>, <em>make_logbook=False</em>, <em>random_state=None</em><span class="sig-paren">)</span><a class="headerlink" href="#feature_selection.metaheuristics.HarmonicSearch" title="Permalink to this definition">¶</a></dt>
+<dd><p>Implementation of a Harmonic Search Algorithm for Feature Selection</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>predict_with</strong> : one of { &#8216;all&#8217; , &#8216;best&#8217; }</p>
+<blockquote>
+<div><p>&#8216;all&#8217; - will predict the X with all masks and return the mean</p>
+<p>&#8216;best&#8217; - will predict the X using the mask with the best fitness</p>
+<p>obs: If you are going to make grid search in hyperparameters, use &#8216;all&#8217;</p>
+</div></blockquote>
+<p><strong>HMCR</strong> : float in [0,1]</p>
+<blockquote>
+<div><p>Is the Harmonic Memory Considering Rate</p>
+</div></blockquote>
+<p><strong>indpb</strong> : float in [0,1]</p>
+<blockquote>
+<div><p>Is the mutation rate of each new harmony</p>
+</div></blockquote>
+<p><strong>pitch</strong> : float in [0,1]</p>
+<blockquote>
+<div><p>Is the Pitch Adjustament factor</p>
+</div></blockquote>
+<p><strong>number_gen</strong> : positive integer</p>
+<blockquote>
+<div><p>Number of generations</p>
+</div></blockquote>
+<p><strong>mem_size</strong> : positive integer</p>
+<blockquote>
+<div><p>Size of the Harmonic Memory</p>
+</div></blockquote>
+<p><strong>verbose</strong> : boolean</p>
+<blockquote>
+<div><p>Print information</p>
+</div></blockquote>
+<p><strong>repeat</strong> : positive int</p>
+<blockquote>
+<div><p>Number of times to repeat the fitting process</p>
+</div></blockquote>
+<p><strong>make_logbook: boolean</strong></p>
+<blockquote class="last">
+<div><p>If True, a logbook from DEAP will be made</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Methods</p>
+<dl class="method">
+<dt id="feature_selection.metaheuristics.HarmonicSearch.fit">
+<code class="descname">fit</code><span class="sig-paren">(</span><em>X=None</em>, <em>y=None</em>, <em>normalize=False</em>, <em>**arg</em><span class="sig-paren">)</span><a class="headerlink" href="#feature_selection.metaheuristics.HarmonicSearch.fit" title="Permalink to this definition">¶</a></dt>
+<dd><p>Fit method</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>X</strong> : array of shape [n_samples, n_features]</p>
+<blockquote>
+<div><p>The input samples</p>
+</div></blockquote>
+<p><strong>y</strong> : array of shape [n_samples, 1]</p>
+<blockquote class="last">
+<div><p>The input of labels</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+
+
+           </div>
+           <div class="articleComments">
+            
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2016, Vighnesh Birodkar.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'./',
+            VERSION:'0.1.0',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true,
+            SOURCELINK_SUFFIX: '.txt'
+        };
+    </script>
+      <script type="text/javascript" src="_static/jquery.js"></script>
+      <script type="text/javascript" src="_static/underscore.js"></script>
+      <script type="text/javascript" src="_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>
