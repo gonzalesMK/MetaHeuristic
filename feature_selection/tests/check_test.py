@@ -112,6 +112,9 @@ def test_all_prediction():
     X_ga2 = ga.fit_transform(X=X, y=y, normalize=True)
     X_rd2 = rd.fit_transform(X=X, y=y, normalize=True)
     
+    # Check Function
+    hs.score_func_to_grid_search(hs, X, y)
+    
     assert_array_equal(X_hs2, X_hs1)
     assert_array_equal(X_ga2, X_ga1)
     assert_array_equal(X_rd2, X_rd1)
