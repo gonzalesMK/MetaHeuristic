@@ -2,6 +2,7 @@ from abc import ABCMeta
 from warnings import warn
 from itertools import compress
 from random import sample
+import random
 
 import numpy as np
 import matplotlib.pyplot as plt
@@ -12,6 +13,7 @@ from sklearn.externals import six
 from sklearn.utils.multiclass import check_classification_targets
 from sklearn.utils import check_random_state,check_X_y
 from sklearn.metrics import accuracy_score
+from sklearn.svm import  SVC
 
 def safe_mask(x, mask):
     """Return a mask which is safe to use on X.
@@ -115,17 +117,17 @@ class _BaseMetaHeuristic(BaseEstimator, SelectorMixin, ClassifierMixin):
     def __init__(self, classifier=None, number_gen=20, size_pop=40,
                  verbose=0, repeat=1, predict_with='best',
                  make_logbook=False, random_state=None):
-
+        
+        self.estimator = SVC(kernel='linear', max_iter=10000) if classifier is None else clone(classifier)
         self.number_gen = number_gen
         self.size_pop = size_pop
+        self.verbose = verbose
         self.repeat = repeat
-        self.fitness = []
         self.predict_with = predict_with
         self.make_logbook = make_logbook
-        self.verbose = verbose
         self.random_state = random_state
-        self.estimator = classifier
         self._random_object = check_random_state(self.random_state)
+        random.seed(self.random_state)
         self.random_features = 0
         self.logbook = []
 
@@ -195,7 +197,8 @@ class _BaseMetaHeuristic(BaseEstimator, SelectorMixin, ClassifierMixin):
         to an final accuracy score.
         """
         right_predict = 0
-        if not estimator.mask_.any():
+        
+        if not hasattr(estimator, 'mask_'):
             raise ValueError("Fit")
 
         y_pred = estimator.predict(X_test)
@@ -229,7 +232,7 @@ class _BaseMetaHeuristic(BaseEstimator, SelectorMixin, ClassifierMixin):
             If this is a travis build test, set it True
         """
         if not self.make_logbook:
-            warn("You need to set make_logbook to true")
+            raise ValueError("You need to set make_logbook to true")
 
         for i in range(self.repeat):
             gen = self.logbook[i].select("gen")

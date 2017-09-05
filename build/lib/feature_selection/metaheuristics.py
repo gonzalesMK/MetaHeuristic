@@ -60,32 +60,22 @@ class GeneticAlgorithm(_BaseMetaHeuristic):
 
     def __init__(self, classifier=None, cross_over_prob=0.2,
                  individual_mut_prob=0.05, gene_mutation_prob=0.05,
-                 number_gen=20, size_pop=40, verbose=0, repeat=1,
+                 number_gen=10, size_pop=40, verbose=0, repeat=1,
                  predict_with='best', make_logbook=False, random_state=None):
-
-
-        creator.create("FitnessMin", base.Fitness, weights=(1.0, -1.0))
-         # pylint: disable=E1101
-        creator.create("Individual", list, fitness=creator.FitnessMin)
+    
+        super(GeneticAlgorithm, self).__init__(
+            classifier=classifier, number_gen=number_gen, size_pop=size_pop, 
+            verbose=verbose, repeat=repeat, predict_with=predict_with, 
+            make_logbook=make_logbook, random_state=random_state)
 
         self.individual_mut_prob = individual_mut_prob
-        self.number_gen = number_gen
-        self.cross_over_prob = cross_over_prob
-        self.size_pop = size_pop
-        self.score_func = None
-        self.repeat = repeat
-        self.fitness = []
-        self.predict_with = predict_with
         self.gene_mutation_prob = gene_mutation_prob
-        self.make_logbook = make_logbook
-        self.verbose = verbose
-        self.random_state = random_state
-        self.estimator = SVC(kernel='linear', max_iter=10000) if classifier is None else clone(classifier)
+        self.cross_over_prob = cross_over_prob
         
+        creator.create("FitnessMin", base.Fitness, weights=(1.0, -1.0))
+        creator.create("Individual", list, fitness=creator.FitnessMin)
+
         self.toolbox = base.Toolbox()
-        # pylint: disable=E1101
-        random.seed(self.random_state)
-        self._random_object = check_random_state(self.random_state)
         self.toolbox.register("attribute", self._gen_in)
         self.toolbox.register("individual", tools.initIterate,
                               creator.Individual, self.toolbox.attribute)
@@ -130,6 +120,7 @@ class GeneticAlgorithm(_BaseMetaHeuristic):
 
         self.n_features_ = X.shape[1]
         self.mask_ = []
+        self.fitnesses_ = []
         # pylint: disable=E1101
         random.seed(self.random_state)
         self._random_object = check_random_state(self.random_state)
@@ -204,7 +195,7 @@ class GeneticAlgorithm(_BaseMetaHeuristic):
             best.update(hof)
             if self.predict_with == 'all':
                 self.mask_.append(hof[0][:])
-                self.fitness.append(hof[0].fitness.values)
+                self.fitnesses_.append(hof[0].fitness.values)
 
         self.mask_ = np.array(self.mask_)
         self.support_ = np.asarray(best[0][:], dtype=bool)
@@ -259,7 +250,6 @@ class HarmonicSearch(_BaseMetaHeuristic):
                  predict_with='best', make_logbook=False, random_state=None):
 
         creator.create("Fitness", base.Fitness, weights=(1.0, -1.0))
-        # pylint: disable=E1101
         creator.create("Individual", list, fitness=creator.Fitness)
 
         self.HMCR = HMCR
@@ -271,7 +261,6 @@ class HarmonicSearch(_BaseMetaHeuristic):
         self.estimator = SVC(kernel='linear', verbose=False, max_iter=10000) if classifier is None else clone(classifier)
 
         self.repeat = repeat
-        self.fitness = []
         self.predict_with = predict_with
         self.make_logbook = make_logbook
         self.verbose = verbose
@@ -322,6 +311,7 @@ class HarmonicSearch(_BaseMetaHeuristic):
 
         self.n_features_ = X.shape[1]
         self.mask_ = []
+        self.fitnesses_ = []
         # pylint: disable=E1101
         random.seed(self.random_state)        
         self._random_object = check_random_state(self.random_state)
@@ -390,7 +380,7 @@ class HarmonicSearch(_BaseMetaHeuristic):
             best.update(hof)
             if self.predict_with == 'all':
                 self.mask_.append(hof[0][:])
-                self.fitness.append(hof[0].fitness.values)
+                self.fitnesses_.append(hof[0].fitness.values)
 
         self.mask_ = np.array(self.mask_)
         self.support_ = np.asarray(best[0][:], dtype=bool)
