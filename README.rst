@@ -8,7 +8,7 @@
 .. |Coverage| image:: https://coveralls.io/repos/github/gonzalesMK/MetaHeuristic/badge.svg?branch=master
 .. _Coverage: https://coveralls.io/github/gonzalesMK/MetaHeuristic?branch=master
 
-.. |CircleCI| image:: https://circleci.com/gh/gonzalesMK/MetaHeuristic/tree/master.svg?style=svg
+.. |CircleCI| image:: https://circleci.com/gh/gonzalesMK/MetaHeuristic/tree/master.svg?style=shield&circle-token=:circle-token
 .. _CircleCI: https://circleci.com/gh/gonzalesMK/MetaHeuristic/tree/master
 
 
