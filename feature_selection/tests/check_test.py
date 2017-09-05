@@ -123,4 +123,16 @@ def test_all_prediction():
     assert_array_equal(X_ga2, X_ga1)
     assert_array_equal(X_rd2, X_rd1)
 
+def test_unusual_errors():
+    dataset = load_breast_cancer()
+    X, y = dataset['data'], dataset['target_names'].take(dataset['target'])
     
+    # Classifier to be used in the metaheuristic
+    clf = SVC()
+    
+    hs = HarmonicSearch(classifier=clf, random_state=0, verbose=50,
+                        make_logbook=True, repeat=1, number_gen=10)
+    hs.fit(X, y, normalize=True)
+    # Let's suppose you have a empty array 
+    hs.support_ = np.array([])
+    hs.transform(X)
