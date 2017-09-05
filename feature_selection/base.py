@@ -128,8 +128,6 @@ class _BaseMetaHeuristic(BaseEstimator, SelectorMixin, ClassifierMixin):
         self.random_state = random_state
         self._random_object = check_random_state(self.random_state)
         random.seed(self.random_state)
-        self.random_features = 0
-        self.logbook = []
 
     def _gen_in(self):
         """ Generate a individual, DEAP function
