@@ -2,3 +2,6 @@ nose>=1.1.2
 scikit-learn>=0.17
 DEAP>=1.0
 matplotlib>=1.5.2,<=2.0.2
+numpydoc>=0.5
+scipy>=0.19
+sphinx_gallery>=0.1.11

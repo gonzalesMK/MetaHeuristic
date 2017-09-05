@@ -1,6 +1,6 @@
-from .metaheuristics import HarmonicSearch
-from .metaheuristics import GeneticAlgorithm
-from .metaheuristics import RandomSearch
+from .harmonic_search import HarmonicSearch
+from .genetic_algorithm import GeneticAlgorithm
+from .random_search import RandomSearch
 
 __all__ = [
         'HarmonicSearch',
