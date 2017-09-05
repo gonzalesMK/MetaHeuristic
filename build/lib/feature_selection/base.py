@@ -128,14 +128,12 @@ class _BaseMetaHeuristic(BaseEstimator, SelectorMixin, ClassifierMixin):
         self.random_state = random_state
         self._random_object = check_random_state(self.random_state)
         random.seed(self.random_state)
-        self.random_features = 0
-        self.logbook = []
 
     def _gen_in(self):
         """ Generate a individual, DEAP function
 
         """
-        random_number = self._random_object.randint(0, self.n_features_)
+        random_number = self._random_object.randint(0, self.n_features_ + 1)
         zeros = (np.zeros([self.n_features_-random_number,], dtype=int))
         ones = np.ones([random_number,], dtype=int)
         return   sample(list(np.concatenate((zeros, ones), axis=0)), self.n_features_)
@@ -197,6 +195,7 @@ class _BaseMetaHeuristic(BaseEstimator, SelectorMixin, ClassifierMixin):
         to an final accuracy score.
         """
         right_predict = 0
+        
         if not hasattr(estimator, 'mask_'):
             raise ValueError("Fit")
 
