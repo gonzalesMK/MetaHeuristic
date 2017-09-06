@@ -249,16 +249,19 @@ is the probability of it being mutate</p>
 <tr class="row-even"><td><code class="xref py py-obj docutils literal"><span class="pre">predict</span></code>(X)</td>
 <td></td>
 </tr>
-<tr class="row-odd"><td><a class="reference internal" href="#feature_selection.genetic_algorithm.GeneticAlgorithm.score" title="feature_selection.genetic_algorithm.GeneticAlgorithm.score"><code class="xref py py-obj docutils literal"><span class="pre">score</span></code></a>(X,&nbsp;y[,&nbsp;sample_weight])</td>
+<tr class="row-odd"><td><a class="reference internal" href="#feature_selection.genetic_algorithm.GeneticAlgorithm.safe_mask" title="feature_selection.genetic_algorithm.GeneticAlgorithm.safe_mask"><code class="xref py py-obj docutils literal"><span class="pre">safe_mask</span></code></a>(x,&nbsp;mask)</td>
+<td>Return a mask which is safe to use on X.</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#feature_selection.genetic_algorithm.GeneticAlgorithm.score" title="feature_selection.genetic_algorithm.GeneticAlgorithm.score"><code class="xref py py-obj docutils literal"><span class="pre">score</span></code></a>(X,&nbsp;y[,&nbsp;sample_weight])</td>
 <td>Returns the mean accuracy on the given test data and labels.</td>
 </tr>
-<tr class="row-even"><td><a class="reference internal" href="#feature_selection.genetic_algorithm.GeneticAlgorithm.score_func_to_grid_search" title="feature_selection.genetic_algorithm.GeneticAlgorithm.score_func_to_grid_search"><code class="xref py py-obj docutils literal"><span class="pre">score_func_to_grid_search</span></code></a>(estimator,&nbsp;X_test,&nbsp;…)</td>
+<tr class="row-odd"><td><a class="reference internal" href="#feature_selection.genetic_algorithm.GeneticAlgorithm.score_func_to_grid_search" title="feature_selection.genetic_algorithm.GeneticAlgorithm.score_func_to_grid_search"><code class="xref py py-obj docutils literal"><span class="pre">score_func_to_grid_search</span></code></a>(estimator,&nbsp;X_test,&nbsp;…)</td>
 <td>Function to be given as a scorer function to Grid Search Method.</td>
 </tr>
-<tr class="row-odd"><td><a class="reference internal" href="#feature_selection.genetic_algorithm.GeneticAlgorithm.set_params" title="feature_selection.genetic_algorithm.GeneticAlgorithm.set_params"><code class="xref py py-obj docutils literal"><span class="pre">set_params</span></code></a>(**params)</td>
+<tr class="row-even"><td><a class="reference internal" href="#feature_selection.genetic_algorithm.GeneticAlgorithm.set_params" title="feature_selection.genetic_algorithm.GeneticAlgorithm.set_params"><code class="xref py py-obj docutils literal"><span class="pre">set_params</span></code></a>(**params)</td>
 <td>Set the parameters of this estimator.</td>
 </tr>
-<tr class="row-even"><td><a class="reference internal" href="#feature_selection.genetic_algorithm.GeneticAlgorithm.transform" title="feature_selection.genetic_algorithm.GeneticAlgorithm.transform"><code class="xref py py-obj docutils literal"><span class="pre">transform</span></code></a>(X[,&nbsp;mask])</td>
+<tr class="row-odd"><td><a class="reference internal" href="#feature_selection.genetic_algorithm.GeneticAlgorithm.transform" title="feature_selection.genetic_algorithm.GeneticAlgorithm.transform"><code class="xref py py-obj docutils literal"><span class="pre">transform</span></code></a>(X[,&nbsp;mask])</td>
 <td>Reduce X to the selected features.</td>
 </tr>
 </tbody>
@@ -388,6 +391,23 @@ in a graph.</p>
 </tr>
 </tbody>
 </table>
+</dd></dl>
+
+<dl class="method">
+<dt id="feature_selection.genetic_algorithm.GeneticAlgorithm.safe_mask">
+<code class="descname">safe_mask</code><span class="sig-paren">(</span><em>x</em>, <em>mask</em><span class="sig-paren">)</span><a class="headerlink" href="#feature_selection.genetic_algorithm.GeneticAlgorithm.safe_mask" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return a mask which is safe to use on X.
+Parameters
+———-
+X : {array-like, sparse matrix}</p>
+<blockquote>
+<div>Data on which to apply mask.</div></blockquote>
+<dl class="docutils">
+<dt>mask <span class="classifier-delimiter">:</span> <span class="classifier">array</span></dt>
+<dd>Mask to be used on X.</dd>
+</dl>
+<blockquote>
+<div>mask</div></blockquote>
 </dd></dl>
 
 <dl class="method">
