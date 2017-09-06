@@ -14,4 +14,6 @@ your datamining workflow
    feature_selection.HarmonicSearch
    feature_selection.GeneticAlgorithm
    feature_selection.RandomSearch
+   feature_selection.BinaryBlackHole
+   feature_selection.SimulatedAnneling
    

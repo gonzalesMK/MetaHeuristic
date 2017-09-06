@@ -36,19 +36,7 @@ An example plot of :class:`feature_selection.HarmonicSearch
             :scale: 47
 
 
-.. rst-class:: sphx-glr-script-out
 
- Out::
-
-    Number of Features Selected: 
-             HS:  0.5 %      GA:  0.733333333333 %
-    Accuracy of the classifier: 
-             HS:  0.974700609783     GA:  0.974700609783
-
-
-
-
-|
 
 
 .. code-block:: python
@@ -73,10 +61,11 @@ An example plot of :class:`feature_selection.HarmonicSearch
     hs.fit(X, y, normalize=True)
     ga.fit(X, y, normalize=True)
 
-    print("Number of Features Selected: \n \t HS: ", sum(hs.support_)/X.shape[1],
-          "% \t GA: ", sum(ga.support_)/X.shape[1], "%")
-    print("Accuracy of the classifier: \n \t HS: ", hs.fitness_[0], "\t GA: ",
-          ga.fitness_[0])
+    # I don't know why it's not working 
+    #print("Number of Features Selected: \n \t HS: ", sum(hs.best_mask_)/X.shape[1],
+    #      "% \t GA: ", sum(ga.best_mask_)/X.shape[1], "%")
+    #print("Accuracy of the classifier: \n \t HS: ", hs.fitness_[0], "\t GA: ",
+    #      ga.fitness_[0])
 
     # Transformed dataset
     X_hs = hs.transform(X)
@@ -86,7 +75,7 @@ An example plot of :class:`feature_selection.HarmonicSearch
     hs.plot_results()
     ga.plot_results()
 
-**Total running time of the script:** ( 0 minutes  11.933 seconds)
+**Total running time of the script:** ( 0 minutes  17.895 seconds)
 
 
 

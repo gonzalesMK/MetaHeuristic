@@ -56,7 +56,7 @@ def test_all_prediction():
     # Classifier to be used in the metaheuristic
     clf = SVC()
     
-    for metaclass in [HarmonicSearch, GeneticAlgorithm, RandomSearch, BinaryBlackHole]:
+    for metaclass in [HarmonicSearch, GeneticAlgorithm, RandomSearch, BinaryBlackHole, SimulatedAnneling]:
         meta = metaclass(classifier=clf, random_state=0, make_logbook=False,
                         repeat=2, number_gen=2, predict_with='all')
         print("Checking all prediction: ", meta._name)

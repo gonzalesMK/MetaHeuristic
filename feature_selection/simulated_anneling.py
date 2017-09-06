@@ -15,12 +15,15 @@ from sklearn.base import clone
 from sklearn.svm import  SVC
 
 class SimulatedAnneling(_BaseMetaHeuristic):
-    """Implementation of a Simulated Anneling Algorithm for Feature Selection
+    """Implementation of a Simulated Anneling Algorithm for Feature Selection as
+    stated in the book : Fred W. Glover - Handbook of Metaheuristics.
+    
+    the decay of the temperature is given by temp_init/number_gen
 
     Parameters
     ----------
     classifier : sklearn classifier , (default=SVM)
-            Any classifier that adheres to the scikit-learn API
+            Any classifier that adheres to the scikit-learn API 
             
     mutation_prob : float in [0,1], (default=0.05)
             Is the the probability for each value in the solution to be mutated
@@ -29,8 +32,8 @@ class SimulatedAnneling(_BaseMetaHeuristic):
     number_gen : positive integer, (default=10)
             Number of generations
 
-    size_pop : positive integer, (default=40)
-            Number of individuals (choromosome ) in the population
+    initial_temp : positive integer, (default=10)
+            The initial temperature
 
     verbose : int, (default=0)
             Print information in every generation% verbose == 0
