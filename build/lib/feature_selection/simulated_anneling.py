@@ -121,7 +121,6 @@ class SimulatedAnneling(_BaseMetaHeuristic):
         # pylint: disable=E1101
         random.seed(self.random_state)        
         self._random_object = check_random_state(self.random_state)
-        self.toolbox = base.Toolbox()
         self.toolbox.register("attribute", self._gen_in)
         self.toolbox.register("individual", tools.initIterate,
                               creator.Individual, self.toolbox.attribute)

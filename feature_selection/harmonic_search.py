@@ -110,7 +110,6 @@ class HarmonicSearch(_BaseMetaHeuristic):
         **arg : parameters
                 Set parameters
         """
-
         self.set_params(**arg)
         
         if normalize:
