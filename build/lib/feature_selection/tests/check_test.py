@@ -3,8 +3,9 @@ from sklearn.utils.estimator_checks import check_estimator
 from sklearn.utils.testing import assert_array_equal
 from sklearn.datasets import load_breast_cancer
 from sklearn.svm import SVC
-from feature_selection import HarmonicSearch, GeneticAlgorithm, RandomSearch
+from feature_selection import HarmonicSearch, GeneticAlgorithm, RandomSearch, BinaryBlackHole
 from sklearn.utils.testing import assert_raises
+
 
 def test_ga():
     check_estimator(GeneticAlgorithm)        
@@ -15,6 +16,9 @@ def test_hs():
 def test_rdm():
     check_estimator(RandomSearch)
 
+def test_bbha():
+    check_estimator(BinaryBlackHole)
+    
 def test_plot():
     dataset = load_breast_cancer()
     X, y = dataset['data'], dataset['target_names'].take(dataset['target'])

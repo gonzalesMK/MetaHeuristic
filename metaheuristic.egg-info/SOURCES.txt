@@ -5,6 +5,7 @@ setup.cfg
 setup.py
 feature_selection/__init__.py
 feature_selection/base.py
+feature_selection/binary_black_hole.py
 feature_selection/genetic_algorithm.py
 feature_selection/harmonic_search.py
 feature_selection/random_search.py
