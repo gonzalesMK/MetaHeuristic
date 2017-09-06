@@ -121,7 +121,7 @@ def test_all_prediction():
     
     rd = RandomSearch(classifier=clf, random_state=1, make_logbook=False, 
                       repeat=2, number_gen=1, predict_with='all')
-
+    
     # Fit and Transform
     X_hs2 = hs.fit_transform(X=X, y=y, normalize=True)
     X_ga2 = ga.fit_transform(X=X, y=y, normalize=True)
