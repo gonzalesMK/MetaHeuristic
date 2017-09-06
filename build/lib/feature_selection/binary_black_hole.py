@@ -21,16 +21,6 @@ class BinaryBlackHole(_BaseMetaHeuristic):
     classifier : sklearn classifier , (default=SVM)
             Any classifier that adheres to the scikit-learn API
     
-    cross_over_prob :  float in [0,1], (default=0.5)
-            Probability of happening a cross-over in a individual (chromosome)
-
-    individual_mutation_probability : float in [0,1], (default=0.05)
-            Probability of happening mutation in a individual ( chromosome )
-
-    gene_mutation_prob : float in [0,1], (default=0.05)
-            For each gene in the individual (chromosome) chosen for mutation,
-            is the probability of it being mutate
-
     number_gen : positive integer, (default=10)
             Number of generations
 
@@ -166,10 +156,10 @@ class BinaryBlackHole(_BaseMetaHeuristic):
                 self.fitnesses_.append(hof[0].fitness.values)
 
         self.mask_ = np.array(self.mask_)
-        self.support_ = np.asarray(best[0][:], dtype=bool)
+        self.best_mask_ = np.asarray(best[0][:], dtype=bool)
         self.fitness_ = best[0].fitness.values
 
-        features = list(compress(range(len(self.support_)), self.support_))
+        features = list(compress(range(len(self.best_mask_)), self.best_mask_))
         train = np.reshape([X[:, i] for i in features], [len(features), len(X)]).T
 
         self.estimator.fit(X=train, y=y)

@@ -21,16 +21,6 @@ class BinaryBlackHole(_BaseMetaHeuristic):
     classifier : sklearn classifier , (default=SVM)
             Any classifier that adheres to the scikit-learn API
     
-    cross_over_prob :  float in [0,1], (default=0.5)
-            Probability of happening a cross-over in a individual (chromosome)
-
-    individual_mutation_probability : float in [0,1], (default=0.05)
-            Probability of happening mutation in a individual ( chromosome )
-
-    gene_mutation_prob : float in [0,1], (default=0.05)
-            For each gene in the individual (chromosome) chosen for mutation,
-            is the probability of it being mutate
-
     number_gen : positive integer, (default=10)
             Number of generations
 

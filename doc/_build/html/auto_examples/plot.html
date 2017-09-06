@@ -176,16 +176,6 @@
 <li><a class="first reference internal image-reference" href="../_images/sphx_glr_plot_004.png"><img alt="../_images/sphx_glr_plot_004.png" src="../_images/sphx_glr_plot_004.png" style="width: 300.79999999999995px; height: 225.6px;" /></a>
 </li>
 </ul>
-<p class="sphx-glr-script-out">Out:</p>
-<div class="sphx-glr-script-out highlight-default"><div class="highlight"><pre><span></span><span class="n">Number</span> <span class="n">of</span> <span class="n">Features</span> <span class="n">Selected</span><span class="p">:</span>
-         <span class="n">HS</span><span class="p">:</span>  <span class="mf">0.5</span> <span class="o">%</span>      <span class="n">GA</span><span class="p">:</span>  <span class="mf">0.733333333333</span> <span class="o">%</span>
-<span class="n">Accuracy</span> <span class="n">of</span> <span class="n">the</span> <span class="n">classifier</span><span class="p">:</span>
-         <span class="n">HS</span><span class="p">:</span>  <span class="mf">0.974700609783</span>     <span class="n">GA</span><span class="p">:</span>  <span class="mf">0.974700609783</span>
-</pre></div>
-</div>
-<div class="line-block">
-<div class="line"><br /></div>
-</div>
 <div class="highlight-python"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">feature_selection</span> <span class="kn">import</span> <span class="n">HarmonicSearch</span><span class="p">,</span> <span class="n">GeneticAlgorithm</span>
 <span class="kn">from</span> <span class="nn">sklearn.datasets</span> <span class="kn">import</span> <span class="n">load_breast_cancer</span>
 <span class="kn">from</span> <span class="nn">sklearn.svm</span> <span class="kn">import</span> <span class="n">SVC</span>
@@ -206,10 +196,11 @@
 <span class="n">hs</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">normalize</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
 <span class="n">ga</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">normalize</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
 
-<span class="k">print</span><span class="p">(</span><span class="s2">&quot;Number of Features Selected: </span><span class="se">\n</span><span class="s2"> </span><span class="se">\t</span><span class="s2"> HS: &quot;</span><span class="p">,</span> <span class="nb">sum</span><span class="p">(</span><span class="n">hs</span><span class="o">.</span><span class="n">support_</span><span class="p">)</span><span class="o">/</span><span class="n">X</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span>
-      <span class="s2">&quot;% </span><span class="se">\t</span><span class="s2"> GA: &quot;</span><span class="p">,</span> <span class="nb">sum</span><span class="p">(</span><span class="n">ga</span><span class="o">.</span><span class="n">support_</span><span class="p">)</span><span class="o">/</span><span class="n">X</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="s2">&quot;%&quot;</span><span class="p">)</span>
-<span class="k">print</span><span class="p">(</span><span class="s2">&quot;Accuracy of the classifier: </span><span class="se">\n</span><span class="s2"> </span><span class="se">\t</span><span class="s2"> HS: &quot;</span><span class="p">,</span> <span class="n">hs</span><span class="o">.</span><span class="n">fitness_</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="s2">&quot;</span><span class="se">\t</span><span class="s2"> GA: &quot;</span><span class="p">,</span>
-      <span class="n">ga</span><span class="o">.</span><span class="n">fitness_</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+<span class="c1"># I don&#39;t know why it&#39;s not working</span>
+<span class="c1">#print(&quot;Number of Features Selected: \n \t HS: &quot;, sum(hs.best_mask_)/X.shape[1],</span>
+<span class="c1">#      &quot;% \t GA: &quot;, sum(ga.best_mask_)/X.shape[1], &quot;%&quot;)</span>
+<span class="c1">#print(&quot;Accuracy of the classifier: \n \t HS: &quot;, hs.fitness_[0], &quot;\t GA: &quot;,</span>
+<span class="c1">#      ga.fitness_[0])</span>
 
 <span class="c1"># Transformed dataset</span>
 <span class="n">X_hs</span> <span class="o">=</span> <span class="n">hs</span><span class="o">.</span><span class="n">transform</span><span class="p">(</span><span class="n">X</span><span class="p">)</span>
@@ -220,7 +211,7 @@
 <span class="n">ga</span><span class="o">.</span><span class="n">plot_results</span><span class="p">()</span>
 </pre></div>
 </div>
-<p><strong>Total running time of the script:</strong> ( 0 minutes  11.933 seconds)</p>
+<p><strong>Total running time of the script:</strong> ( 0 minutes  17.895 seconds)</p>
 <div class="sphx-glr-footer docutils container">
 <div class="sphx-glr-download docutils container">
 <a class="reference download internal" href="../_downloads/plot.py" download=""><code class="xref download docutils literal"><span class="pre">Download</span> <span class="pre">Python</span> <span class="pre">source</span> <span class="pre">code:</span> <span class="pre">plot.py</span></code></a></div>

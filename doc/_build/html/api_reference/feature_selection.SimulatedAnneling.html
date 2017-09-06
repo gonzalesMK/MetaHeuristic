@@ -1,0 +1,555 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Simulated Anneling Algorithm &mdash; MetaHeuristic 1.0 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  
+
+  
+    <link rel="stylesheet" href="../_static/gallery.css" type="text/css" />
+  
+
+  
+        <link rel="index" title="Index"
+              href="../genindex.html"/>
+        <link rel="search" title="Search" href="../search.html"/>
+    <link rel="top" title="MetaHeuristic 1.0 documentation" href="../index.html"/>
+        <link rel="up" title="API Reference" href="index.html"/> 
+
+  
+  <script src="../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+   
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../index.html" class="icon icon-home"> MetaHeuristic
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                1.0
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">API Reference</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="feature_selection.HarmonicSearch.html"><code class="docutils literal"><span class="pre">HarmonicSearch</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="feature_selection.GeneticAlgorithm.html"><code class="docutils literal"><span class="pre">GeneticAlgorithm</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="feature_selection.RandomSearch.html"><code class="docutils literal"><span class="pre">RandomSearch</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="feature_selection.BinaryBlackHole.html"><code class="docutils literal"><span class="pre">Binary</span> <span class="pre">Black</span> <span class="pre">Hole</span> <span class="pre">Algorithm</span></code></a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#"><code class="docutils literal"><span class="pre">Simulated</span> <span class="pre">Anneling</span> <span class="pre">Algorithm</span></code></a><ul class="simple">
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../auto_examples/index.html">General examples</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">MetaHeuristic</a>
+        
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="index.html">API Reference</a> &raquo;</li>
+        
+      <li><code class="docutils literal"><span class="pre">Simulated</span> <span class="pre">Anneling</span> <span class="pre">Algorithm</span></code></li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="../_sources/api_reference/feature_selection.SimulatedAnneling.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="simulated-anneling-algorithm">
+<h1><code class="docutils literal"><span class="pre">Simulated</span> <span class="pre">Anneling</span> <span class="pre">Algorithm</span></code><a class="headerlink" href="#simulated-anneling-algorithm" title="Permalink to this headline">¶</a></h1>
+<dl class="docutils">
+<dt>Implementation of a Simulated Anneling Algorithm for Feature Selection as</dt>
+<dd>stated in the book : Fred W. Glover - Handbook of Metaheuristics.</dd>
+</dl>
+<span class="target" id="module-feature_selection.simulated_anneling"></span><dl class="class">
+<dt id="feature_selection.simulated_anneling.SimulatedAnneling">
+<em class="property">class </em><code class="descclassname">feature_selection.simulated_anneling.</code><code class="descname">SimulatedAnneling</code><span class="sig-paren">(</span><em>classifier=None</em>, <em>mutation_prob=0.05</em>, <em>initial_temp=10</em>, <em>repetition_schedule=10</em>, <em>number_gen=10</em>, <em>repeat=1</em>, <em>verbose=0</em>, <em>predict_with='best'</em>, <em>make_logbook=False</em>, <em>random_state=None</em><span class="sig-paren">)</span><a class="headerlink" href="#feature_selection.simulated_anneling.SimulatedAnneling" title="Permalink to this definition">¶</a></dt>
+<dd><p>Implementation of a Simulated Anneling Algorithm for Feature Selection as
+stated in the book : Fred W. Glover - Handbook of Metaheuristics.</p>
+<p>the decay of the temperature is given by temp_init/number_gen</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>classifier</strong> : sklearn classifier , (default=SVM)</p>
+<blockquote>
+<div><p>Any classifier that adheres to the scikit-learn API</p>
+</div></blockquote>
+<p><strong>mutation_prob</strong> : float in [0,1], (default=0.05)</p>
+<blockquote>
+<div><p>Is the the probability for each value in the solution to be mutated
+when searching for some neighbor solution.</p>
+</div></blockquote>
+<p><strong>number_gen</strong> : positive integer, (default=10)</p>
+<blockquote>
+<div><p>Number of generations</p>
+</div></blockquote>
+<p><strong>initial_temp</strong> : positive integer, (default=10)</p>
+<blockquote>
+<div><p>The initial temperature</p>
+</div></blockquote>
+<p><strong>verbose</strong> : int, (default=0)</p>
+<blockquote>
+<div><p>Print information in every generation% verbose == 0</p>
+</div></blockquote>
+<p><strong>repeat</strong> : positive int, (default=1)</p>
+<blockquote>
+<div><p>Number of times to repeat the fitting process</p>
+</div></blockquote>
+<p><strong>predict_with</strong> : one of { &#8216;all&#8217; , &#8216;best&#8217; }, (default=&#8217;best&#8217;)</p>
+<blockquote>
+<div><p>&#8216;all&#8217; - will predict the X with all masks and return the mean</p>
+<p>&#8216;best&#8217; - will predict the X using the mask with the best fitness</p>
+<p>obs: If you are going to make grid search in hyperparameters, use &#8216;all&#8217;</p>
+</div></blockquote>
+<p><strong>make_logbook</strong> : boolean, (default=False)</p>
+<blockquote class="last">
+<div><p>If True, a logbook from DEAP will be made</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Methods</p>
+<table border="1" class="longtable docutils">
+<colgroup>
+<col width="10%" />
+<col width="90%" />
+</colgroup>
+<tbody valign="top">
+<tr class="row-odd"><td><a class="reference internal" href="#feature_selection.simulated_anneling.SimulatedAnneling.fit" title="feature_selection.simulated_anneling.SimulatedAnneling.fit"><code class="xref py py-obj docutils literal"><span class="pre">fit</span></code></a>([X,&nbsp;y,&nbsp;normalize])</td>
+<td>Fit method</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#feature_selection.simulated_anneling.SimulatedAnneling.fit_transform" title="feature_selection.simulated_anneling.SimulatedAnneling.fit_transform"><code class="xref py py-obj docutils literal"><span class="pre">fit_transform</span></code></a>(X,&nbsp;y[,&nbsp;normalize])</td>
+<td>Fit to data, then transform it.</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#feature_selection.simulated_anneling.SimulatedAnneling.get_params" title="feature_selection.simulated_anneling.SimulatedAnneling.get_params"><code class="xref py py-obj docutils literal"><span class="pre">get_params</span></code></a>([deep])</td>
+<td>Get parameters for this estimator.</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#feature_selection.simulated_anneling.SimulatedAnneling.get_support" title="feature_selection.simulated_anneling.SimulatedAnneling.get_support"><code class="xref py py-obj docutils literal"><span class="pre">get_support</span></code></a>([indices])</td>
+<td>Get a mask, or integer index, of the features selected Parameters &#8212;&#8212;&#8212;- indices : boolean (default False)     If True, the return value will be an array of integers, rather     than a boolean mask.</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#feature_selection.simulated_anneling.SimulatedAnneling.plot_results" title="feature_selection.simulated_anneling.SimulatedAnneling.plot_results"><code class="xref py py-obj docutils literal"><span class="pre">plot_results</span></code></a>()</td>
+<td>This method plots all the statistics for each repetition in a graph.</td>
+</tr>
+<tr class="row-even"><td><code class="xref py py-obj docutils literal"><span class="pre">predict</span></code>(X)</td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#feature_selection.simulated_anneling.SimulatedAnneling.safe_mask" title="feature_selection.simulated_anneling.SimulatedAnneling.safe_mask"><code class="xref py py-obj docutils literal"><span class="pre">safe_mask</span></code></a>(x,&nbsp;mask)</td>
+<td>Return a mask which is safe to use on X.</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#feature_selection.simulated_anneling.SimulatedAnneling.score" title="feature_selection.simulated_anneling.SimulatedAnneling.score"><code class="xref py py-obj docutils literal"><span class="pre">score</span></code></a>(X,&nbsp;y[,&nbsp;sample_weight])</td>
+<td>Returns the mean accuracy on the given test data and labels.</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#feature_selection.simulated_anneling.SimulatedAnneling.score_func_to_grid_search" title="feature_selection.simulated_anneling.SimulatedAnneling.score_func_to_grid_search"><code class="xref py py-obj docutils literal"><span class="pre">score_func_to_grid_search</span></code></a>(estimator,&nbsp;X_test,&nbsp;...)</td>
+<td>Function to be given as a scorer function to Grid Search Method.</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#feature_selection.simulated_anneling.SimulatedAnneling.set_params" title="feature_selection.simulated_anneling.SimulatedAnneling.set_params"><code class="xref py py-obj docutils literal"><span class="pre">set_params</span></code></a>(**params)</td>
+<td>Set the parameters of this estimator.</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#feature_selection.simulated_anneling.SimulatedAnneling.transform" title="feature_selection.simulated_anneling.SimulatedAnneling.transform"><code class="xref py py-obj docutils literal"><span class="pre">transform</span></code></a>(X[,&nbsp;mask])</td>
+<td>Reduce X to the selected features.</td>
+</tr>
+</tbody>
+</table>
+<dl class="method">
+<dt id="feature_selection.simulated_anneling.SimulatedAnneling.fit">
+<code class="descname">fit</code><span class="sig-paren">(</span><em>X=None</em>, <em>y=None</em>, <em>normalize=False</em>, <em>**arg</em><span class="sig-paren">)</span><a class="headerlink" href="#feature_selection.simulated_anneling.SimulatedAnneling.fit" title="Permalink to this definition">¶</a></dt>
+<dd><p>Fit method</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>X</strong> : array of shape [n_samples, n_features]</p>
+<blockquote>
+<div><p>The input samples</p>
+</div></blockquote>
+<p><strong>y</strong> : array of shape [n_samples, 1]</p>
+<blockquote>
+<div><p>The input of labels</p>
+</div></blockquote>
+<p><strong>normalize</strong> : boolean, (default=False)</p>
+<blockquote>
+<div><p>If true, StandardScaler will be applied to X</p>
+</div></blockquote>
+<p><strong>**arg</strong> : parameters</p>
+<blockquote class="last">
+<div><p>Set parameters</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="feature_selection.simulated_anneling.SimulatedAnneling.fit_transform">
+<code class="descname">fit_transform</code><span class="sig-paren">(</span><em>X</em>, <em>y</em>, <em>normalize=False</em>, <em>**fit_params</em><span class="sig-paren">)</span><a class="headerlink" href="#feature_selection.simulated_anneling.SimulatedAnneling.fit_transform" title="Permalink to this definition">¶</a></dt>
+<dd><p>Fit to data, then transform it.</p>
+<p>Fits transformer to X and y with optional parameters fit_params
+and returns a transformed version of X.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>X</strong> : numpy array of shape [n_samples, n_features]</p>
+<blockquote>
+<div><p>Training set.</p>
+</div></blockquote>
+<p><strong>y</strong> : numpy array of shape [n_samples]</p>
+<blockquote>
+<div><p>Target values.</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>X_new</strong> : numpy array of shape [n_samples, n_features_new]</p>
+<blockquote class="last">
+<div><p>Transformed array.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="feature_selection.simulated_anneling.SimulatedAnneling.get_params">
+<code class="descname">get_params</code><span class="sig-paren">(</span><em>deep=True</em><span class="sig-paren">)</span><a class="headerlink" href="#feature_selection.simulated_anneling.SimulatedAnneling.get_params" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get parameters for this estimator.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>deep</strong> : boolean, optional</p>
+<blockquote>
+<div><p>If True, will return the parameters for this estimator and
+contained subobjects that are estimators.</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>params</strong> : mapping of string to any</p>
+<blockquote class="last">
+<div><p>Parameter names mapped to their values.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="feature_selection.simulated_anneling.SimulatedAnneling.get_support">
+<code class="descname">get_support</code><span class="sig-paren">(</span><em>indices=False</em><span class="sig-paren">)</span><a class="headerlink" href="#feature_selection.simulated_anneling.SimulatedAnneling.get_support" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get a mask, or integer index, of the features selected
+Parameters
+&#8212;&#8212;&#8212;-
+indices : boolean (default False)</p>
+<blockquote>
+<div>If True, the return value will be an array of integers, rather
+than a boolean mask.</div></blockquote>
+<dl class="docutils">
+<dt>support <span class="classifier-delimiter">:</span> <span class="classifier">array</span></dt>
+<dd>An index that selects the retained features from a feature vector.
+If <cite>indices</cite> is False, this is a boolean array of shape
+[# input features], in which an element is True iff its
+corresponding feature is selected for retention. If <cite>indices</cite> is
+True, this is an integer array of shape [# output features] whose
+values are indices into the input feature vector.</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="feature_selection.simulated_anneling.SimulatedAnneling.plot_results">
+<code class="descname">plot_results</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#feature_selection.simulated_anneling.SimulatedAnneling.plot_results" title="Permalink to this definition">¶</a></dt>
+<dd><p>This method plots all the statistics for each repetition
+in a graph.</p>
+<blockquote>
+<div>The curves are minimun, average and maximun accuracy</div></blockquote>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>travis</strong> : boolean</p>
+<blockquote class="last">
+<div><p>If this is a travis build test, set it True</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="feature_selection.simulated_anneling.SimulatedAnneling.safe_mask">
+<code class="descname">safe_mask</code><span class="sig-paren">(</span><em>x</em>, <em>mask</em><span class="sig-paren">)</span><a class="headerlink" href="#feature_selection.simulated_anneling.SimulatedAnneling.safe_mask" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return a mask which is safe to use on X.
+Parameters
+&#8212;&#8212;&#8212;-
+X : {array-like, sparse matrix}</p>
+<blockquote>
+<div>Data on which to apply mask.</div></blockquote>
+<dl class="docutils">
+<dt>mask <span class="classifier-delimiter">:</span> <span class="classifier">array</span></dt>
+<dd>Mask to be used on X.</dd>
+</dl>
+<blockquote>
+<div>mask</div></blockquote>
+</dd></dl>
+
+<dl class="method">
+<dt id="feature_selection.simulated_anneling.SimulatedAnneling.score">
+<code class="descname">score</code><span class="sig-paren">(</span><em>X</em>, <em>y</em>, <em>sample_weight=None</em><span class="sig-paren">)</span><a class="headerlink" href="#feature_selection.simulated_anneling.SimulatedAnneling.score" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the mean accuracy on the given test data and labels.</p>
+<p>In multi-label classification, this is the subset accuracy
+which is a harsh metric since you require for each sample that
+each label set be correctly predicted.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>X</strong> : array-like, shape = (n_samples, n_features)</p>
+<blockquote>
+<div><p>Test samples.</p>
+</div></blockquote>
+<p><strong>y</strong> : array-like, shape = (n_samples) or (n_samples, n_outputs)</p>
+<blockquote>
+<div><p>True labels for X.</p>
+</div></blockquote>
+<p><strong>sample_weight</strong> : array-like, shape = [n_samples], optional</p>
+<blockquote>
+<div><p>Sample weights.</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>score</strong> : float</p>
+<blockquote class="last">
+<div><p>Mean accuracy of self.predict(X) wrt. y.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="feature_selection.simulated_anneling.SimulatedAnneling.score_func_to_grid_search">
+<code class="descname">score_func_to_grid_search</code><span class="sig-paren">(</span><em>estimator</em>, <em>X_test</em>, <em>y_test</em><span class="sig-paren">)</span><a class="headerlink" href="#feature_selection.simulated_anneling.SimulatedAnneling.score_func_to_grid_search" title="Permalink to this definition">¶</a></dt>
+<dd><p>Function to be given as a scorer function to Grid Search Method.
+It is going to transform the matrix os predicts generated by &#8216;all&#8217; option
+to an final accuracy score.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="feature_selection.simulated_anneling.SimulatedAnneling.set_params">
+<code class="descname">set_params</code><span class="sig-paren">(</span><em>**params</em><span class="sig-paren">)</span><a class="headerlink" href="#feature_selection.simulated_anneling.SimulatedAnneling.set_params" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set the parameters of this estimator.</p>
+<p>The method works on simple estimators as well as on nested objects
+(such as pipelines). The latter have parameters of the form
+<code class="docutils literal"><span class="pre">&lt;component&gt;__&lt;parameter&gt;</span></code> so that it&#8217;s possible to update each
+component of a nested object.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">self</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="feature_selection.simulated_anneling.SimulatedAnneling.transform">
+<code class="descname">transform</code><span class="sig-paren">(</span><em>X</em>, <em>mask=None</em><span class="sig-paren">)</span><a class="headerlink" href="#feature_selection.simulated_anneling.SimulatedAnneling.transform" title="Permalink to this definition">¶</a></dt>
+<dd><p>Reduce X to the selected features.
+Parameters
+&#8212;&#8212;&#8212;-
+X : array of shape [n_samples, n_features]</p>
+<blockquote>
+<div>The input samples.</div></blockquote>
+<dl class="docutils">
+<dt>X_r <span class="classifier-delimiter">:</span> <span class="classifier">array of shape [n_samples, n_selected_features]</span></dt>
+<dd>The input samples with only the selected features.</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+
+
+           </div>
+           <div class="articleComments">
+            
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2017, Juliano D. Negri.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../',
+            VERSION:'1.0',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true,
+            SOURCELINK_SUFFIX: '.txt'
+        };
+    </script>
+      <script type="text/javascript" src="../_static/jquery.js"></script>
+      <script type="text/javascript" src="../_static/underscore.js"></script>
+      <script type="text/javascript" src="../_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>
