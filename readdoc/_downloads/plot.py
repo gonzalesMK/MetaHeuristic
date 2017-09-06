@@ -25,8 +25,8 @@ ga = GeneticAlgorithm(classifier=clf, random_state=1, make_logbook=True,
 hs.fit(X, y, normalize=True)
 ga.fit(X, y, normalize=True)
 
-print("Number of Features Selected: \n \t HS: ", sum(hs.support_)/X.shape[1],
-      "% \t GA: ", sum(ga.support_)/X.shape[1], "%")
+print("Number of Features Selected: \n \t HS: ", sum(hs.best_mask_)/X.shape[1],
+      "% \t GA: ", sum(ga.best_mask_)/X.shape[1], "%")
 print("Accuracy of the classifier: \n \t HS: ", hs.fitness_[0], "\t GA: ",
       ga.fitness_[0])
 

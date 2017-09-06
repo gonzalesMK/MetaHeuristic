@@ -73,8 +73,8 @@ An example plot of :class:`feature_selection.HarmonicSearch
     hs.fit(X, y, normalize=True)
     ga.fit(X, y, normalize=True)
 
-    print("Number of Features Selected: \n \t HS: ", sum(hs.support_)/X.shape[1],
-          "% \t GA: ", sum(ga.support_)/X.shape[1], "%")
+    print("Number of Features Selected: \n \t HS: ", sum(hs.best_mask_)/X.shape[1],
+          "% \t GA: ", sum(ga.best_mask_)/X.shape[1], "%")
     print("Accuracy of the classifier: \n \t HS: ", hs.fitness_[0], "\t GA: ",
           ga.fitness_[0])
 
@@ -86,7 +86,7 @@ An example plot of :class:`feature_selection.HarmonicSearch
     hs.plot_results()
     ga.plot_results()
 
-**Total running time of the script:** ( 0 minutes  14.798 seconds)
+**Total running time of the script:** ( 0 minutes  15.113 seconds)
 
 
 
