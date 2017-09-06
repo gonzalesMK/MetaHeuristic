@@ -37,7 +37,7 @@ To install the module execute, ``python`` ::
 
 or: 
 
-  pip install -i https://testpypi.python.org/pypi metaheuristic
+  pip install metaheuristic
 If the installation is successful, and `MetaHeuristic` is correctly installed,
 you should be able to execute the following in Python:
 
