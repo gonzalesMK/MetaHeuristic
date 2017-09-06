@@ -19,10 +19,14 @@ except ImportError:
     sys.exit(1)
 
 setup(name='metaheuristic',
-      version='0.0.3',
+      version='1.2',
       description='A package with some metaheuristics to feature selection',
       author='Juliano D. Negri',
       packages=find_packages(),
       install_requires=INSTALL_REQUIRES,
-      author_email='juliano.negri@usp.br',
+      author_email='julianonegri@gmail.com',
+      url='https://github.com/gonzalesMK/MetaHeuristic',
+      classifiers=[
+              'Programming Language :: Python :: 3.6'
+              ]
       )

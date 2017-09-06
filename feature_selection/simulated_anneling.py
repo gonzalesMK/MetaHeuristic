@@ -1,3 +1,4 @@
+from __future__ import print_function
 import random
 from itertools import compress
 from datetime import datetime
@@ -130,7 +131,7 @@ class SimulatedAnneling(_BaseMetaHeuristic):
         self.toolbox.register("mutate", tools.mutUniformInt, low=0, up=1,
                               indpb=self.mutation_prob)
         if self.make_logbook:
-            self.stats = tools.Statistics(lambda ind: ind.fitness.wvalues[0])
+            self.stats = tools.Statistics(self._get_accuracy)
             self.stats.register("avg", np.mean)
             self.stats.register("std", np.std)
             self.stats.register("min", np.min)
@@ -165,8 +166,8 @@ class SimulatedAnneling(_BaseMetaHeuristic):
                                 best_fit=hof[0].fitness.values[0],
                                 **self.stats.compile([solution]))
                 if self.verbose:
-                    if (int)(temp * self.number_gen/ self.initial_temp) % self.verbose == 0:
-                        print("Temperature: ", temp ,  " TIME: ", datetime.now().time().minute, ":", datetime.now().time().second)
+                    #if (int)(temp * self.number_gen/ self.initial_temp) % self.verbose == 0:
+                    print("Temperature: ", temp ,  " TIME: ", datetime.now().time().minute, ":", datetime.now().time().second, end="\r")
 
             best.update(hof)
             if self.predict_with == 'all':

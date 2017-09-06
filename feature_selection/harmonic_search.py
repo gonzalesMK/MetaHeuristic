@@ -1,3 +1,4 @@
+from __future__ import print_function
 import random
 from itertools import compress
 from datetime import datetime
@@ -13,7 +14,6 @@ from sklearn.utils import check_X_y
 from sklearn.svm import  SVC
 from sklearn.base import clone
 from sklearn.utils import check_random_state
-
 
 class HarmonicSearch(_BaseMetaHeuristic):
     """Implementation of a Harmonic Search Algorithm for Feature Selection
@@ -110,7 +110,6 @@ class HarmonicSearch(_BaseMetaHeuristic):
         **arg : parameters
                 Set parameters
         """
-
         self.set_params(**arg)
         
         if normalize:
@@ -146,7 +145,7 @@ class HarmonicSearch(_BaseMetaHeuristic):
         #toolbox.register("map", futures.map)
 
         if self.make_logbook:
-            self.stats = tools.Statistics(lambda ind: ind.fitness.wvalues[0])
+            self.stats = tools.Statistics(self._get_accuracy)
             self.stats.register("avg", np.mean)
             self.stats.register("std", np.std)
             self.stats.register("min", np.min)
@@ -188,10 +187,9 @@ class HarmonicSearch(_BaseMetaHeuristic):
                                            best_fit=hof[0].fitness.values[0],
                                            **self.stats.compile(harmony_mem))
                 if self.verbose:
-                    if g % self.verbose == 0:
-                        print("Generation: ", g + 1, "/", self.number_gen,
-                              "TIME: ", datetime.now().time().minute, ":",
-                              datetime.now().time().second)
+                    print("Generation: ", g + 1, "/", self.number_gen,
+                          "TIME: ", datetime.now().time().minute, ":",
+                          datetime.now().time().second, end="\r")
 
             best.update(hof)
             if self.predict_with == 'all':
@@ -224,3 +222,4 @@ class HarmonicSearch(_BaseMetaHeuristic):
         self.toolbox.pitch_adjustament(new_harmony)
 
         return new_harmony
+    

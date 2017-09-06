@@ -12,6 +12,7 @@ feature_selection/random_search.py
 feature_selection/simulated_anneling.py
 feature_selection/tests/__init__.py
 feature_selection/tests/check_test.py
+feature_selection/tests/just_kiiding.py
 metaheuristic.egg-info/PKG-INFO
 metaheuristic.egg-info/SOURCES.txt
 metaheuristic.egg-info/dependency_links.txt

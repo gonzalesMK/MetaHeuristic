@@ -1,4 +1,6 @@
+from __future__ import print_function
 import random
+import sys
 from itertools import compress
 from datetime import datetime
 
@@ -133,7 +135,7 @@ class GeneticAlgorithm(_BaseMetaHeuristic):
                               indpb=self.gene_mutation_prob)
 
         if self.make_logbook:
-            self.stats = tools.Statistics(lambda ind: ind.fitness.wvalues[0])
+            self.stats = tools.Statistics(self._get_accuracy)
             self.stats.register("avg", np.mean)
             self.stats.register("std", np.std)
             self.stats.register("min", np.min)
@@ -186,8 +188,8 @@ class GeneticAlgorithm(_BaseMetaHeuristic):
                                                best_fit=hof[0].fitness.values[0],
                                                **self.stats.compile(pop))
                 if self.verbose:
-                    if g % self.verbose == 0:
-                        print("Generation: ", g + 1, "/", self.number_gen, "TIME: ", datetime.now().time().minute, ":", datetime.now().time().second)
+                    print("Generation: ", g + 1, "/", self.number_gen, "TIME: ", datetime.now().time().minute, ":", datetime.now().time().second, end="\r")
+                        
 
             best.update(hof)
             if self.predict_with == 'all':

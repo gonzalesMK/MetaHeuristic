@@ -275,3 +275,6 @@ class _BaseMetaHeuristic(BaseEstimator, SelectorMixin, ClassifierMixin):
         # fit method of arity 2 (supervised transformation)
         return self.fit(X, y, normalize, **fit_params).transform(X)
 
+    @staticmethod
+    def _get_accuracy(ind):
+        return ind.fitness.wvalues[0]
