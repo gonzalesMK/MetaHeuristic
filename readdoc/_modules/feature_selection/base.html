@@ -435,6 +435,9 @@
         <span class="c1"># fit method of arity 2 (supervised transformation)</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">normalize</span><span class="p">,</span> <span class="o">**</span><span class="n">fit_params</span><span class="p">)</span><span class="o">.</span><span class="n">transform</span><span class="p">(</span><span class="n">X</span><span class="p">)</span>
 
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">_get_accuracy</span><span class="p">(</span><span class="n">ind</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">ind</span><span class="o">.</span><span class="n">fitness</span><span class="o">.</span><span class="n">wvalues</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
 </pre></div>
 
            </div>

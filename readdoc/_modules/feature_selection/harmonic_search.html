@@ -158,7 +158,8 @@
            <div itemprop="articleBody">
             
   <h1>Source code for feature_selection.harmonic_search</h1><div class="highlight"><pre>
-<span></span><span class="kn">import</span> <span class="nn">random</span>
+<span></span><span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">print_function</span>
+<span class="kn">import</span> <span class="nn">random</span>
 <span class="kn">from</span> <span class="nn">itertools</span> <span class="k">import</span> <span class="n">compress</span>
 <span class="kn">from</span> <span class="nn">datetime</span> <span class="k">import</span> <span class="n">datetime</span>
 
@@ -173,7 +174,6 @@
 <span class="kn">from</span> <span class="nn">sklearn.svm</span> <span class="k">import</span>  <span class="n">SVC</span>
 <span class="kn">from</span> <span class="nn">sklearn.base</span> <span class="k">import</span> <span class="n">clone</span>
 <span class="kn">from</span> <span class="nn">sklearn.utils</span> <span class="k">import</span> <span class="n">check_random_state</span>
-
 
 <div class="viewcode-block" id="HarmonicSearch"><a class="viewcode-back" href="../../api_reference/feature_selection.HarmonicSearch.html#feature_selection.harmonic_search.HarmonicSearch">[docs]</a><span class="k">class</span> <span class="nc">HarmonicSearch</span><span class="p">(</span><span class="n">_BaseMetaHeuristic</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Implementation of a Harmonic Search Algorithm for Feature Selection</span>
@@ -270,7 +270,6 @@
 <span class="sd">        **arg : parameters</span>
 <span class="sd">                Set parameters</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-
         <span class="bp">self</span><span class="o">.</span><span class="n">set_params</span><span class="p">(</span><span class="o">**</span><span class="n">arg</span><span class="p">)</span>
         
         <span class="k">if</span> <span class="n">normalize</span><span class="p">:</span>
@@ -306,7 +305,7 @@
         <span class="c1">#toolbox.register(&quot;map&quot;, futures.map)</span>
 
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">make_logbook</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">stats</span> <span class="o">=</span> <span class="n">tools</span><span class="o">.</span><span class="n">Statistics</span><span class="p">(</span><span class="k">lambda</span> <span class="n">ind</span><span class="p">:</span> <span class="n">ind</span><span class="o">.</span><span class="n">fitness</span><span class="o">.</span><span class="n">wvalues</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">stats</span> <span class="o">=</span> <span class="n">tools</span><span class="o">.</span><span class="n">Statistics</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_get_accuracy</span><span class="p">)</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">stats</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="s2">&quot;avg&quot;</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">)</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">stats</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="s2">&quot;std&quot;</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">std</span><span class="p">)</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">stats</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="s2">&quot;min&quot;</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">min</span><span class="p">)</span>
@@ -348,10 +347,9 @@
                                            <span class="n">best_fit</span><span class="o">=</span><span class="n">hof</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">fitness</span><span class="o">.</span><span class="n">values</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span>
                                            <span class="o">**</span><span class="bp">self</span><span class="o">.</span><span class="n">stats</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="n">harmony_mem</span><span class="p">))</span>
                 <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">verbose</span><span class="p">:</span>
-                    <span class="k">if</span> <span class="n">g</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">verbose</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
-                        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Generation: &quot;</span><span class="p">,</span> <span class="n">g</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="s2">&quot;/&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">number_gen</span><span class="p">,</span>
-                              <span class="s2">&quot;TIME: &quot;</span><span class="p">,</span> <span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">()</span><span class="o">.</span><span class="n">time</span><span class="p">()</span><span class="o">.</span><span class="n">minute</span><span class="p">,</span> <span class="s2">&quot;:&quot;</span><span class="p">,</span>
-                              <span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">()</span><span class="o">.</span><span class="n">time</span><span class="p">()</span><span class="o">.</span><span class="n">second</span><span class="p">)</span>
+                    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Generation: &quot;</span><span class="p">,</span> <span class="n">g</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="s2">&quot;/&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">number_gen</span><span class="p">,</span>
+                          <span class="s2">&quot;TIME: &quot;</span><span class="p">,</span> <span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">()</span><span class="o">.</span><span class="n">time</span><span class="p">()</span><span class="o">.</span><span class="n">minute</span><span class="p">,</span> <span class="s2">&quot;:&quot;</span><span class="p">,</span>
+                          <span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">()</span><span class="o">.</span><span class="n">time</span><span class="p">()</span><span class="o">.</span><span class="n">second</span><span class="p">,</span> <span class="n">end</span><span class="o">=</span><span class="s2">&quot;</span><span class="se">\r</span><span class="s2">&quot;</span><span class="p">)</span>
 
             <span class="n">best</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">hof</span><span class="p">)</span>
             <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">predict_with</span> <span class="o">==</span> <span class="s1">&#39;all&#39;</span><span class="p">:</span>
@@ -384,6 +382,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">toolbox</span><span class="o">.</span><span class="n">pitch_adjustament</span><span class="p">(</span><span class="n">new_harmony</span><span class="p">)</span>
 
         <span class="k">return</span> <span class="n">new_harmony</span></div>
+    
 </pre></div>
 
            </div>
