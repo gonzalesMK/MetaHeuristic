@@ -35,7 +35,7 @@ To install the module execute, ``python`` ::
 
   python setup.py install
 
-or: 
+or: (this way you may get a older version, i'm updating faster than i can atualize it)
 
   pip install metaheuristic
 If the installation is successful, and `MetaHeuristic` is correctly installed,
