@@ -147,8 +147,7 @@ class BinaryBlackHole(_BaseMetaHeuristic):
                                                best_fit=hof[0].fitness.values[0],
                                                **self.stats.compile(galaxy))
                 if self.verbose:
-                    if g % self.verbose == 0:
-                        print("Generation: ", g + 1, "/", self.number_gen, "TIME: ", datetime.now().time().minute, ":", datetime.now().time().second)
+                    print("Generation: ", g + 1, "/", self.number_gen, "TIME: ", datetime.now().time().minute, ":", datetime.now().time().second, end="\r")
 
             best.update(hof)
             if self.predict_with == 'all':

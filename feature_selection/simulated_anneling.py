@@ -165,8 +165,8 @@ class SimulatedAnneling(_BaseMetaHeuristic):
                                 best_fit=hof[0].fitness.values[0],
                                 **self.stats.compile([solution]))
                 if self.verbose:
-                    if (int)(temp * self.number_gen/ self.initial_temp) % self.verbose == 0:
-                        print("Temperature: ", temp ,  " TIME: ", datetime.now().time().minute, ":", datetime.now().time().second)
+                    #if (int)(temp * self.number_gen/ self.initial_temp) % self.verbose == 0:
+                    print("Temperature: ", temp ,  " TIME: ", datetime.now().time().minute, ":", datetime.now().time().second, end="\r")
 
             best.update(hof)
             if self.predict_with == 'all':
