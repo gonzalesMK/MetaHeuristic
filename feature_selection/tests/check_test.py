@@ -87,52 +87,27 @@ def test_all_prediction():
     # Classifier to be used in the metaheuristic
     clf = SVC()
     
-    hs = HarmonicSearch(classifier=clf, random_state=0, make_logbook=False,
-                        repeat=2, number_gen=10, predict_with='all')
-    
-    ga = GeneticAlgorithm(classifier=clf, random_state=1, make_logbook=False,
-                          repeat=2, predict_with='all')
-    
-    rd = RandomSearch(classifier=clf, random_state=1, make_logbook=False, 
-                      repeat=2, number_gen=1, predict_with='all')
-    
-    bb = BinaryBlackHole(classifier=clf, random_state=1, make_logbook=False, 
-                      repeat=2, number_gen=1, predict_with='all')
+    for metaclass in [HarmonicSearch, GeneticAlgorithm, RandomSearch, BinaryBlackHole]:
+        meta = metaclass(classifier=clf, random_state=0, make_logbook=False,
+                        repeat=2, number_gen=2, predict_with='all')
     # Checks for error
-    assert_raises(ValueError, ga.score_func_to_grid_search, ga, X, y)
+        assert_raises(ValueError, meta.score_func_to_grid_search, meta, X, y)
     
-    # Fit the classifier
-    hs.fit(X, y, normalize=True)
-    ga.fit(X, y, normalize=True)
-    rd.fit(X, y, normalize=True)
-    bb.fit(X, y, normalize=True)
+        # Fit the classifier
+        meta.fit(X, y, normalize=True)
     
-    # Transformed dataset
-    X_hs1 = hs.transform(X)
-    X_ga1 = ga.transform(X)
-    X_rd1 = rd.transform(X)
-    X_bb1 = bb.transform(X)
+        # Transformed dataset
+        X_1 = meta.transform(X)
     
-    hs = HarmonicSearch(classifier=clf, random_state=0, make_logbook=False,
-                        repeat=2, number_gen=10, predict_with='all')
+        meta = metaclass(classifier=clf, random_state=0, make_logbook=False,
+                        repeat=2, number_gen=2, predict_with='all')
     
-    ga = GeneticAlgorithm(classifier=clf, random_state=1, make_logbook=False,
-                          repeat=2, predict_with='all')
+        # Fit and Transform
+        X_2 = meta.fit_transform(X=X, y=y, normalize=True)
     
-    rd = RandomSearch(classifier=clf, random_state=1, make_logbook=False, 
-                      repeat=2, number_gen=1, predict_with='all')
-    
-    # Fit and Transform
-    X_hs2 = hs.fit_transform(X=X, y=y, normalize=True)
-    X_ga2 = ga.fit_transform(X=X, y=y, normalize=True)
-    X_rd2 = rd.fit_transform(X=X, y=y, normalize=True)
-    
-    # Check Function
-    hs.score_func_to_grid_search(hs, X, y)
-    
-    assert_array_equal(X_hs2, X_hs1)
-    assert_array_equal(X_ga2, X_ga1)
-    assert_array_equal(X_rd2, X_rd1)
+        # Check Function
+        meta.score_func_to_grid_search(meta, X, y)
+        assert_array_equal(X_1, X_2)
 
 def test_unusual_errors():
     dataset = load_breast_cancer()
