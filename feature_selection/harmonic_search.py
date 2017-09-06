@@ -59,6 +59,7 @@ class HarmonicSearch(_BaseMetaHeuristic):
         creator.create("Fitness", base.Fitness, weights=(1.0, -1.0))
         creator.create("Individual", list, fitness=creator.Fitness)
         
+        self._name = "HarmonicSearch"
         self.HMCR = HMCR
         self.indpb = indpb
         self.pitch = pitch

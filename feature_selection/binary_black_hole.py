@@ -65,7 +65,8 @@ class BinaryBlackHole(_BaseMetaHeuristic):
 
         creator.create("Fitness", base.Fitness, weights=(1.0, -1.0))
         creator.create("Star", list, fitness=creator.Fitness)
-
+        
+        self._name = "BinaryBlackHole"
         self.toolbox = base.Toolbox()
         self.toolbox.register("attribute", self._gen_in)
         self.toolbox.register("star", tools.initIterate, creator.Star, self.toolbox.attribute)
