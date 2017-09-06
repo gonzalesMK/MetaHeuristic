@@ -199,10 +199,10 @@ class HarmonicSearch(_BaseMetaHeuristic):
                 self.fitnesses_.append(hof[0].fitness.values)
 
         self.mask_ = np.array(self.mask_)
-        self.support_ = np.asarray(best[0][:], dtype=bool)
+        self.best_mask_ = np.asarray(best[0][:], dtype=bool)
         self.fitness_ = best[0].fitness.values
 
-        features = list(compress(range(len(self.support_)), self.support_))
+        features = list(compress(range(len(self.best_mask_)), self.best_mask_))
         train = np.reshape([X[:, i] for i in features], [len(features), len(X)]).T
 
         self.estimator.fit(X=train, y=y)

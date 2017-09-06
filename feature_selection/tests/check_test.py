@@ -94,6 +94,6 @@ def test_unusual_errors():
     
     
         # Let's suppose you have a empty array 
-        meta.support_ = np.array([])
+        meta.best_mask_ = np.array([])
         assert_warns(UserWarning, meta.transform, X)
-        assert_raises(ValueError, meta.safe_mask, X, meta.support_)
+        assert_raises(ValueError, meta.safe_mask, X, meta.best_mask_)

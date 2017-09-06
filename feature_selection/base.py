@@ -20,7 +20,7 @@ class SelectorMixin(six.with_metaclass(ABCMeta, TransformerMixin)):
     Transformer mixin that performs feature selection given a support mask
     This mixin provides a feature selector implementation with `transform` and
     `inverse_transform` functionality given an implementation of
-    `_get_support_mask`.
+    `_get_best_mask_mask`.
     """
     @staticmethod
     def safe_mask(x, mask):
@@ -67,10 +67,10 @@ class SelectorMixin(six.with_metaclass(ABCMeta, TransformerMixin)):
             True, this is an integer array of shape [# output features] whose
             values are indices into the input feature vector.
         """
-        mask = self._get_support_mask()
+        mask = self._get_best_mask()
         return mask if not indices else np.where(mask)[0]
 
-    def _get_support_mask(self):
+    def _get_best_mask(self):
         """
         Get the boolean mask indicating which features are selected
         Returns
@@ -79,8 +79,8 @@ class SelectorMixin(six.with_metaclass(ABCMeta, TransformerMixin)):
             An element is True iff its corresponding feature is selected for
             retention.
         """
-        check_is_fitted(self, 'support_')
-        return self.support_
+        check_is_fitted(self, 'best_mask_')
+        return self.best_mask_
 
 
     def transform(self, X, mask=None):
