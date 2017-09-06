@@ -38,9 +38,7 @@ class SelectorMixin(six.with_metaclass(ABCMeta, TransformerMixin)):
         mask = np.asarray(mask)
     
         if np.issubdtype(mask.dtype, np.int) or np.issubdtype(mask.dtype, np.bool):
-            if x.shape[1] == len(mask):
-                return mask
-            else:
+            if x.shape[1] != len(mask):
                 raise ValueError("X columns %d != mask length %d"
                                  % (x.shape[1], len(mask)))
     
