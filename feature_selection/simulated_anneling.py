@@ -130,7 +130,7 @@ class SimulatedAnneling(_BaseMetaHeuristic):
         self.toolbox.register("mutate", tools.mutUniformInt, low=0, up=1,
                               indpb=self.mutation_prob)
         if self.make_logbook:
-            self.stats = tools.Statistics(lambda ind: ind.fitness.wvalues[0])
+            self.stats = tools.Statistics(self._get_accuracy)
             self.stats.register("avg", np.mean)
             self.stats.register("std", np.std)
             self.stats.register("min", np.min)

@@ -110,7 +110,7 @@ class BinaryBlackHole(_BaseMetaHeuristic):
         self.toolbox.register("map", map)
 
         if self.make_logbook:
-            self.stats = tools.Statistics(lambda ind: ind.fitness.wvalues[0])
+            self.stats = tools.Statistics(self._get_accuracy)
             self.stats.register("avg", np.mean)
             self.stats.register("std", np.std)
             self.stats.register("min", np.min)

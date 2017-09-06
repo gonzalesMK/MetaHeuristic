@@ -51,15 +51,26 @@ build/lib/feature_selection/random_search.py
 
 metaheuristic.egg-info
 dist
+
 metaheuristic.egg-info/PKG-INFO
+
 metaheuristic.egg-info/SOURCES.txt
-metaheuristic.egg-info/PKG-INFO
+
+
 feature_selection/tests/just_kiiding.py
+
 setup.cfg
+
 setup.py
+
 build/lib/feature_selection/tests/just_kiiding.py
+
 build/lib/feature_selection/simulated_anneling.py
+
 build/lib/feature_selection/random_search.py
+
 build/lib/feature_selection/harmonic_search.py
+
 build/lib/feature_selection/genetic_algorithm.py
+
 build/lib/feature_selection/binary_black_hole.py

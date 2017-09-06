@@ -1,10 +1,11 @@
-Metadata-Version: 1.0
+Metadata-Version: 1.1
 Name: metaheuristic
-Version: 1.0
+Version: 1.2
 Summary: A package with some metaheuristics to feature selection
-Home-page: UNKNOWN
+Home-page: https://github.com/gonzalesMK/MetaHeuristic
 Author: Juliano D. Negri
-Author-email: juliano.negri@usp.br
+Author-email: julianonegri@gmail.com
 License: UNKNOWN
 Description: UNKNOWN
 Platform: UNKNOWN
+Classifier: Programming Language :: Python :: 3.6
