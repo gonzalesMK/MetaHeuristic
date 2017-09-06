@@ -5,19 +5,12 @@ from sklearn.datasets import load_breast_cancer
 from sklearn.svm import SVC
 from feature_selection import HarmonicSearch, GeneticAlgorithm, RandomSearch, BinaryBlackHole
 from sklearn.utils.testing import assert_raises
+from sklearn.utils.testing import assert_warns
 
-
-def test_ga():
-    check_estimator(GeneticAlgorithm)        
-    
-def test_hs():
-    check_estimator(HarmonicSearch)   
-
-def test_rdm():
-    check_estimator(RandomSearch)
-
-def test_bbha():
-    check_estimator(BinaryBlackHole)
+def test_check_estimator():
+    for metaclass in [HarmonicSearch, GeneticAlgorithm, RandomSearch, BinaryBlackHole]:
+        print("check_estimator: ", metaclass()._name)
+        check_estimator(metaclass)        
     
 def test_plot():
     dataset = load_breast_cancer()
@@ -30,7 +23,7 @@ def test_plot():
         meta = metaclass(classifier=clf, random_state=0, verbose=50,
                         make_logbook=True, repeat=1, number_gen=10)
         
-        print("Checking Class: ", meta._name)
+        print("Checking plotting: ", meta._name)
     
         # Fit the classifier
         meta.fit(X, y, normalize=True)
@@ -66,7 +59,7 @@ def test_all_prediction():
     for metaclass in [HarmonicSearch, GeneticAlgorithm, RandomSearch, BinaryBlackHole]:
         meta = metaclass(classifier=clf, random_state=0, make_logbook=False,
                         repeat=2, number_gen=2, predict_with='all')
-        print("Checking Class: ", meta._name)
+        print("Checking all prediction: ", meta._name)
     # Checks for error
         assert_raises(ValueError, meta.score_func_to_grid_search, meta, X, y)
     
@@ -93,10 +86,14 @@ def test_unusual_errors():
     # Classifier to be used in the metaheuristic
     clf = SVC()
     
-    hs = HarmonicSearch(classifier=clf, random_state=0, verbose=50,
-                        make_logbook=True, repeat=1, number_gen=10)
+    for metaclass in [HarmonicSearch, GeneticAlgorithm, RandomSearch, BinaryBlackHole]:
+        meta = metaclass(classifier=clf, random_state=0, verbose=0,
+                        make_logbook=True, repeat=1, number_gen=1)
+        print("Checking unusual erros: ", meta._name)
+        meta.fit(X, y, normalize=True)
     
-    hs.fit(X, y, normalize=True)
-    # Let's suppose you have a empty array 
-    hs.support_ = np.array([])
-    hs.transform(X)
+    
+        # Let's suppose you have a empty array 
+        meta.support_ = np.array([])
+        assert_warns(UserWarning, meta.transform, X)
+        assert_raises(ValueError, meta.safe_mask, X, meta.support_)

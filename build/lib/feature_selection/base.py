@@ -37,16 +37,18 @@ class SelectorMixin(six.with_metaclass(ABCMeta, TransformerMixin)):
         """
         mask = np.asarray(mask)
     
-        if np.issubdtype(mask.dtype, np.int):
+        if np.issubdtype(mask.dtype, np.int) or np.issubdtype(mask.dtype, np.bool):
             if x.shape[1] == len(mask):
                 return mask
             else:
                 raise ValueError("X columns %d != mask length %d"
                                  % (x.shape[1], len(mask)))
     
-        if hasattr(x, "toarray"):
-            ind = np.arange(mask.shape[0])
-            mask = ind[mask]
+    # I don't see utility in here
+#        if hasattr(x, "toarray"): 
+#            ind = np.arange(mask.shape[0])
+#            mask = ind[mask]
+#            
         return mask
 
     def get_support(self, indices=False):
