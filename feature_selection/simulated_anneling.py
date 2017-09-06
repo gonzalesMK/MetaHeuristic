@@ -1,7 +1,7 @@
 from __future__ import print_function
 import random
 from itertools import compress
-from datetime import datetime
+from timeit import time
 
 import numpy as np
 
@@ -103,6 +103,7 @@ class SimulatedAnneling(_BaseMetaHeuristic):
         """
 
         self.set_params(**arg)
+        initial_time = time.clock()
         
         if normalize:
             self._sc_X = StandardScaler()
@@ -167,7 +168,7 @@ class SimulatedAnneling(_BaseMetaHeuristic):
                                 **self.stats.compile([solution]))
                 if self.verbose:
                     #if (int)(temp * self.number_gen/ self.initial_temp) % self.verbose == 0:
-                    print("Temperature: ", temp ,  " TIME: ", datetime.now().time().minute, ":", datetime.now().time().second, end="\r")
+                    print("Repetition:", i+1, "Temperature: ", temp ,  "Elapsed time: ", time.clock() - initial_time, end="\r")
 
             best.update(hof)
             if self.predict_with == 'all':
