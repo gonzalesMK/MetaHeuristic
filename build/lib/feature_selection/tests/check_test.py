@@ -35,15 +35,19 @@ def test_plot():
     rd = RandomSearch(classifier=clf, random_state=1, verbose=10, number_gen=1,
                       make_logbook=True, repeat=1)
     
+    bb = BinaryBlackHole(classifier=clf, random_state=1, verbose=10, number_gen=1,
+                      make_logbook=True, repeat=1)
     # Fit the classifier
     hs.fit(X, y, normalize=True)
     ga.fit(X, y, normalize=True)
     rd.fit(X, y, normalize=True)
+    bb.fit(X, y, normalize=True)
     
     # Transformed dataset
     X_hs1 = hs.transform(X)
     X_ga1 = ga.transform(X)
     X_rd1 = rd.transform(X)
+    X_bb1 = bb.transform(X)
     
     hs = HarmonicSearch(classifier=clf, random_state=0, verbose=50,
                         make_logbook=True, repeat=1, number_gen=10)
@@ -52,19 +56,22 @@ def test_plot():
     rd = RandomSearch(classifier=clf, random_state=1, verbose=10, number_gen=1,
                       make_logbook=True, repeat=1)
     
+    bb = BinaryBlackHole(classifier=clf, random_state=1, verbose=10, number_gen=1,
+                      make_logbook=True, repeat=1)
     # Fit and Transform
     X_hs2 = hs.fit_transform(X=X, y=y, normalize=True)
     X_ga2 = ga.fit_transform(X=X, y=y, normalize=True)
     X_rd2 = rd.fit_transform(X=X, y=y, normalize=True)
+    X_bb2 = bb.fit_transform(X=X, y=y, normalize=True)
     
     assert_array_equal(X_hs1, X_hs2)
     assert_array_equal(X_ga1, X_ga2)
     assert_array_equal(X_rd1, X_rd2)
+    assert_array_equal(X_bb1, X_bb2)
     
     # Plot the results of each test
     hs.plot_results()
-    ga.plot_results()
-    rd.plot_results()
+    bb.plot_results()
     
     ga = GeneticAlgorithm(classifier=clf, random_state=1,
                           make_logbook=False, repeat=1)
@@ -88,7 +95,9 @@ def test_all_prediction():
     
     rd = RandomSearch(classifier=clf, random_state=1, make_logbook=False, 
                       repeat=2, number_gen=1, predict_with='all')
-
+    
+    bb = BinaryBlackHole(classifier=clf, random_state=1, make_logbook=False, 
+                      repeat=2, number_gen=1, predict_with='all')
     # Checks for error
     assert_raises(ValueError, ga.score_func_to_grid_search, ga, X, y)
     
@@ -96,11 +105,13 @@ def test_all_prediction():
     hs.fit(X, y, normalize=True)
     ga.fit(X, y, normalize=True)
     rd.fit(X, y, normalize=True)
+    bb.fit(X, y, normalize=True)
     
     # Transformed dataset
     X_hs1 = hs.transform(X)
     X_ga1 = ga.transform(X)
     X_rd1 = rd.transform(X)
+    X_rd1 = bb.transform(X)
     
     hs = HarmonicSearch(classifier=clf, random_state=0, make_logbook=False,
                         repeat=2, number_gen=10, predict_with='all')
@@ -110,7 +121,7 @@ def test_all_prediction():
     
     rd = RandomSearch(classifier=clf, random_state=1, make_logbook=False, 
                       repeat=2, number_gen=1, predict_with='all')
-
+    
     # Fit and Transform
     X_hs2 = hs.fit_transform(X=X, y=y, normalize=True)
     X_ga2 = ga.fit_transform(X=X, y=y, normalize=True)
@@ -123,4 +134,17 @@ def test_all_prediction():
     assert_array_equal(X_ga2, X_ga1)
     assert_array_equal(X_rd2, X_rd1)
 
+def test_unusual_errors():
+    dataset = load_breast_cancer()
+    X, y = dataset['data'], dataset['target_names'].take(dataset['target'])
     
+    # Classifier to be used in the metaheuristic
+    clf = SVC()
+    
+    hs = HarmonicSearch(classifier=clf, random_state=0, verbose=50,
+                        make_logbook=True, repeat=1, number_gen=10)
+    
+    hs.fit(X, y, normalize=True)
+    # Let's suppose you have a empty array 
+    hs.support_ = np.array([])
+    hs.transform(X)

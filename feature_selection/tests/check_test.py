@@ -111,7 +111,7 @@ def test_all_prediction():
     X_hs1 = hs.transform(X)
     X_ga1 = ga.transform(X)
     X_rd1 = rd.transform(X)
-    X_rd1 = bb.transform(X)
+    X_bb1 = bb.transform(X)
     
     hs = HarmonicSearch(classifier=clf, random_state=0, make_logbook=False,
                         repeat=2, number_gen=10, predict_with='all')

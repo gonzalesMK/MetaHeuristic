@@ -15,32 +15,6 @@ from sklearn.utils import check_random_state,check_X_y
 from sklearn.metrics import accuracy_score
 from sklearn.svm import  SVC
 
-def safe_mask(x, mask):
-    """Return a mask which is safe to use on X.
-    Parameters
-    ----------
-    X : {array-like, sparse matrix}
-        Data on which to apply mask.
-    mask : array
-        Mask to be used on X.
-    Returns
-    -------
-        mask
-    """
-    mask = np.asarray(mask)
-
-    if np.issubdtype(mask.dtype, np.int):
-        if x.shape[1] == len(mask):
-            return mask
-        else:
-            raise ValueError("X columns %d != mask length %d"
-                             % (x.shape[1], len(mask)))
-
-    if hasattr(x, "toarray"):
-        ind = np.arange(mask.shape[0])
-        mask = ind[mask]
-    return mask
-
 class SelectorMixin(six.with_metaclass(ABCMeta, TransformerMixin)):
     """
     Transformer mixin that performs feature selection given a support mask
@@ -48,6 +22,32 @@ class SelectorMixin(six.with_metaclass(ABCMeta, TransformerMixin)):
     `inverse_transform` functionality given an implementation of
     `_get_support_mask`.
     """
+    @staticmethod
+    def safe_mask(x, mask):
+        """Return a mask which is safe to use on X.
+        Parameters
+        ----------
+        X : {array-like, sparse matrix}
+            Data on which to apply mask.
+        mask : array
+            Mask to be used on X.
+        Returns
+        -------
+            mask
+        """
+        mask = np.asarray(mask)
+    
+        if np.issubdtype(mask.dtype, np.int):
+            if x.shape[1] == len(mask):
+                return mask
+            else:
+                raise ValueError("X columns %d != mask length %d"
+                                 % (x.shape[1], len(mask)))
+    
+        if hasattr(x, "toarray"):
+            ind = np.arange(mask.shape[0])
+            mask = ind[mask]
+        return mask
 
     def get_support(self, indices=False):
         """
@@ -109,7 +109,7 @@ class SelectorMixin(six.with_metaclass(ABCMeta, TransformerMixin)):
         if len(mask) != X.shape[1]:
             raise ValueError("X has a different shape than during fitting.")
 
-        return X[:, safe_mask(X, mask)]
+        return X[:, self.safe_mask(X, mask)]
 
 
 class _BaseMetaHeuristic(BaseEstimator, SelectorMixin, ClassifierMixin):
