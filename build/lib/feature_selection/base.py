@@ -248,7 +248,7 @@ class _BaseMetaHeuristic(BaseEstimator, SelectorMixin, ClassifierMixin):
             lns = line1 + line2 + line3
             labs = [l.get_label() for l in lns]
             ax1.legend(lns, labs, loc="center right")
-            ax1.set_title("Repetition: " + str(i+1))
+            ax1.set_title(self._name +" Repetition: " + str(i+1))
 
 
     def fit_transform(self, X, y, normalize = False, **fit_params):

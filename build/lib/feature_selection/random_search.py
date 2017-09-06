@@ -51,10 +51,10 @@ class RandomSearch(_BaseMetaHeuristic):
             verbose=verbose, repeat=repeat, predict_with=predict_with, 
             make_logbook=make_logbook, random_state=random_state)
 
+        self._name = "RandomSearch"
         creator.create("FitnessMin", base.Fitness, weights=(1.0, -1.0))
         creator.create("Individual", list, fitness=creator.FitnessMin)
         
-        random.seed(self.random_state)        
         self.toolbox = base.Toolbox()
         self.toolbox.register("attribute", self._gen_in)
         self.toolbox.register("individual", tools.initIterate, creator.Individual,

@@ -63,7 +63,8 @@ class GeneticAlgorithm(_BaseMetaHeuristic):
             classifier=classifier, number_gen=number_gen, size_pop=size_pop, 
             verbose=verbose, repeat=repeat, predict_with=predict_with, 
             make_logbook=make_logbook, random_state=random_state)
-
+        
+        self._name = "GeneticAlgorithm"
         self.individual_mut_prob = individual_mut_prob
         self.gene_mutation_prob = gene_mutation_prob
         self.cross_over_prob = cross_over_prob
