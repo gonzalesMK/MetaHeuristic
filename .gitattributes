@@ -17,4 +17,4 @@
 *.RTF	 diff=astextplain
 
 # Language Classification
-docs/* linguist-documentation
+doc/* linguist-documentation
