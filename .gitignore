@@ -52,8 +52,6 @@ build/lib/feature_selection/random_search.py
 metaheuristic.egg-info/*
 dist/*
 build/*
-setup.cfg
-setup.py
 feature_selection/__pycache__/*
 feature_selection/tests/utils.py
 coverage/*
