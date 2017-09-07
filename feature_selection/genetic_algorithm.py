@@ -1,8 +1,7 @@
 from __future__ import print_function
 import random
-import sys
 from itertools import compress
-from datetime import datetime
+from timeit import time
 
 import numpy as np
 
@@ -104,7 +103,8 @@ class GeneticAlgorithm(_BaseMetaHeuristic):
                 Set parameters
         """
         self.set_params(**arg)
-
+        initial_time = time.clock()
+        
         if normalize:
             self._sc_X = StandardScaler()
             X = self._sc_X.fit_transform(X)
@@ -188,8 +188,8 @@ class GeneticAlgorithm(_BaseMetaHeuristic):
                                                best_fit=hof[0].fitness.values[0],
                                                **self.stats.compile(pop))
                 if self.verbose:
-                    print("Generation: ", g + 1, "/", self.number_gen, "TIME: ", datetime.now().time().minute, ":", datetime.now().time().second, end="\r")
-                        
+                    print("Repetition:", i+1 ,"Generation: ", g + 1, "/", self.number_gen,
+                          "Elapsed time: ", time.clock() - initial_time, end="\r")
 
             best.update(hof)
             if self.predict_with == 'all':

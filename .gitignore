@@ -84,3 +84,12 @@ build/lib/feature_selection/random_search.py
 build/lib/feature_selection/harmonic_search.py
 build/lib/feature_selection/genetic_algorithm.py
 build/lib/feature_selection/binary_black_hole.py
+feature_selection/tests/utils.py
+feature_selection/tests/HarmonicSearch_HMCR_0.95_classifier_None_indpb_0.05_make_logbook_True_mem_size_50_number_gen_500_pitch_0.05_predict_with_best_random_state_0_repeat_1_verbose_1_.save
+dist/metaheuristic-1.0-py3.6.egg
+build/lib/feature_selection/tests/utils.py
+dist/metaheuristic-1.0-py3.6.egg
+dist/*
+build/*
+coverage/*
+*.egg
