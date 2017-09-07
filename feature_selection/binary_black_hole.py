@@ -157,7 +157,8 @@ class BinaryBlackHole(_BaseMetaHeuristic):
                 self.mask_.append(hof[0][:])
                 self.fitnesses_.append(hof[0].fitness.values)
 
-        self.mask_ = np.array(self.mask_)
+        if self.predict_with == 'all':
+            self.mask_ = np.array(self.mask_)
         self.best_mask_ = np.asarray(best[0][:], dtype=bool)
         self.fitness_ = best[0].fitness.values
 
