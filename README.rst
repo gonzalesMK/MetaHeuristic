@@ -1,6 +1,6 @@
 .. -*- mode: rst -*-
 
-|Travis|_ |Coverage|_ |CircleCI|_ 
+|Travis|_ |Coverage|_ |CircleCI|_ |Pypi|_
 
 .. |Travis| image:: https://travis-ci.org/gonzalesMK/MetaHeuristic.svg?branch=master
 .. _Travis: https://travis-ci.org/gonzalesMK/MetaHeuristic
@@ -11,7 +11,8 @@
 .. |CircleCI| image:: https://circleci.com/gh/gonzalesMK/MetaHeuristic/tree/master.svg?style=shield&circle-token=:circle-token
 .. _CircleCI: https://circleci.com/gh/gonzalesMK/MetaHeuristic/tree/master
 
-
+.. |Pypi| image:: https://badge.fury.io/py/metaheuristic.svg
+.. _Pypi: https://badge.fury.io/py/metaheuristic
 MetaHeuristic
 =============
 A repository with some simple implementation of Meta Heuristics (ie: ga, pso) , using sklearn and other common libraries
