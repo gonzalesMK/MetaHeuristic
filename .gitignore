@@ -56,3 +56,4 @@ feature_selection/__pycache__/*
 feature_selection/tests/utils.py
 coverage/*
 *.egg
+useful_code.txt
