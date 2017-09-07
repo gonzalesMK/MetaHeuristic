@@ -12,6 +12,7 @@ from sklearn.model_selection import GridSearchCV
 from sklearn.preprocessing import StandardScaler
 from six.moves import cPickle
 import pickle
+import pandas as pd
 
 dataset = load_breast_cancer()
 X, y = dataset['data'], dataset['target_names'].take(dataset['target'])
@@ -34,17 +35,16 @@ param_grid = [
 
 param_grid = [
   {
-   'HMCR': [0.95, 1],  'indpb':[0.05,1], 'number_gen':(50,100),
-   'predict_with':('all',), 'random_state':[0], 'repeat':[2]
+   'HMCR': [0.95, 1],  'indpb':[0.05,1], 'number_gen':(1,100), 'mem_size':(1,10),
+   'predict_with':['all'], 'repeat':[1]
    }  
  ]
 
 hs = HarmonicSearch()
-
-
 clf = GridSearchCV(hs, param_grid, scoring=hs.score_func_to_grid_search, verbose=1,pre_dispatch=None)
 clf.fit(X, y)
-clf.cv_results_
+dataframe = pd.DataFrame.from_dict( clf.cv_results_)
+
 clf.best_score_
 clf.estimator.best_mask_
 hs.fit(X,y)
