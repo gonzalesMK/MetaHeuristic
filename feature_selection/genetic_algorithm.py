@@ -118,8 +118,9 @@ class GeneticAlgorithm(_BaseMetaHeuristic):
         self.y_ = y
 
         self.n_features_ = X.shape[1]
-        self.mask_ = []
-        self.fitnesses_ = []
+        if self.predict_with == 'all':
+            self.mask_ = []
+            self.fitnesses_ = []
         # pylint: disable=E1101
         random.seed(self.random_state)
         self._random_object = check_random_state(self.random_state)
@@ -196,7 +197,8 @@ class GeneticAlgorithm(_BaseMetaHeuristic):
                 self.mask_.append(hof[0][:])
                 self.fitnesses_.append(hof[0].fitness.values)
 
-        self.mask_ = np.array(self.mask_)
+        if self.predict_with == 'all':
+            self.mask_ = np.array(self.mask_)
         self.best_mask_ = np.asarray(best[0][:], dtype=bool)
         self.fitness_ = best[0].fitness.values
 
