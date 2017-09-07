@@ -92,3 +92,4 @@ dist/metaheuristic-1.0-py3.6.egg
 dist/*
 build/*
 coverage/*
+*.egg
