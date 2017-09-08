@@ -57,3 +57,6 @@ feature_selection/tests/utils.py
 coverage/*
 *.egg
 useful_code.txt
+feature_selection/tests/__pycache__/check_test.cpython-36.pyc
+feature_selection/tests/__pycache__/utils.cpython-36.pyc
+.coverage
