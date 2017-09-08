@@ -53,8 +53,8 @@ class RandomSearch(_BaseMetaHeuristic):
             make_logbook=make_logbook, random_state=random_state)
 
         self._name = "RandomSearch"
-        creator.create("FitnessMin", base.Fitness, weights=(1.0, -1.0))
-        creator.create("Individual", list, fitness=creator.FitnessMin)
+        creator.create("Fitness", base.Fitness, weights=(1.0, -1.0))
+        creator.create("Individual", list, fitness=creator.Fitness)
         
         self.toolbox = base.Toolbox()
         self.toolbox.register("attribute", self._gen_in)
