@@ -5,7 +5,8 @@ from timeit import time
 
 import numpy as np
 
-from deap import base, creator
+from deap import base
+from deap import creator
 from deap import tools
 
 from .base import _BaseMetaHeuristic
@@ -14,6 +15,8 @@ from sklearn.utils import check_X_y
 from sklearn.svm import  SVC
 from sklearn.base import clone
 from sklearn.utils import check_random_state
+
+from multiprocessing import Pool
 
 class HarmonicSearch(_BaseMetaHeuristic):
     """Implementation of a Harmonic Search Algorithm for Feature Selection
@@ -54,7 +57,7 @@ class HarmonicSearch(_BaseMetaHeuristic):
 
     def __init__(self, classifier=None, HMCR=0.95, indpb=0.05, pitch=0.05,
                  number_gen=100, mem_size=50, verbose=0, repeat=1,
-                 predict_with='best', make_logbook=False, random_state=None):
+                 make_logbook=False, random_state=None, parallel = False):
 
         creator.create("Fitness", base.Fitness, weights=(1.0, -1.0))
         creator.create("Individual", list, fitness=creator.Fitness)
@@ -69,7 +72,7 @@ class HarmonicSearch(_BaseMetaHeuristic):
         self.estimator = SVC(kernel='linear', verbose=False, max_iter=10000) if classifier is None else clone(classifier)
 
         self.repeat = repeat
-        self.predict_with = predict_with
+        self.parallel = parallel
         self.make_logbook = make_logbook
         self.verbose = verbose
         self.random_state = random_state
@@ -83,13 +86,17 @@ class HarmonicSearch(_BaseMetaHeuristic):
         self.toolbox.register("population", tools.initRepeat, list, self.toolbox.individual)
         self.toolbox.register("get_worst", tools.selWorst, k=1)
         self.toolbox.register("evaluate", self._evaluate, X=None, y=None)
-        self.toolbox.register("map", map)
+        if parallel:
+            self.toolbox.register("map", Pool().map)
+        else:
+            self.toolbox.register("map", map)
+            
         self.toolbox.register("improvise", self._improvise, HMCR=self.HMCR)
         self.toolbox.register("mutate", tools.mutUniformInt,low=0, up=1,
                               indpb=self.indpb)
         self.toolbox.register("pitch_adjustament", tools.mutFlipBit,
                               indpb=self.pitch)
-        #toolbox.register("map", futures.map)
+        #
 
     def fit(self, X=None, y=None, normalize=False, **arg):
         """ Fit method
@@ -136,13 +143,11 @@ class HarmonicSearch(_BaseMetaHeuristic):
         self.toolbox.register("population", tools.initRepeat, list, self.toolbox.individual)
         self.toolbox.register("get_worst", tools.selWorst, k=1)
         self.toolbox.register("evaluate", self._evaluate, X=X, y=y)
-        self.toolbox.register("map", map)
         self.toolbox.register("improvise", self._improvise, HMCR=self.HMCR)
         self.toolbox.register("mutate", tools.mutUniformInt, low=0, up=1,
                               indpb=self.indpb)
         self.toolbox.register("pitch_adjustament", tools.mutFlipBit,
                               indpb=self.pitch)
-        #toolbox.register("map", futures.map)
 
         if self.make_logbook:
             self.stats = tools.Statistics(self._get_accuracy)
@@ -191,7 +196,7 @@ class HarmonicSearch(_BaseMetaHeuristic):
                           "Elapsed time: ", time.clock() - initial_time, end="\r")
 
             best.update(hof)
-            if self.predict_with == 'all':
+            if self.make_logbook:
                 self.mask_.append(hof[0][:])
                 self.fitnesses_.append(hof[0].fitness.values)
 
@@ -219,6 +224,5 @@ class HarmonicSearch(_BaseMetaHeuristic):
             new_harmony[i] = pop[rand_list[i]][i]
         self.toolbox.mutate(new_harmony)
         self.toolbox.pitch_adjustament(new_harmony)
-
         return new_harmony
     

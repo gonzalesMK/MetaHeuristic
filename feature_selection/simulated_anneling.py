@@ -54,7 +54,7 @@ class SimulatedAnneling(_BaseMetaHeuristic):
     """
     def __init__(self, classifier=None, mutation_prob=0.05, initial_temp=10,
                  repetition_schedule=10, number_gen=10, repeat=1, verbose=0,
-                 predict_with='best', make_logbook=False, random_state=None):
+                 parallel=False, make_logbook=False, random_state=None):
     
         self._name = "SimulatedAnneling"
         self.estimator = SVC(kernel='linear', verbose=False, max_iter=10000) if classifier is None else clone(classifier)
@@ -64,7 +64,7 @@ class SimulatedAnneling(_BaseMetaHeuristic):
         self.number_gen = number_gen
         self.repeat = repeat
         self.verbose = verbose
-        self.predict_with = predict_with
+        self.parallel = parallel
         self.make_logbook = make_logbook
         self.random_state = random_state
         self._random_object = check_random_state(self.random_state)
@@ -78,10 +78,15 @@ class SimulatedAnneling(_BaseMetaHeuristic):
         self.toolbox.register("individual", tools.initIterate,
                               creator.Individual, self.toolbox.attribute)
         self.toolbox.register("population", tools.initRepeat, list, self.toolbox.individual)
-        self.toolbox.register("map", map)
         self.toolbox.register("evaluate", self._evaluate, X= None, y=None)
         self.toolbox.register("mutate", tools.mutUniformInt, low=0, up=1,
                               indpb=self.mutation_prob)
+        if parallel:
+            from multiprocessing import Pool
+            self.toolbox.register("map", Pool().map)
+        else:
+            self.toolbox.register("map", map)
+
 
 
     def fit(self, X=None, y=None, normalize=False, **arg):
@@ -109,28 +114,20 @@ class SimulatedAnneling(_BaseMetaHeuristic):
             self._sc_X = StandardScaler()
             X = self._sc_X.fit_transform(X)
             
-        self.normalize_ = normalize
-        
         y = self._validate_targets(y)
         X, y = check_X_y(X, y, dtype=np.float64, order='C', accept_sparse='csr')
 
-        self.X_ = X
-        self.y_ = y
-
+        self.normalize_ = normalize
         self.n_features_ = X.shape[1]
         self.mask_ = []
         self.fitnesses_ = []
         # pylint: disable=E1101
         random.seed(self.random_state)        
         self._random_object = check_random_state(self.random_state)
-        self.toolbox.register("attribute", self._gen_in)
-        self.toolbox.register("individual", tools.initIterate,
-                              creator.Individual, self.toolbox.attribute)
-        self.toolbox.register("population", tools.initRepeat, list, self.toolbox.individual)
-        self.toolbox.register("map", map)
         self.toolbox.register("evaluate", self._evaluate, X=X, y=y)
         self.toolbox.register("mutate", tools.mutUniformInt, low=0, up=1,
                               indpb=self.mutation_prob)
+        
         if self.make_logbook:
             self.stats = tools.Statistics(self._get_accuracy)
             self.stats.register("avg", np.mean)
@@ -171,7 +168,7 @@ class SimulatedAnneling(_BaseMetaHeuristic):
                     print("Repetition:", i+1, "Temperature: ", temp ,  "Elapsed time: ", time.clock() - initial_time, end="\r")
 
             best.update(hof)
-            if self.predict_with == 'all':
+            if self.make_logbook:
                 self.mask_.append(hof[0][:])
                 self.fitnesses_.append(hof[0].fitness.values)
 

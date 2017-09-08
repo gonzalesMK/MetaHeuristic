@@ -58,11 +58,11 @@ class GeneticAlgorithm(_BaseMetaHeuristic):
     def __init__(self, classifier=None, cross_over_prob=0.5,
                  individual_mut_prob=0.05, gene_mutation_prob=0.05,
                  number_gen=10, size_pop=40, verbose=0, repeat=1,
-                 predict_with='best', make_logbook=False, random_state=None):
+                 make_logbook=False, random_state=None, parallel=False):
     
         super(GeneticAlgorithm, self).__init__(
             classifier=classifier, number_gen=number_gen, size_pop=size_pop, 
-            verbose=verbose, repeat=repeat, predict_with=predict_with, 
+            verbose=verbose, repeat=repeat, parallel=parallel,
             make_logbook=make_logbook, random_state=random_state)
         
         self._name = "GeneticAlgorithm"
@@ -70,8 +70,8 @@ class GeneticAlgorithm(_BaseMetaHeuristic):
         self.gene_mutation_prob = gene_mutation_prob
         self.cross_over_prob = cross_over_prob
         
-        creator.create("FitnessMin", base.Fitness, weights=(1.0, -1.0))
-        creator.create("Individual", list, fitness=creator.FitnessMin)
+        creator.create("Fitness", base.Fitness, weights=(1.0, -1.0))
+        creator.create("Individual", list, fitness=creator.Fitness)
 
         self.toolbox = base.Toolbox()
         self.toolbox.register("attribute", self._gen_in)
@@ -85,6 +85,12 @@ class GeneticAlgorithm(_BaseMetaHeuristic):
         self.toolbox.register("mutate", tools.mutUniformInt, low=0, up=1,
                               indpb=self.gene_mutation_prob)
 
+        if parallel:
+            from multiprocessing import Pool
+            self.toolbox.register("map", Pool().map)
+        else:
+            self.toolbox.register("map", map)
+            
     def fit(self, X=None, y=None, normalize=False, **arg):
         """ Fit method
 
@@ -109,27 +115,17 @@ class GeneticAlgorithm(_BaseMetaHeuristic):
             self._sc_X = StandardScaler()
             X = self._sc_X.fit_transform(X)
         
-        self.normalize_ = normalize
-
         y = self._validate_targets(y)
         X, y = check_X_y(X, y, dtype=np.float64, order='C', accept_sparse='csr')
 
-        self.X_ = X
-        self.y_ = y
-
+        self.normalize_ = normalize
         self.n_features_ = X.shape[1]
         self.mask_ = []
         self.fitnesses_ = []
+        
         # pylint: disable=E1101
         random.seed(self.random_state)
         self._random_object = check_random_state(self.random_state)
-        self.toolbox.register("attribute", self._gen_in)
-        self.toolbox.register("individual", tools.initIterate,
-                              creator.Individual, self.toolbox.attribute)
-        self.toolbox.register("population", tools.initRepeat, list, self.toolbox.individual)
-        self.toolbox.register("mate", tools.cxTwoPoint)
-        self.toolbox.register("select", tools.selTournament, tournsize=3)
-        self.toolbox.register("map", map)
         self.toolbox.register("evaluate", self._evaluate, X=X, y=y)
         self.toolbox.register("mutate", tools.mutUniformInt, low=0, up=1,
                               indpb=self.gene_mutation_prob)
@@ -192,7 +188,7 @@ class GeneticAlgorithm(_BaseMetaHeuristic):
                           "Elapsed time: ", time.clock() - initial_time, end="\r")
 
             best.update(hof)
-            if self.predict_with == 'all':
+            if self.make_logbook :
                 self.mask_.append(hof[0][:])
                 self.fitnesses_.append(hof[0].fitness.values)
 
