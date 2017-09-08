@@ -10,10 +10,8 @@ from sklearn.model_selection import cross_val_score
 from sklearn.utils.validation import check_array, check_is_fitted, column_or_1d
 from sklearn.externals import six
 from sklearn.utils.multiclass import check_classification_targets
-from sklearn.utils import check_random_state,check_X_y
-from sklearn.metrics import accuracy_score
+from sklearn.utils import check_random_state
 from sklearn.svm import  SVC
-import builtins
 
 class SelectorMixin(six.with_metaclass(ABCMeta, TransformerMixin)):
     """

@@ -6,7 +6,7 @@ from sklearn.svm import SVC
 from feature_selection import HarmonicSearch, GeneticAlgorithm, RandomSearch, BinaryBlackHole, SimulatedAnneling
 from sklearn.utils.testing import assert_raises
 from sklearn.utils.testing import assert_warns
-import multiprocessing
+#import multiprocessing
 
 from deap import creator, base
 creator.create("Fitness", base.Fitness, weights=(1.0, -1.0))
