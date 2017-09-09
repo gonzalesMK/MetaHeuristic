@@ -9,6 +9,7 @@ from deap import base, creator
 from deap import tools
 
 from .base import _BaseMetaHeuristic
+from .base import BaseMask
 from sklearn.preprocessing import StandardScaler
 from sklearn.utils import check_X_y
 from sklearn.utils import check_random_state
@@ -54,14 +55,11 @@ class BinaryBlackHole(_BaseMetaHeuristic):
             verbose=verbose, repeat=repeat, parallel=parallel, 
             make_logbook=make_logbook, random_state=random_state)
 
-        creator.create("Fitness", base.Fitness, weights=(1.0, -1.0))
-        creator.create("Individual", list, fitness=creator.Fitness)
-        
         self._name = "BinaryBlackHole"
         
         self.toolbox = base.Toolbox()
         self.toolbox.register("attribute", self._gen_in)
-        self.toolbox.register("star", tools.initIterate, creator.Individual, self.toolbox.attribute)
+        self.toolbox.register("star", tools.initIterate, BaseMask, self.toolbox.attribute)
         self.toolbox.register("galaxy", tools.initRepeat, list, self.toolbox.star)
         self.toolbox.register("update", self._updateStar)
         self.toolbox.register("evaluate", self._evaluate)
@@ -160,10 +158,7 @@ class BinaryBlackHole(_BaseMetaHeuristic):
         self.best_mask_ = np.asarray(best[0][:], dtype=bool)
         self.fitness_ = best[0].fitness.values
 
-        features = list(compress(range(len(self.best_mask_)), self.best_mask_))
-        train = np.reshape([X[:, i] for i in features], [len(features), len(X)]).T
-
-        self.estimator.fit(X=train, y=y)
+        self.estimator.fit(X= self.transform(X), y=y)
 
         return self
 

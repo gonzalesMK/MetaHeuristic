@@ -9,6 +9,8 @@ from deap import base, creator
 from deap import tools
 
 from .base import _BaseMetaHeuristic
+from .base import BaseMask
+
 from sklearn.preprocessing import StandardScaler
 from sklearn.utils import check_X_y
 from sklearn.utils import check_random_state
@@ -70,13 +72,10 @@ class GeneticAlgorithm(_BaseMetaHeuristic):
         self.gene_mutation_prob = gene_mutation_prob
         self.cross_over_prob = cross_over_prob
         
-        creator.create("Fitness", base.Fitness, weights=(1.0, -1.0))
-        creator.create("Individual", list, fitness=creator.Fitness)
-
         self.toolbox = base.Toolbox()
         self.toolbox.register("attribute", self._gen_in)
         self.toolbox.register("individual", tools.initIterate,
-                              creator.Individual, self.toolbox.attribute)
+                              BaseMask, self.toolbox.attribute)
         self.toolbox.register("population", tools.initRepeat, list, self.toolbox.individual)
         self.toolbox.register("mate", tools.cxTwoPoint)
         self.toolbox.register("select", tools.selTournament, tournsize=3)

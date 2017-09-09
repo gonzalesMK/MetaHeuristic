@@ -12,6 +12,29 @@ from sklearn.externals import six
 from sklearn.utils.multiclass import check_classification_targets
 from sklearn.utils import check_random_state
 from sklearn.svm import  SVC
+from deap import  base
+
+class Fitness(base.Fitness):
+    
+    def __init__(self, weights=(1,-1), values=(0,0)):
+        self.weights = weights
+        super().__init__(values)
+        
+class BaseMask(list, object):
+    
+    def __init__(self, mask):
+        self[:] = mask
+        self.fitness = Fitness((1, -1), (0, 0))
+    
+#    def __getstate__(self):
+#        self_dict = self.__dict__.copy()        
+#        return self_dict
+#        
+#    def __setstate__(self,state):
+#        self.__dict__.update(state)
+#        
+        
+
 
 class SelectorMixin(six.with_metaclass(ABCMeta, TransformerMixin)):
     """

@@ -9,6 +9,7 @@ from deap import base, creator
 from deap import tools
 
 from .base import _BaseMetaHeuristic
+from .base import BaseMask
 from sklearn.preprocessing import StandardScaler
 from sklearn.utils import check_X_y
 from sklearn.utils import check_random_state
@@ -70,13 +71,10 @@ class SimulatedAnneling(_BaseMetaHeuristic):
         self._random_object = check_random_state(self.random_state)
         random.seed(self.random_state)        
         
-        creator.create("Fitness", base.Fitness, weights=(1.0, -1.0))
-        creator.create("Individual", list, fitness=creator.Fitness)
-
         self.toolbox = base.Toolbox()
         self.toolbox.register("attribute", self._gen_in)
         self.toolbox.register("individual", tools.initIterate,
-                              creator.Individual, self.toolbox.attribute)
+                              BaseMask, self.toolbox.attribute)
         self.toolbox.register("population", tools.initRepeat, list, self.toolbox.individual)
         self.toolbox.register("evaluate", self._evaluate, X= None, y=None)
         self.toolbox.register("mutate", tools.mutUniformInt, low=0, up=1,

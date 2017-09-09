@@ -10,6 +10,8 @@ from deap import creator
 from deap import tools
 
 from .base import _BaseMetaHeuristic
+from .base import BaseMask
+
 from sklearn.preprocessing import StandardScaler
 from sklearn.utils import check_X_y
 from sklearn.svm import  SVC
@@ -59,9 +61,6 @@ class HarmonicSearch(_BaseMetaHeuristic):
                  number_gen=100, mem_size=50, verbose=0, repeat=1,
                  make_logbook=False, random_state=None, parallel = False):
 
-        creator.create("Fitness", base.Fitness, weights=(1.0, -1.0))
-        creator.create("Individual", list, fitness=creator.Fitness)
-        
         self._name = "HarmonicSearch"
         self.HMCR = HMCR
         self.indpb = indpb
@@ -82,7 +81,7 @@ class HarmonicSearch(_BaseMetaHeuristic):
         self.toolbox = base.Toolbox()
         self.toolbox.register("attribute", self._gen_in)
         self.toolbox.register("individual", tools.initIterate,
-                              creator.Individual, self.toolbox.attribute)
+                              BaseMask, self.toolbox.attribute)
         self.toolbox.register("population", tools.initRepeat, list, self.toolbox.individual)
         self.toolbox.register("get_worst", tools.selWorst, k=1)
         self.toolbox.register("evaluate", self._evaluate, X=None, y=None)
@@ -137,10 +136,6 @@ class HarmonicSearch(_BaseMetaHeuristic):
         # pylint: disable=E1101
         random.seed(self.random_state)        
         self._random_object = check_random_state(self.random_state)
-        self.toolbox.register("attribute", self._gen_in)
-        self.toolbox.register("individual", tools.initIterate,
-                              creator.Individual, self.toolbox.attribute)
-        self.toolbox.register("population", tools.initRepeat, list, self.toolbox.individual)
         self.toolbox.register("get_worst", tools.selWorst, k=1)
         self.toolbox.register("evaluate", self._evaluate, X=X, y=y)
         self.toolbox.register("improvise", self._improvise, HMCR=self.HMCR)

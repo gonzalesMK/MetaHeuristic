@@ -8,10 +8,6 @@ from sklearn.utils.testing import assert_raises
 from sklearn.utils.testing import assert_warns
 #import multiprocessing
 
-from deap import creator, base
-creator.create("Fitness", base.Fitness, weights=(1.0, -1.0))
-creator.create("Individual", list, fitness=creator.Fitness)
-    
 def test_check_estimator():
     for metaclass in [HarmonicSearch, GeneticAlgorithm, RandomSearch, BinaryBlackHole, SimulatedAnneling]:
         print("check_estimator: ", metaclass()._name)
@@ -54,34 +50,32 @@ def test_plot():
     ga.fit(X, y, normalize=True)
     assert_raises(ValueError, ga.plot_results)
     
-#def test_parallel():
-#    dataset = load_breast_cancer()
-#    X, y = dataset['data'], dataset['target_names'].take(dataset['target'])
-#    
-#    # Classifier to be used in the metaheuristic
-#    clf = SVC()
-#    creator.create("Fitness", base.Fitness, weights=(1.0, -1.0))
-#    creator.create("Individual", list, fitness=creator.Fitness)
-#
-#    for metaclass in [HarmonicSearch, GeneticAlgorithm, RandomSearch, BinaryBlackHole, SimulatedAnneling]:
-#        meta = metaclass(classifier=clf, random_state=0, make_logbook=False,
-#                        repeat=2, number_gen=2, parallel=True)
-#        print("Checking parallel ", meta._name)
-#        
-#        # Fit the classifier
-#        meta.fit(X, y, normalize=True)
-#    
-#        # Transformed dataset
-#        X_1 = meta.transform(X)
-#    
-#        meta = metaclass(classifier=clf, random_state=0, make_logbook=False,
-#                        repeat=2, number_gen=2, parallel=True)
-#    
-#        # Fit and Transform
-#        X_2 = meta.fit_transform(X=X, y=y, normalize=True)
-#    
-#        # Check Function
-#        assert_array_equal(X_1, X_2)
+def test_parallel():
+    dataset = load_breast_cancer()
+    X, y = dataset['data'], dataset['target_names'].take(dataset['target'])
+    
+    # Classifier to be used in the metaheuristic
+    clf = SVC()
+
+    for metaclass in [HarmonicSearch, GeneticAlgorithm, RandomSearch, BinaryBlackHole, SimulatedAnneling]:
+        meta = metaclass(classifier=clf, random_state=0, make_logbook=False,
+                        repeat=2, number_gen=2, parallel=True, verbose=True)
+        print("Checking parallel ", meta._name)
+        
+        # Fit the classifier
+        meta.fit(X, y, normalize=True)
+    
+        # Transformed dataset
+        X_1 = meta.transform(X)
+    
+        meta = metaclass(classifier=clf, random_state=0, make_logbook=False,
+                        repeat=2, number_gen=2, parallel=True)
+    
+        # Fit and Transform
+        X_2 = meta.fit_transform(X=X, y=y, normalize=True)
+    
+        # Check Function
+        assert_array_equal(X_1, X_2)
 
 def test_score_grid_func():
     dataset = load_breast_cancer()
@@ -120,3 +114,16 @@ def test_unusual_errors():
         meta.best_mask_ = np.array([])
         assert_warns(UserWarning, meta.transform, X)
         assert_raises(ValueError, meta.safe_mask, X, meta.best_mask_)
+        
+# =============================================================================
+#         
+# =============================================================================
+#from sklearn.datasets import load_breast_cancer
+#from feature_selection import HarmonicSearch, GeneticAlgorithm, RandomSearch, BinaryBlackHole, SimulatedAnneling
+#from sklearn.svm import SVC
+#dataset = load_breast_cancer()
+#X, y = dataset['data'], dataset['target_names'].take(dataset['target'])
+#b = BinaryBlackHole(classifier= SVC())        
+#b.fit(X,y, normalize=True)
+if __name__ == "__main__":
+    test_parallel()
