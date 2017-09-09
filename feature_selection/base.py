@@ -18,7 +18,7 @@ class Fitness(base.Fitness):
     
     def __init__(self, weights=(1,-1), values=(0,0)):
         self.weights = weights
-        super().__init__(values)
+        super(Fitness, self).__init__(values)
         
 class BaseMask(list, object):
     
