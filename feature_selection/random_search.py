@@ -9,6 +9,7 @@ from deap import base, creator
 from deap import tools
 
 from .base import _BaseMetaHeuristic
+from .base import BaseMask
 from sklearn.preprocessing import StandardScaler
 from sklearn.utils import check_X_y
 from sklearn.utils import check_random_state
@@ -44,25 +45,29 @@ class RandomSearch(_BaseMetaHeuristic):
     """
 
     def __init__(self, classifier=None, number_gen=5, size_pop=40,verbose=0, 
-                 repeat=1, predict_with='best', make_logbook=False,
+                 repeat=1, parallel=False, make_logbook=False,
                  random_state=None):
 
         super(RandomSearch, self).__init__(
             classifier=classifier, number_gen=number_gen, size_pop=size_pop, 
-            verbose=verbose, repeat=repeat, predict_with=predict_with, 
+            verbose=verbose, repeat=repeat, parallel=parallel, 
             make_logbook=make_logbook, random_state=random_state)
 
         self._name = "RandomSearch"
-        creator.create("FitnessMin", base.Fitness, weights=(1.0, -1.0))
-        creator.create("Individual", list, fitness=creator.FitnessMin)
         
         self.toolbox = base.Toolbox()
         self.toolbox.register("attribute", self._gen_in)
-        self.toolbox.register("individual", tools.initIterate, creator.Individual,
-                         self.toolbox.attribute)
+        self.toolbox.register("individual", tools.initIterate,
+                              BaseMask, self.toolbox.attribute)
         self.toolbox.register("population", tools.initRepeat, list, self.toolbox.individual)
         self.toolbox.register("evaluate", self._evaluate)
-        self.toolbox.register("map", map)
+        
+        if parallel:
+            from multiprocessing import Pool
+            self.toolbox.register("map", Pool().map)
+        else:
+            self.toolbox.register("map", map)
+
 
     def fit(self, X=None, y=None, normalize=False, **arg):
         """ Fit method
@@ -88,27 +93,18 @@ class RandomSearch(_BaseMetaHeuristic):
             self._sc_X = StandardScaler()
             X = self._sc_X.fit_transform(X)
             
-        self.normalize_ = normalize
-        
         y = self._validate_targets(y)
         X, y = check_X_y(X, y, dtype=np.float64, order='C', accept_sparse='csr')
 
-        self.X_ = X
-        self.y_ = y
-
+        self.normalize_ = normalize
         self.n_features_ = X.shape[1]
         self.mask_ = []
         self.fitnesses_ = []
 
         random.seed(self.random_state)        
         self._random_object = check_random_state(self.random_state)
-        self.toolbox.register("attribute", self._gen_in)
-        self.toolbox.register("individual", tools.initIterate,
-                              creator.Individual, self.toolbox.attribute)
-        self.toolbox.register("population", tools.initRepeat, list, self.toolbox.individual)
         self.toolbox.register("evaluate", self._evaluate, X=X, y=y)
-        self.toolbox.register("map", map)
-
+        
         if self.make_logbook:
             self.stats = tools.Statistics(self._get_accuracy)
             self.stats.register("avg", np.mean)
@@ -142,7 +138,7 @@ class RandomSearch(_BaseMetaHeuristic):
                           "Elapsed time: ", time.clock() - initial_time, end="\r")
 
             best.update(hof)
-            if self.predict_with == 'all':
+            if self.make_logbook:
                 self.mask_.append(hof[0][:])
                 self.fitnesses_.append(hof[0].fitness.values)
 

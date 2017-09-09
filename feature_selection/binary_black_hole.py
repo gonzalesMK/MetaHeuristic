@@ -9,6 +9,7 @@ from deap import base, creator
 from deap import tools
 
 from .base import _BaseMetaHeuristic
+from .base import BaseMask
 from sklearn.preprocessing import StandardScaler
 from sklearn.utils import check_X_y
 from sklearn.utils import check_random_state
@@ -46,25 +47,29 @@ class BinaryBlackHole(_BaseMetaHeuristic):
     """
 
     def __init__(self, classifier=None, number_gen=10, size_pop=40, verbose=0, 
-                 repeat=1, predict_with='best', make_logbook=False,
-                 random_state=None):
+                 repeat=1, make_logbook=False, random_state=None, 
+                 parallel=False):
     
         super(BinaryBlackHole, self).__init__(
             classifier=classifier, number_gen=number_gen, size_pop=size_pop, 
-            verbose=verbose, repeat=repeat, predict_with=predict_with, 
+            verbose=verbose, repeat=repeat, parallel=parallel, 
             make_logbook=make_logbook, random_state=random_state)
 
-        creator.create("Fitness", base.Fitness, weights=(1.0, -1.0))
-        creator.create("Star", list, fitness=creator.Fitness)
-        
         self._name = "BinaryBlackHole"
+        
         self.toolbox = base.Toolbox()
         self.toolbox.register("attribute", self._gen_in)
-        self.toolbox.register("star", tools.initIterate, creator.Star, self.toolbox.attribute)
+        self.toolbox.register("star", tools.initIterate, BaseMask, self.toolbox.attribute)
         self.toolbox.register("galaxy", tools.initRepeat, list, self.toolbox.star)
         self.toolbox.register("update", self._updateStar)
         self.toolbox.register("evaluate", self._evaluate)
-        self.toolbox.register("map", map)
+        self.parallel = parallel
+        
+        if parallel:
+            from multiprocessing import Pool
+            self.toolbox.register("map", Pool().map)
+        else:
+            self.toolbox.register("map", map)
 
     def fit(self, X=None, y=None, normalize=False, **arg):
         """ Fit method
@@ -85,30 +90,23 @@ class BinaryBlackHole(_BaseMetaHeuristic):
         """
         self.set_params(**arg)
         initial_time = time.clock()
+        
         if normalize:
             self._sc_X = StandardScaler()
             X = self._sc_X.fit_transform(X)
         
-        self.normalize_ = normalize
-
         y = self._validate_targets(y)
         X, y = check_X_y(X, y, dtype=np.float64, order='C', accept_sparse='csr')
-
-        self.X_ = X
-        self.y_ = y
-
+        
+        self.normalize_ = normalize
         self.n_features_ = X.shape[1]
         self.mask_ = []
         self.fitnesses_ = []
+        
         # pylint: disable=E1101
         random.seed(self.random_state)
         self._random_object = check_random_state(self.random_state)
-        self.toolbox.register("attribute", self._gen_in)
-        self.toolbox.register("star", tools.initIterate, creator.Star, self.toolbox.attribute)
-        self.toolbox.register("galaxy", tools.initRepeat, list, self.toolbox.star)
-        self.toolbox.register("update", self._updateStar)
         self.toolbox.register("evaluate", self._evaluate, X=X, y=y)
-        self.toolbox.register("map", map)
 
         if self.make_logbook:
             self.stats = tools.Statistics(self._get_accuracy)
@@ -119,7 +117,6 @@ class BinaryBlackHole(_BaseMetaHeuristic):
             self.logbook = [tools.Logbook() for i in range(self.repeat)]
             for i in range(self.repeat):
                 self.logbook[i].header = ["gen"] + self.stats.fields
-
 
         best = tools.HallOfFame(1)
         for i in range(self.repeat):
@@ -153,7 +150,7 @@ class BinaryBlackHole(_BaseMetaHeuristic):
 
 
             best.update(hof)
-            if self.predict_with == 'all':
+            if self.make_logbook :
                 self.mask_.append(hof[0][:])
                 self.fitnesses_.append(hof[0].fitness.values)
 
@@ -161,10 +158,7 @@ class BinaryBlackHole(_BaseMetaHeuristic):
         self.best_mask_ = np.asarray(best[0][:], dtype=bool)
         self.fitness_ = best[0].fitness.values
 
-        features = list(compress(range(len(self.best_mask_)), self.best_mask_))
-        train = np.reshape([X[:, i] for i in features], [len(features), len(X)]).T
-
-        self.estimator.fit(X=train, y=y)
+        self.estimator.fit(X= self.transform(X), y=y)
 
         return self
 
@@ -178,5 +172,4 @@ class BinaryBlackHole(_BaseMetaHeuristic):
         else:
             star[:] = [ 1 if  abs(np.tanh(star[x] + self._random_object.uniform(0,1) * (blackhole[x] - star[x]))) > self._random_object.uniform(0,1) else 0 for x in range(0,self.n_features_)]
     
-
-
+    
