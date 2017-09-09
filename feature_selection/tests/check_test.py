@@ -11,7 +11,7 @@ from sklearn.utils.testing import assert_warns
 def test_check_estimator():
     for metaclass in [HarmonicSearch, GeneticAlgorithm, RandomSearch, BinaryBlackHole, SimulatedAnneling]:
         print("check_estimator: ", metaclass()._name)
-        yield check_estimator(metaclass)        
+        check_estimator(metaclass)        
     
 def test_plot():
     dataset = load_breast_cancer()
@@ -125,5 +125,3 @@ def test_unusual_errors():
 #X, y = dataset['data'], dataset['target_names'].take(dataset['target'])
 #b = BinaryBlackHole(classifier= SVC())        
 #b.fit(X,y, normalize=True)
-if __name__ == "__main__":
-    test_parallel()
