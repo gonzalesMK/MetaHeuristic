@@ -114,7 +114,21 @@ def test_unusual_errors():
         meta.best_mask_ = np.array([])
         assert_warns(UserWarning, meta.transform, X)
         assert_raises(ValueError, meta.safe_mask, X, meta.best_mask_)
-        
+
+    meta = metaclass(classifier=clf, random_state=0, verbose=0,
+                        make_logbook=True, repeat=1, number_gen=1)
+    
+    assert_raises(ValueError, meta.score_func_to_gridsearch, meta)
+    
+def test_predict():
+    dataset = load_breast_cancer()
+    X, y = dataset['data'], dataset['target_names'].take(dataset['target'])
+    
+    # Classifier to be used in the metaheuristic
+    sa = SimulatedAnneling()
+    sa.fit(X,y, normalize=True)
+    sa.predict(X)
+    
 # =============================================================================
 #         
 # =============================================================================

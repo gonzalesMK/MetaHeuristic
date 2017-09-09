@@ -291,12 +291,6 @@ class _BaseMetaHeuristic(BaseEstimator, SelectorMixin, ClassifierMixin):
         
         del self_dict['toolbox']
         
-        if 'stats' in self_dict:
-            del self_dict['stats']
-    
-        if 'logbook' in self_dict:
-            del self_dict['logbook']
-            
         return self_dict
     
     def __setstate__(self,state):
