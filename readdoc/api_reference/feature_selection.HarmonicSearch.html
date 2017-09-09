@@ -178,7 +178,7 @@ Theory and Applications,”Computational Intelligence and Neuroscience, vol. 201
 <div>Article ID 258491, 10 pages, 2015. doi:10.1155/2015/258491</div></blockquote>
 <span class="target" id="module-feature_selection.harmonic_search"></span><dl class="class">
 <dt id="feature_selection.harmonic_search.HarmonicSearch">
-<em class="property">class </em><code class="descclassname">feature_selection.harmonic_search.</code><code class="descname">HarmonicSearch</code><span class="sig-paren">(</span><em>classifier=None</em>, <em>HMCR=0.95</em>, <em>indpb=0.05</em>, <em>pitch=0.05</em>, <em>number_gen=100</em>, <em>mem_size=50</em>, <em>verbose=0</em>, <em>repeat=1</em>, <em>predict_with='best'</em>, <em>make_logbook=False</em>, <em>random_state=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/feature_selection/harmonic_search.html#HarmonicSearch"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#feature_selection.harmonic_search.HarmonicSearch" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="descclassname">feature_selection.harmonic_search.</code><code class="descname">HarmonicSearch</code><span class="sig-paren">(</span><em>classifier=None</em>, <em>HMCR=0.95</em>, <em>indpb=0.05</em>, <em>pitch=0.05</em>, <em>number_gen=100</em>, <em>mem_size=50</em>, <em>verbose=0</em>, <em>repeat=1</em>, <em>make_logbook=False</em>, <em>random_state=None</em>, <em>parallel=False</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/feature_selection/harmonic_search.html#HarmonicSearch"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#feature_selection.harmonic_search.HarmonicSearch" title="Permalink to this definition">¶</a></dt>
 <dd><p>Implementation of a Harmonic Search Algorithm for Feature Selection</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -257,7 +257,7 @@ Theory and Applications,”Computational Intelligence and Neuroscience, vol. 201
 <tr class="row-even"><td><a class="reference internal" href="#feature_selection.harmonic_search.HarmonicSearch.score" title="feature_selection.harmonic_search.HarmonicSearch.score"><code class="xref py py-obj docutils literal"><span class="pre">score</span></code></a>(X,&nbsp;y[,&nbsp;sample_weight])</td>
 <td>Returns the mean accuracy on the given test data and labels.</td>
 </tr>
-<tr class="row-odd"><td><a class="reference internal" href="#feature_selection.harmonic_search.HarmonicSearch.score_func_to_grid_search" title="feature_selection.harmonic_search.HarmonicSearch.score_func_to_grid_search"><code class="xref py py-obj docutils literal"><span class="pre">score_func_to_grid_search</span></code></a>(estimator,&nbsp;X_test,&nbsp;…)</td>
+<tr class="row-odd"><td><a class="reference internal" href="#feature_selection.harmonic_search.HarmonicSearch.score_func_to_gridsearch" title="feature_selection.harmonic_search.HarmonicSearch.score_func_to_gridsearch"><code class="xref py py-obj docutils literal"><span class="pre">score_func_to_gridsearch</span></code></a>(estimator[,&nbsp;…])</td>
 <td>Function to be given as a scorer function to Grid Search Method.</td>
 </tr>
 <tr class="row-even"><td><a class="reference internal" href="#feature_selection.harmonic_search.HarmonicSearch.set_params" title="feature_selection.harmonic_search.HarmonicSearch.set_params"><code class="xref py py-obj docutils literal"><span class="pre">set_params</span></code></a>(**params)</td>
@@ -381,18 +381,6 @@ values are indices into the input feature vector.</dd>
 in a graph.</p>
 <blockquote>
 <div>The curves are minimun, average and maximun accuracy</div></blockquote>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>travis</strong> : boolean</p>
-<blockquote class="last">
-<div><p>If this is a travis build test, set it True</p>
-</div></blockquote>
-</td>
-</tr>
-</tbody>
-</table>
 </dd></dl>
 
 <dl class="method">
@@ -448,11 +436,11 @@ each label set be correctly predicted.</p>
 </dd></dl>
 
 <dl class="method">
-<dt id="feature_selection.harmonic_search.HarmonicSearch.score_func_to_grid_search">
-<code class="descname">score_func_to_grid_search</code><span class="sig-paren">(</span><em>estimator</em>, <em>X_test</em>, <em>y_test</em><span class="sig-paren">)</span><a class="headerlink" href="#feature_selection.harmonic_search.HarmonicSearch.score_func_to_grid_search" title="Permalink to this definition">¶</a></dt>
+<dt id="feature_selection.harmonic_search.HarmonicSearch.score_func_to_gridsearch">
+<code class="descname">score_func_to_gridsearch</code><span class="sig-paren">(</span><em>estimator</em>, <em>X_test=None</em>, <em>y_test=None</em><span class="sig-paren">)</span><a class="headerlink" href="#feature_selection.harmonic_search.HarmonicSearch.score_func_to_gridsearch" title="Permalink to this definition">¶</a></dt>
 <dd><p>Function to be given as a scorer function to Grid Search Method.
 It is going to transform the matrix os predicts generated by ‘all’ option
-to an final accuracy score.</p>
+to an final accuracy score. Use a high value to CV</p>
 </dd></dl>
 
 <dl class="method">
