@@ -168,6 +168,8 @@
 <span class="kn">from</span> <span class="nn">deap</span> <span class="k">import</span> <span class="n">base</span><span class="p">,</span> <span class="n">creator</span>
 <span class="kn">from</span> <span class="nn">deap</span> <span class="k">import</span> <span class="n">tools</span>
 
+<span class="kn">import</span> <span class="nn">copy</span> 
+
 <span class="kn">from</span> <span class="nn">.base</span> <span class="k">import</span> <span class="n">_BaseMetaHeuristic</span>
 <span class="kn">from</span> <span class="nn">.base</span> <span class="k">import</span> <span class="n">BaseMask</span>
 <span class="kn">from</span> <span class="nn">sklearn.preprocessing</span> <span class="k">import</span> <span class="n">StandardScaler</span>
@@ -307,11 +309,12 @@
                 
                 <span class="k">for</span> <span class="n">m</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">repetition_schedule</span><span class="p">):</span> 
                     
-                    <span class="n">prev_solution</span> <span class="o">=</span> <span class="n">solution</span>
+                    <span class="n">prev_solution</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">solution</span><span class="p">)</span>
                     <span class="bp">self</span><span class="o">.</span><span class="n">toolbox</span><span class="o">.</span><span class="n">mutate</span><span class="p">(</span><span class="n">solution</span><span class="p">)</span>
                     <span class="n">solution</span><span class="o">.</span><span class="n">fitness</span><span class="o">.</span><span class="n">values</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">toolbox</span><span class="o">.</span><span class="n">evaluate</span><span class="p">(</span><span class="n">solution</span><span class="p">)</span>
                     
                     <span class="k">if</span> <span class="n">prev_solution</span><span class="o">.</span><span class="n">fitness</span> <span class="o">&gt;</span> <span class="n">solution</span><span class="o">.</span><span class="n">fitness</span><span class="p">:</span>
+                        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Prev is better&quot;</span><span class="p">)</span>
                         <span class="n">solution</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_metropolis_criterion</span><span class="p">(</span><span class="n">solution</span><span class="p">,</span> <span class="n">prev_solution</span><span class="p">,</span> <span class="n">temp</span><span class="p">)</span>
                     
                     <span class="c1"># Log statistic</span>
@@ -341,6 +344,7 @@
 
         <span class="k">return</span> <span class="bp">self</span></div>
 
+    <span class="nd">@staticmethod</span>
     <span class="k">def</span> <span class="nf">_metropolis_criterion</span><span class="p">(</span><span class="n">solution</span><span class="p">,</span> <span class="n">prev_solution</span><span class="p">,</span> <span class="n">temp</span><span class="p">):</span>
         <span class="n">prob</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span> <span class="p">(</span><span class="nb">sum</span><span class="p">(</span><span class="n">solution</span><span class="o">.</span><span class="n">fitness</span><span class="o">.</span><span class="n">wvalues</span><span class="p">)</span> <span class="o">-</span> <span class="nb">sum</span><span class="p">(</span><span class="n">prev_solution</span><span class="o">.</span><span class="n">fitness</span><span class="o">.</span><span class="n">wvalues</span><span class="p">))</span><span class="o">/</span><span class="n">temp</span> <span class="p">)</span>
       
