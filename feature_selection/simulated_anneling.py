@@ -8,6 +8,8 @@ import numpy as np
 from deap import base, creator
 from deap import tools
 
+import copy 
+
 from .base import _BaseMetaHeuristic
 from .base import BaseMask
 from sklearn.preprocessing import StandardScaler
@@ -147,11 +149,12 @@ class SimulatedAnneling(_BaseMetaHeuristic):
                 
                 for m in range(self.repetition_schedule): 
                     
-                    prev_solution = solution
+                    prev_solution = copy.deepcopy(solution)
                     self.toolbox.mutate(solution)
                     solution.fitness.values = self.toolbox.evaluate(solution)
                     
                     if prev_solution.fitness > solution.fitness:
+                        print("Prev is better")
                         solution = self._metropolis_criterion(solution, prev_solution, temp)
                     
                     # Log statistic
@@ -181,6 +184,7 @@ class SimulatedAnneling(_BaseMetaHeuristic):
 
         return self
 
+    @staticmethod
     def _metropolis_criterion(solution, prev_solution, temp):
         prob = np.exp( (sum(solution.fitness.wvalues) - sum(prev_solution.fitness.wvalues))/temp )
       
