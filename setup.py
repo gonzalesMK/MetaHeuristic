@@ -20,7 +20,7 @@ except ImportError:
 
 
 setup(name='metaheuristic',
-      version='1.2a1',
+      version='1.3',
       description='A package with some metaheuristics to feature selection',
       long_description=" Take a look into https://github.com/gonzalesMK/MetaHeuristic",
       author='Juliano D. Negri',

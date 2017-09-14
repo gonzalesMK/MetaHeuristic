@@ -6,7 +6,6 @@ from sklearn.svm import SVC
 from feature_selection import HarmonicSearch, GeneticAlgorithm, RandomSearch, BinaryBlackHole, SimulatedAnneling
 from sklearn.utils.testing import assert_raises
 from sklearn.utils.testing import assert_warns
-#import multiprocessing
 
 def test_check_estimator():
     for metaclass in [HarmonicSearch, GeneticAlgorithm, RandomSearch, BinaryBlackHole, SimulatedAnneling]:
@@ -95,7 +94,6 @@ def test_score_grid_func():
     
         # See score 
         meta.score_func_to_gridsearch(meta)
-            
     
 def test_unusual_errors():
     dataset = load_breast_cancer()
@@ -128,14 +126,3 @@ def test_predict():
     sa = SimulatedAnneling()
     sa.fit(X,y, normalize=True)
     sa.predict(X)
-    
-# =============================================================================
-#         
-# =============================================================================
-#from sklearn.datasets import load_breast_cancer
-#from feature_selection import HarmonicSearch, GeneticAlgorithm, RandomSearch, BinaryBlackHole, SimulatedAnneling
-#from sklearn.svm import SVC
-#dataset = load_breast_cancer()
-#X, y = dataset['data'], dataset['target_names'].take(dataset['target'])
-#b = BinaryBlackHole(classifier= SVC())        
-#b.fit(X,y, normalize=True)
