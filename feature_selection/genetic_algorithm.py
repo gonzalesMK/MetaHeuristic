@@ -5,7 +5,7 @@ from timeit import time
 
 import numpy as np
 
-from deap import base, creator
+from deap import base
 from deap import tools
 
 from .base import _BaseMetaHeuristic
