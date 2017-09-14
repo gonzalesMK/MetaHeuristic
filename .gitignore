@@ -49,6 +49,7 @@ Temporary Items
 build/lib/feature_selection/random_search.py
 .pypirc
 
+# Developer files
 metaheuristic.egg-info/*
 dist/*
 build/*
