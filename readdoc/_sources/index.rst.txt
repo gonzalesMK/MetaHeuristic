@@ -7,8 +7,7 @@ Welcome to MetaHeuristics documentation!
 ============================================
 
 This project is a implementation to anyone who wishes to use metaheuristics in
-feature selection. It comes with a `template` module which
-contains a single estimator with unit tests.
+feature selection.
 
 
     .. toctree::
@@ -16,6 +15,7 @@ contains a single estimator with unit tests.
        
        api_reference/index
        auto_examples/index
+       parallel_processing/index
        ...
 
 See the `README <https://github.com/gonzalesMK/MetaHeuristic/blob/master/README.md>`_
@@ -31,6 +31,9 @@ Overview
 
         :ref:`API Reference <api>`
             detailed description of algorithms
+            
+        :ref:`Parallel Processing <parallel>`
+            a brief description about the multiprocessing feature            
 
 
 ========
