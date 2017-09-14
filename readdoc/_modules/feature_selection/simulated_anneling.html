@@ -166,7 +166,7 @@
 
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 
-<span class="kn">from</span> <span class="nn">deap</span> <span class="k">import</span> <span class="n">base</span><span class="p">,</span> <span class="n">creator</span>
+<span class="kn">from</span> <span class="nn">deap</span> <span class="k">import</span> <span class="n">base</span>
 <span class="kn">from</span> <span class="nn">deap</span> <span class="k">import</span> <span class="n">tools</span>
 
 <span class="kn">import</span> <span class="nn">copy</span> 
@@ -200,18 +200,14 @@
 <span class="sd">    initial_temp : positive integer, (default=10)</span>
 <span class="sd">            The initial temperature</span>
 
-<span class="sd">    verbose : int, (default=0)</span>
-<span class="sd">            Print information in every generation% verbose == 0</span>
-
+<span class="sd">    verbose : boolean, (default=False)</span>
+<span class="sd">            If true, print information in every generation</span>
+<span class="sd">            </span>
 <span class="sd">    repeat : positive int, (default=1)</span>
 <span class="sd">            Number of times to repeat the fitting process</span>
 <span class="sd">    </span>
-<span class="sd">    predict_with : one of { &#39;all&#39; , &#39;best&#39; }, (default=&#39;best&#39;)</span>
-<span class="sd">        &#39;all&#39; - will predict the X with all masks and return the mean</span>
-
-<span class="sd">        &#39;best&#39; - will predict the X using the mask with the best fitness</span>
-
-<span class="sd">        obs: If you are going to make grid search in hyperparameters, use &#39;all&#39;</span>
+<span class="sd">    parallel : boolean, (default=False)</span>
+<span class="sd">            Set to True if you want to use multiprocessors            </span>
 
 <span class="sd">    make_logbook : boolean, (default=False)</span>
 <span class="sd">            If True, a logbook from DEAP will be made</span>

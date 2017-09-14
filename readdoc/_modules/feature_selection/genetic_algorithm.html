@@ -166,7 +166,7 @@
 
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 
-<span class="kn">from</span> <span class="nn">deap</span> <span class="k">import</span> <span class="n">base</span><span class="p">,</span> <span class="n">creator</span>
+<span class="kn">from</span> <span class="nn">deap</span> <span class="k">import</span> <span class="n">base</span>
 <span class="kn">from</span> <span class="nn">deap</span> <span class="k">import</span> <span class="n">tools</span>
 
 <span class="kn">from</span> <span class="nn">.base</span> <span class="k">import</span> <span class="n">_BaseMetaHeuristic</span>
@@ -201,21 +201,17 @@
 <span class="sd">    size_pop : positive integer, (default=40)</span>
 <span class="sd">            Number of individuals (choromosome ) in the population</span>
 
-<span class="sd">    verbose : int, (default=0)</span>
-<span class="sd">            Print information in every generation% verbose == 0</span>
-
+<span class="sd">    verbose : boolean, (default=False)</span>
+<span class="sd">            If true, print information in every generation</span>
+<span class="sd">            </span>
 <span class="sd">    repeat : positive int, (default=1)</span>
 <span class="sd">            Number of times to repeat the fitting process</span>
-<span class="sd">    </span>
-<span class="sd">    predict_with : one of { &#39;all&#39; , &#39;best&#39; }, (default=&#39;best&#39;)</span>
-<span class="sd">        &#39;all&#39; - will predict the X with all masks and return the mean</span>
-
-<span class="sd">        &#39;best&#39; - will predict the X using the mask with the best fitness</span>
-
-<span class="sd">        obs: If you are going to make grid search in hyperparameters, use &#39;all&#39;</span>
 
 <span class="sd">    make_logbook : boolean, (default=False)</span>
 <span class="sd">            If True, a logbook from DEAP will be made</span>
+<span class="sd">            </span>
+<span class="sd">    parallel : boolean, (default=False)</span>
+<span class="sd">            Set to True if you want to use multiprocessors</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">classifier</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">cross_over_prob</span><span class="o">=</span><span class="mf">0.5</span><span class="p">,</span>

@@ -180,7 +180,7 @@ Volume 56, 2017, Pages 94-106, ISSN 1568-4946,</p>
 <p>(<a class="reference external" href="http://www.sciencedirect.com/science/article/pii/S1568494617301242">http://www.sciencedirect.com/science/article/pii/S1568494617301242</a>)</p>
 <span class="target" id="module-feature_selection.binary_black_hole"></span><dl class="class">
 <dt id="feature_selection.binary_black_hole.BinaryBlackHole">
-<em class="property">class </em><code class="descclassname">feature_selection.binary_black_hole.</code><code class="descname">BinaryBlackHole</code><span class="sig-paren">(</span><em>classifier=None</em>, <em>number_gen=10</em>, <em>size_pop=40</em>, <em>verbose=0</em>, <em>repeat=1</em>, <em>make_logbook=False</em>, <em>random_state=None</em>, <em>parallel=False</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/feature_selection/binary_black_hole.html#BinaryBlackHole"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#feature_selection.binary_black_hole.BinaryBlackHole" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="descclassname">feature_selection.binary_black_hole.</code><code class="descname">BinaryBlackHole</code><span class="sig-paren">(</span><em>classifier=None</em>, <em>number_gen=10</em>, <em>size_pop=40</em>, <em>verbose=False</em>, <em>repeat=1</em>, <em>make_logbook=False</em>, <em>random_state=None</em>, <em>parallel=False</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/feature_selection/binary_black_hole.html#BinaryBlackHole"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#feature_selection.binary_black_hole.BinaryBlackHole" title="Permalink to this definition">¶</a></dt>
 <dd><p>Implementation of Binary Black Hole for Feature Selection</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -198,23 +198,21 @@ Volume 56, 2017, Pages 94-106, ISSN 1568-4946,</p>
 <blockquote>
 <div><p>Number of individuals (choromosome ) in the population</p>
 </div></blockquote>
-<p><strong>verbose</strong> : int, (default=0)</p>
+<p><strong>verbose</strong> : boolean, (default=False)</p>
 <blockquote>
-<div><p>Print information in every generation% verbose == 0</p>
+<div><p>If true, print information in every generation</p>
 </div></blockquote>
 <p><strong>repeat</strong> : positive int, (default=1)</p>
 <blockquote>
 <div><p>Number of times to repeat the fitting process</p>
 </div></blockquote>
-<p><strong>predict_with</strong> : one of { ‘all’ , ‘best’ }, (default=’best’)</p>
-<blockquote>
-<div><p>‘all’ - will predict the X with all masks and return the mean</p>
-<p>‘best’ - will predict the X using the mask with the best fitness</p>
-<p>obs: If you are going to make grid search in hyperparameters, use ‘all’</p>
-</div></blockquote>
 <p><strong>make_logbook</strong> : boolean, (default=False)</p>
-<blockquote class="last">
+<blockquote>
 <div><p>If True, a logbook from DEAP will be made</p>
+</div></blockquote>
+<p><strong>parallel</strong> : boolean, (default=False)</p>
+<blockquote class="last">
+<div><p>Set to True if you want to use multiprocessors</p>
 </div></blockquote>
 </td>
 </tr>

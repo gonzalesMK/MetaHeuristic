@@ -202,19 +202,17 @@ when searching for some neighbor solution.</p>
 <blockquote>
 <div><p>The initial temperature</p>
 </div></blockquote>
-<p><strong>verbose</strong> : int, (default=0)</p>
+<p><strong>verbose</strong> : boolean, (default=False)</p>
 <blockquote>
-<div><p>Print information in every generation% verbose == 0</p>
+<div><p>If true, print information in every generation</p>
 </div></blockquote>
 <p><strong>repeat</strong> : positive int, (default=1)</p>
 <blockquote>
 <div><p>Number of times to repeat the fitting process</p>
 </div></blockquote>
-<p><strong>predict_with</strong> : one of { ‘all’ , ‘best’ }, (default=’best’)</p>
+<p><strong>parallel</strong> : boolean, (default=False)</p>
 <blockquote>
-<div><p>‘all’ - will predict the X with all masks and return the mean</p>
-<p>‘best’ - will predict the X using the mask with the best fitness</p>
-<p>obs: If you are going to make grid search in hyperparameters, use ‘all’</p>
+<div><p>Set to True if you want to use multiprocessors</p>
 </div></blockquote>
 <p><strong>make_logbook</strong> : boolean, (default=False)</p>
 <blockquote class="last">
