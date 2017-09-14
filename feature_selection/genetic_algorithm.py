@@ -40,21 +40,17 @@ class GeneticAlgorithm(_BaseMetaHeuristic):
     size_pop : positive integer, (default=40)
             Number of individuals (choromosome ) in the population
 
-    verbose : int, (default=0)
-            Print information in every generation% verbose == 0
-
+    verbose : boolean, (default=False)
+            If true, print information in every generation
+            
     repeat : positive int, (default=1)
             Number of times to repeat the fitting process
-    
-    predict_with : one of { 'all' , 'best' }, (default='best')
-        'all' - will predict the X with all masks and return the mean
-
-        'best' - will predict the X using the mask with the best fitness
-
-        obs: If you are going to make grid search in hyperparameters, use 'all'
 
     make_logbook : boolean, (default=False)
             If True, a logbook from DEAP will be made
+            
+    parallel : boolean, (default=False)
+            Set to True if you want to use multiprocessors
     """
 
     def __init__(self, classifier=None, cross_over_prob=0.5,
