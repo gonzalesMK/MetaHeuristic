@@ -86,7 +86,7 @@ An example plot of :class:`feature_selection.HarmonicSearch
     hs.plot_results()
     ga.plot_results()
 
-**Total running time of the script:** ( 0 minutes  13.871 seconds)
+**Total running time of the script:** ( 0 minutes  15.053 seconds)
 
 
 
