@@ -53,7 +53,8 @@ class SimulatedAnneling(_BaseMetaHeuristic):
     """
     def __init__(self, classifier=None, mutation_prob=0.05, initial_temp=10,
                  repetition_schedule=10, number_gen=10, repeat=1, verbose=0,
-                 parallel=False, make_logbook=False, random_state=None):
+                 parallel=False, make_logbook=False, random_state=None,
+                 cv_metric_fuction=None, features_metric_function=None):
     
         super(SimulatedAnneling, self).__init__(
                 name = "SimulatedAnneling",
@@ -63,7 +64,9 @@ class SimulatedAnneling(_BaseMetaHeuristic):
                 repeat=repeat,
                 parallel=parallel, 
                 make_logbook=make_logbook,
-                random_state=random_state)
+                random_state=random_state,
+                cv_metric_fuction=cv_metric_fuction,
+                features_metric_function=features_metric_function)
         
         self.mutation_prob = mutation_prob
         self.initial_temp = initial_temp

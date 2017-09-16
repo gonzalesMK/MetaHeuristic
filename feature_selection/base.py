@@ -139,7 +139,9 @@ class _BaseMetaHeuristic(BaseEstimator, SelectorMixin, ClassifierMixin):
 
     def __init__(self, name,classifier=None, number_gen=20,
                  verbose=0, repeat=1, parallel=False,
-                 make_logbook=False, random_state=None):
+                 make_logbook=False, random_state=None,
+                 cv_metric_fuction=make_scorer(matthews_corrcoef), 
+                 features_metric_function=None):
         
         self._name = name
         self.estimator = SVC(kernel='linear', max_iter=10000) if classifier is None else clone(classifier)
@@ -149,6 +151,8 @@ class _BaseMetaHeuristic(BaseEstimator, SelectorMixin, ClassifierMixin):
         self.parallel=parallel
         self.make_logbook = make_logbook
         self.random_state = random_state
+        self.cv_metric_function= cv_metric_fuction
+        self.features_metric_function= features_metric_function
         self._random_object = check_random_state(self.random_state)
         random.seed(self.random_state)
 
@@ -171,8 +175,7 @@ class _BaseMetaHeuristic(BaseEstimator, SelectorMixin, ClassifierMixin):
 
         Return
         ----------
-
-        Score of the individual : float
+        Score of the individual : turple( cross_val_score, feature score)
         """
         # Select Features
         features = list(compress(range(len(individual)), individual))
@@ -185,9 +188,14 @@ class _BaseMetaHeuristic(BaseEstimator, SelectorMixin, ClassifierMixin):
         # Applying K-Fold Cross Validation
         accuracies = cross_val_score(estimator=clone(self.estimator), X=train, 
                                      y=y, cv=cv, 
-                                     scoring=make_scorer(matthews_corrcoef))
-
-        return accuracies.mean() - accuracies.std(), pow(sum(individual)/(X.shape[1]*5), 2),
+                                     scoring=self.cv_metric_function)
+        
+        if self.features_metric_function == None :
+            feature_score = pow(sum(individual)/(len(individual)*5), 2)
+        else:
+            feature_score = self.features_metric_function(individual)
+        
+        return accuracies.mean() - accuracies.std(), feature_score 
 
 
     def predict(self, X):

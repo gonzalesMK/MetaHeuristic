@@ -56,7 +56,8 @@ class GeneticAlgorithm(_BaseMetaHeuristic):
     def __init__(self, classifier=None, cross_over_prob=0.5,
                  individual_mut_prob=0.05, gene_mutation_prob=0.05,
                  number_gen=10, size_pop=40, verbose=0, repeat=1,
-                 make_logbook=False, random_state=None, parallel=False):
+                 make_logbook=False, random_state=None, parallel=False,
+                 cv_metric_fuction=None, features_metric_function=None):
     
         super(GeneticAlgorithm, self).__init__(
                 name = "GeneticAlgorithm",
@@ -66,7 +67,9 @@ class GeneticAlgorithm(_BaseMetaHeuristic):
                 repeat=repeat,
                 parallel=parallel, 
                 make_logbook=make_logbook,
-                random_state=random_state)
+                random_state=random_state,
+                cv_metric_fuction=cv_metric_fuction,
+                features_metric_function=features_metric_function)
         
         self.individual_mut_prob = individual_mut_prob
         self.gene_mutation_prob = gene_mutation_prob

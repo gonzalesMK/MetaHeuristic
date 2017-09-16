@@ -54,7 +54,8 @@ class HarmonicSearch(_BaseMetaHeuristic):
 
     def __init__(self, classifier=None, HMCR=0.95, indpb=0.05, pitch=0.05,
                  number_gen=100, size_pop=50, verbose=0, repeat=1,
-                 make_logbook=False, random_state=None, parallel = False):
+                 make_logbook=False, random_state=None, parallel = False,
+                 cv_metric_fuction=None, features_metric_function=None):
 
         super(HarmonicSearch, self).__init__(
                 name = "HarmonicSearch",
@@ -64,7 +65,9 @@ class HarmonicSearch(_BaseMetaHeuristic):
                 repeat=repeat,
                 parallel=parallel, 
                 make_logbook=make_logbook,
-                random_state=random_state)
+                random_state=random_state,
+                cv_metric_fuction=cv_metric_fuction,
+                features_metric_function=features_metric_function)
 
         self.HMCR = HMCR
         self.indpb = indpb

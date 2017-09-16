@@ -42,8 +42,8 @@ class BinaryBlackHole(_BaseMetaHeuristic):
     """
 
     def __init__(self, classifier=None, number_gen=10, size_pop=40, verbose=False, 
-                 repeat=1, make_logbook=False, random_state=None, 
-                 parallel=False):
+                 repeat=1, make_logbook=False, random_state=None, parallel=False,
+                 cv_metric_fuction=None, features_metric_function=None):
     
         super(BinaryBlackHole, self).__init__(
                 name = "BinaryBlackHole",
@@ -53,7 +53,9 @@ class BinaryBlackHole(_BaseMetaHeuristic):
                 repeat=repeat,
                 parallel=parallel, 
                 make_logbook=make_logbook,
-                random_state=random_state)
+                random_state=random_state,
+                cv_metric_fuction=cv_metric_fuction,
+                features_metric_function=features_metric_function)
 
         self.size_pop = size_pop        
         
