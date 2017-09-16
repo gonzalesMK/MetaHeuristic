@@ -48,8 +48,14 @@ class HarmonicSearch(_BaseMetaHeuristic):
     parallel : boolean, (default=False)
             Set to True if you want to use multiprocessors            
 
-    make_logbook: boolean, (default=False)
+    make_logbook : boolean, (default=False)
             If True, a logbook from DEAP will be made
+            
+    cv_metric_fuction : callable, (default=matthews_corrcoef)            
+            A metric score function as stated in the sklearn http://scikit-learn.org/stable/modules/model_evaluation.html#scoring-parameter
+    
+    features_metric_function : callable, (default=pow(sum(mask)/(len(mask)*5), 2))
+            A function that return a float from the binary mask of features
     """
 
     def __init__(self, classifier=None, HMCR=0.95, indpb=0.05, pitch=0.05,
@@ -74,7 +80,8 @@ class HarmonicSearch(_BaseMetaHeuristic):
         self.pitch = pitch
         self.score_func = None
         self.estimator = SVC(kernel='linear', verbose=False, max_iter=10000) if classifier is None else clone(classifier)
-
+        self.size_pop = size_pop
+        
         self.toolbox = base.Toolbox()
         self.toolbox.register("attribute", self._gen_in)
         self.toolbox.register("individual", tools.initIterate,

@@ -51,6 +51,12 @@ class GeneticAlgorithm(_BaseMetaHeuristic):
             
     parallel : boolean, (default=False)
             Set to True if you want to use multiprocessors
+            
+    cv_metric_fuction : callable, (default=matthews_corrcoef)            
+            A metric score function as stated in the sklearn http://scikit-learn.org/stable/modules/model_evaluation.html#scoring-parameter
+    
+    features_metric_function : callable, (default=pow(sum(mask)/(len(mask)*5), 2))
+            A function that return a float from the binary mask of features
     """
 
     def __init__(self, classifier=None, cross_over_prob=0.5,

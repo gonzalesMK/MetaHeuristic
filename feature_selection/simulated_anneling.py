@@ -50,6 +50,12 @@ class SimulatedAnneling(_BaseMetaHeuristic):
 
     make_logbook : boolean, (default=False)
             If True, a logbook from DEAP will be made
+            
+    cv_metric_fuction : callable, (default=matthews_corrcoef)            
+            A metric score function as stated in the sklearn http://scikit-learn.org/stable/modules/model_evaluation.html#scoring-parameter
+    
+    features_metric_function : callable, (default=pow(sum(mask)/(len(mask)*5), 2))
+            A function that return a float from the binary mask of features
     """
     def __init__(self, classifier=None, mutation_prob=0.05, initial_temp=10,
                  repetition_schedule=10, number_gen=10, repeat=1, verbose=0,
