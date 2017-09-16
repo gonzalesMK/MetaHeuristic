@@ -55,19 +55,19 @@ class SimulatedAnneling(_BaseMetaHeuristic):
                  repetition_schedule=10, number_gen=10, repeat=1, verbose=0,
                  parallel=False, make_logbook=False, random_state=None):
     
-        self._name = "SimulatedAnneling"
-        self.estimator = SVC(kernel='linear', verbose=False, max_iter=10000) if classifier is None else clone(classifier)
+        super(SimulatedAnneling, self).__init__(
+                name = "SimulatedAnneling",
+                classifier=classifier, 
+                number_gen=number_gen,  
+                verbose=verbose,
+                repeat=repeat,
+                parallel=parallel, 
+                make_logbook=make_logbook,
+                random_state=random_state)
+        
         self.mutation_prob = mutation_prob
         self.initial_temp = initial_temp
         self.repetition_schedule = repetition_schedule
-        self.number_gen = number_gen
-        self.repeat = repeat
-        self.verbose = verbose
-        self.parallel = parallel
-        self.make_logbook = make_logbook
-        self.random_state = random_state
-        self._random_object = check_random_state(self.random_state)
-        random.seed(self.random_state)        
         
         self.toolbox = base.Toolbox()
         self.toolbox.register("attribute", self._gen_in)

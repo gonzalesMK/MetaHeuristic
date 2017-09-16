@@ -59,14 +59,19 @@ class GeneticAlgorithm(_BaseMetaHeuristic):
                  make_logbook=False, random_state=None, parallel=False):
     
         super(GeneticAlgorithm, self).__init__(
-            classifier=classifier, number_gen=number_gen, size_pop=size_pop, 
-            verbose=verbose, repeat=repeat, parallel=parallel,
-            make_logbook=make_logbook, random_state=random_state)
+                name = "GeneticAlgorithm",
+                classifier=classifier, 
+                number_gen=number_gen,  
+                verbose=verbose,
+                repeat=repeat,
+                parallel=parallel, 
+                make_logbook=make_logbook,
+                random_state=random_state)
         
-        self._name = "GeneticAlgorithm"
         self.individual_mut_prob = individual_mut_prob
         self.gene_mutation_prob = gene_mutation_prob
         self.cross_over_prob = cross_over_prob
+        self.size_pop = size_pop        
         
         self.toolbox = base.Toolbox()
         self.toolbox.register("attribute", self._gen_in)

@@ -45,12 +45,17 @@ class RandomSearch(_BaseMetaHeuristic):
                  random_state=None):
 
         super(RandomSearch, self).__init__(
-            classifier=classifier, number_gen=number_gen, size_pop=size_pop, 
-            verbose=verbose, repeat=repeat, parallel=parallel, 
-            make_logbook=make_logbook, random_state=random_state)
+                name = "RandomSearch",
+                classifier=classifier, 
+                number_gen=number_gen,  
+                verbose=verbose,
+                repeat=repeat,
+                parallel=parallel, 
+                make_logbook=make_logbook,
+                random_state=random_state)
 
-        self._name = "RandomSearch"
-        
+        self.size_pop = size_pop
+                
         self.toolbox = base.Toolbox()
         self.toolbox.register("attribute", self._gen_in)
         self.toolbox.register("individual", tools.initIterate,

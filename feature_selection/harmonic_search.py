@@ -36,7 +36,7 @@ class HarmonicSearch(_BaseMetaHeuristic):
     number_gen : positive integer, (default=100)
             Number of generations
 
-    mem_size : positive integer, (default=50)
+    size_pop : positive integer, (default=50)
             Size of the Harmonic Memory
 
     verbose : boolean, (default=False)
@@ -53,26 +53,25 @@ class HarmonicSearch(_BaseMetaHeuristic):
     """
 
     def __init__(self, classifier=None, HMCR=0.95, indpb=0.05, pitch=0.05,
-                 number_gen=100, mem_size=50, verbose=0, repeat=1,
+                 number_gen=100, size_pop=50, verbose=0, repeat=1,
                  make_logbook=False, random_state=None, parallel = False):
 
-        self._name = "HarmonicSearch"
+        super(HarmonicSearch, self).__init__(
+                name = "HarmonicSearch",
+                classifier=classifier, 
+                number_gen=number_gen,  
+                verbose=verbose,
+                repeat=repeat,
+                parallel=parallel, 
+                make_logbook=make_logbook,
+                random_state=random_state)
+
         self.HMCR = HMCR
         self.indpb = indpb
         self.pitch = pitch
-        self.number_gen = number_gen
-        self.mem_size = mem_size
         self.score_func = None
         self.estimator = SVC(kernel='linear', verbose=False, max_iter=10000) if classifier is None else clone(classifier)
 
-        self.repeat = repeat
-        self.parallel = parallel
-        self.make_logbook = make_logbook
-        self.verbose = verbose
-        self.random_state = random_state
-        
-        random.seed(self.random_state)        
-        self._random_object = check_random_state(self.random_state)
         self.toolbox = base.Toolbox()
         self.toolbox.register("attribute", self._gen_in)
         self.toolbox.register("individual", tools.initIterate,
@@ -80,6 +79,7 @@ class HarmonicSearch(_BaseMetaHeuristic):
         self.toolbox.register("population", tools.initRepeat, list, self.toolbox.individual)
         self.toolbox.register("get_worst", tools.selWorst, k=1)
         self.toolbox.register("evaluate", self._evaluate, X=None, y=None)
+        
         if parallel:
             self.toolbox.register("map", Pool().map)
         else:
@@ -90,7 +90,6 @@ class HarmonicSearch(_BaseMetaHeuristic):
                               indpb=self.indpb)
         self.toolbox.register("pitch_adjustament", tools.mutFlipBit,
                               indpb=self.pitch)
-        #
 
     def fit(self, X=None, y=None, normalize=False, **arg):
         """ Fit method
@@ -151,7 +150,7 @@ class HarmonicSearch(_BaseMetaHeuristic):
 
         best = tools.HallOfFame(1)
         for i in range(self.repeat):
-            harmony_mem = self.toolbox.population(n=self.mem_size)
+            harmony_mem = self.toolbox.population(n=self.size_pop)
             hof = tools.HallOfFame(1)
 
             # Evaluate the entire population
