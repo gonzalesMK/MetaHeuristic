@@ -7,6 +7,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 from sklearn.base import BaseEstimator, ClassifierMixin, TransformerMixin, clone
 from sklearn.model_selection import cross_val_score
+from sklearn.metrics import matthews_corrcoef
+from sklearn.metrics import make_scorer
 from sklearn.utils.validation import check_array, check_is_fitted, column_or_1d
 from sklearn.externals import six
 from sklearn.utils.multiclass import check_classification_targets
@@ -135,13 +137,13 @@ class SelectorMixin(six.with_metaclass(ABCMeta, TransformerMixin)):
 
 class _BaseMetaHeuristic(BaseEstimator, SelectorMixin, ClassifierMixin):
 
-    def __init__(self, classifier=None, number_gen=20, size_pop=40,
+    def __init__(self, name,classifier=None, number_gen=20,
                  verbose=0, repeat=1, parallel=False,
                  make_logbook=False, random_state=None):
         
+        self._name = name
         self.estimator = SVC(kernel='linear', max_iter=10000) if classifier is None else clone(classifier)
         self.number_gen = number_gen
-        self.size_pop = size_pop
         self.verbose = verbose
         self.repeat = repeat
         self.parallel=parallel
@@ -181,7 +183,9 @@ class _BaseMetaHeuristic(BaseEstimator, SelectorMixin, ClassifierMixin):
             return 0,1,
 
         # Applying K-Fold Cross Validation
-        accuracies = cross_val_score(estimator=clone(self.estimator), X=train, y=y, cv=cv)
+        accuracies = cross_val_score(estimator=clone(self.estimator), X=train, 
+                                     y=y, cv=cv, 
+                                     scoring=make_scorer(matthews_corrcoef))
 
         return accuracies.mean() - accuracies.std(), pow(sum(individual)/(X.shape[1]*5), 2),
 
