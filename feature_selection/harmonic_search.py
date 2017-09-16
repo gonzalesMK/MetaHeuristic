@@ -138,8 +138,6 @@ class HarmonicSearch(_BaseMetaHeuristic):
         self.mask_ = []
         self.fitnesses_ = []
         # pylint: disable=E1101
-        random.seed(self.random_state)        
-        self._random_object = check_random_state(self.random_state)
         self.toolbox.register("get_worst", tools.selWorst, k=1)
         self.toolbox.register("evaluate", self._evaluate, X=X, y=y)
         self.toolbox.register("improvise", self._improvise, HMCR=self.HMCR)

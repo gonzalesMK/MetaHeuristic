@@ -127,8 +127,6 @@ class SimulatedAnneling(_BaseMetaHeuristic):
         self.mask_ = []
         self.fitnesses_ = []
         # pylint: disable=E1101
-        random.seed(self.random_state)        
-        self._random_object = check_random_state(self.random_state)
         self.toolbox.register("evaluate", self._evaluate, X=X, y=y)
         self.toolbox.register("mutate", tools.mutUniformInt, low=0, up=1,
                               indpb=self.mutation_prob)

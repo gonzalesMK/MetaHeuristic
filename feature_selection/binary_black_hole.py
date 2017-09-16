@@ -112,8 +112,6 @@ class BinaryBlackHole(_BaseMetaHeuristic):
         self.fitnesses_ = []
         
         # pylint: disable=E1101
-        random.seed(self.random_state)
-        self._random_object = check_random_state(self.random_state)
         self.toolbox.register("evaluate", self._evaluate, X=X, y=y)
 
         if self.make_logbook:
