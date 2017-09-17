@@ -111,35 +111,16 @@ class SimulatedAnneling(_BaseMetaHeuristic):
         **arg : parameters
                 Set parameters
         """
-
-        self.set_params(**arg)
         initial_time = time.clock()
         
-        if normalize:
-            self._sc_X = StandardScaler()
-            X = self._sc_X.fit_transform(X)
-            
-        y = self._validate_targets(y)
-        X, y = check_X_y(X, y, dtype=np.float64, order='C', accept_sparse='csr')
+        self.set_params(**arg)
+        X,y = self._set_dataset(X=X, y=y, normalize=normalize)
 
-        self.normalize_ = normalize
-        self.n_features_ = X.shape[1]
-        self.mask_ = []
-        self.fitnesses_ = []
-        # pylint: disable=E1101
-        self.toolbox.register("evaluate", self._evaluate, X=X, y=y)
-        self.toolbox.register("mutate", tools.mutUniformInt, low=0, up=1,
-                              indpb=self.mutation_prob)
-        
         if self.make_logbook:
-            self.stats = tools.Statistics(self._get_accuracy)
-            self.stats.register("avg", np.mean)
-            self.stats.register("std", np.std)
-            self.stats.register("min", np.min)
-            self.stats.register("max", np.max)
-            self.logbook = [tools.Logbook() for i in range(self.repeat)]
-            for i in range(self.repeat):
-                self.logbook[i].header = ["gen"] + self.stats.fields
+            self._make_stats()
+
+        self._random_object = check_random_state(self.random_state)
+        random.seed(self.random_state)
 
         best = tools.HallOfFame(1)
         for i in range(self.repeat):
@@ -157,7 +138,6 @@ class SimulatedAnneling(_BaseMetaHeuristic):
                     solution.fitness.values = self.toolbox.evaluate(solution)
                     
                     if prev_solution.fitness > solution.fitness:
-                        print("Prev is better")
                         solution = self._metropolis_criterion(solution, prev_solution, temp)
                     
                     # Log statistic
@@ -180,10 +160,7 @@ class SimulatedAnneling(_BaseMetaHeuristic):
         self.best_mask_ = np.asarray(best[0][:], dtype=bool)
         self.fitness_ = best[0].fitness.values
 
-        features = list(compress(range(len(self.best_mask_)), self.best_mask_))
-        train = np.reshape([X[:, i] for i in features], [len(features), len(X)]).T
-
-        self.estimator.fit(X=train, y=y)
+        self.estimator.fit(X= self.transform(X), y=y)
 
         return self
 
@@ -196,3 +173,15 @@ class SimulatedAnneling(_BaseMetaHeuristic):
         else:
             return prev_solution
         
+    def set_params(self, **params):
+        super(SimulatedAnneling, self).set_params(**params)
+        self.toolbox.register("mutate", tools.mutUniformInt, low=0, up=1,
+                              indpb=self.mutation_prob)
+
+        if self.parallel:
+            from multiprocessing import Pool
+            self.toolbox.register("map", Pool().map)
+        else:
+            self.toolbox.register("map", map)    
+            
+        return self

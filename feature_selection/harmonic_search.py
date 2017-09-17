@@ -11,8 +11,6 @@ from deap import tools
 from .base import _BaseMetaHeuristic
 from .base import BaseMask
 
-from sklearn.preprocessing import StandardScaler
-from sklearn.utils import check_X_y
 from sklearn.svm import  SVC
 from sklearn.base import clone
 from sklearn.utils import check_random_state
@@ -78,7 +76,6 @@ class HarmonicSearch(_BaseMetaHeuristic):
         self.HMCR = HMCR
         self.indpb = indpb
         self.pitch = pitch
-        self.score_func = None
         self.estimator = SVC(kernel='linear', verbose=False, max_iter=10000) if classifier is None else clone(classifier)
         self.size_pop = size_pop
         
@@ -118,44 +115,17 @@ class HarmonicSearch(_BaseMetaHeuristic):
         **arg : parameters
                 Set parameters
         """
-        self.set_params(**arg)
-        
         initial_time = time.clock()
         
-        if normalize:
-            self._sc_X = StandardScaler()
-            X = self._sc_X.fit_transform(X)
-            
-        self.normalize_ = normalize
-        
-        y = self._validate_targets(y)
-        X, y = check_X_y(X, y, dtype=np.float64, order='C', accept_sparse='csr')
-
-        self.X_ = X
-        self.y_ = y
-
-        self.n_features_ = X.shape[1]
-        self.mask_ = []
-        self.fitnesses_ = []
-        # pylint: disable=E1101
-        self.toolbox.register("get_worst", tools.selWorst, k=1)
-        self.toolbox.register("evaluate", self._evaluate, X=X, y=y)
-        self.toolbox.register("improvise", self._improvise, HMCR=self.HMCR)
-        self.toolbox.register("mutate", tools.mutUniformInt, low=0, up=1,
-                              indpb=self.indpb)
-        self.toolbox.register("pitch_adjustament", tools.mutFlipBit,
-                              indpb=self.pitch)
+        self.set_params(**arg)
+        X,y = self._set_dataset(X=X, y=y, normalize=normalize)
 
         if self.make_logbook:
-            self.stats = tools.Statistics(self._get_accuracy)
-            self.stats.register("avg", np.mean)
-            self.stats.register("std", np.std)
-            self.stats.register("min", np.min)
-            self.stats.register("max", np.max)
-            self.logbook = [tools.Logbook() for i in range(self.repeat)]
-            for i in range(self.repeat):
-                self.logbook[i].header = ["gen"] + self.stats.fields
+            self._make_stats()
 
+        self._random_object = check_random_state(self.random_state)
+        random.seed(self.random_state)
+        
         best = tools.HallOfFame(1)
         for i in range(self.repeat):
             harmony_mem = self.toolbox.population(n=self.size_pop)
@@ -201,10 +171,7 @@ class HarmonicSearch(_BaseMetaHeuristic):
         self.best_mask_ = np.asarray(best[0][:], dtype=bool)
         self.fitness_ = best[0].fitness.values
 
-        features = list(compress(range(len(self.best_mask_)), self.best_mask_))
-        train = np.reshape([X[:, i] for i in features], [len(features), len(X)]).T
-
-        self.estimator.fit(X=train, y=y)
+        self.estimator.fit(X= self.transform(X), y=y)
 
         return self
 
@@ -223,3 +190,19 @@ class HarmonicSearch(_BaseMetaHeuristic):
         self.toolbox.pitch_adjustament(new_harmony)
         return new_harmony
     
+    def set_params(self, **params):
+        
+        super(HarmonicSearch, self).set_params(**params)
+        
+        self.toolbox.register("improvise", self._improvise, HMCR=self.HMCR)
+        self.toolbox.register("mutate", tools.mutUniformInt, low=0, up=1,
+                              indpb=self.indpb)
+        self.toolbox.register("pitch_adjustament", tools.mutFlipBit,
+                              indpb=self.pitch)
+        if self.parallel:
+            from multiprocessing import Pool
+            self.toolbox.register("map", Pool().map)
+        else:
+            self.toolbox.register("map", map)    
+        
+        return self

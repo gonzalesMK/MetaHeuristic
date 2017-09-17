@@ -96,33 +96,16 @@ class BinaryBlackHole(_BaseMetaHeuristic):
         **arg : parameters
                 Set parameters
         """
-        self.set_params(**arg)
         initial_time = time.clock()
         
-        if normalize:
-            self._sc_X = StandardScaler()
-            X = self._sc_X.fit_transform(X)
+        self.set_params(**arg)
+        X,y = self._set_dataset(X=X, y=y, normalize=normalize)
         
-        y = self._validate_targets(y)
-        X, y = check_X_y(X, y, dtype=np.float64, order='C', accept_sparse='csr')
-        
-        self.normalize_ = normalize
-        self.n_features_ = X.shape[1]
-        self.mask_ = []
-        self.fitnesses_ = []
-        
-        # pylint: disable=E1101
-        self.toolbox.register("evaluate", self._evaluate, X=X, y=y)
-
         if self.make_logbook:
-            self.stats = tools.Statistics(self._get_accuracy)
-            self.stats.register("avg", np.mean)
-            self.stats.register("std", np.std)
-            self.stats.register("min", np.min)
-            self.stats.register("max", np.max)
-            self.logbook = [tools.Logbook() for i in range(self.repeat)]
-            for i in range(self.repeat):
-                self.logbook[i].header = ["gen"] + self.stats.fields
+            self._make_stats()
+
+        self._random_object = check_random_state(self.random_state)
+        random.seed(self.random_state)
 
         best = tools.HallOfFame(1)
         for i in range(self.repeat):
@@ -178,4 +161,13 @@ class BinaryBlackHole(_BaseMetaHeuristic):
         else:
             star[:] = [ 1 if  abs(np.tanh(star[x] + self._random_object.uniform(0,1) * (blackhole[x] - star[x]))) > self._random_object.uniform(0,1) else 0 for x in range(0,self.n_features_)]
     
-    
+    def set_params(self, **params):
+        super(BinaryBlackHole, self).set_params(**params)
+        
+        if self.parallel:
+            from multiprocessing import Pool
+            self.toolbox.register("map", Pool().map)
+        else:
+            self.toolbox.register("map", map)    
+            
+        return self
