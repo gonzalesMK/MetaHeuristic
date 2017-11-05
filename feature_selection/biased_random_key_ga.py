@@ -1,6 +1,5 @@
 from __future__ import print_function
 import random
-from itertools import compress
 from timeit import time
 
 import numpy as np
@@ -11,8 +10,6 @@ from deap import tools
 from .base import _BaseMetaHeuristic
 from .base import BaseMask
 
-from sklearn.preprocessing import StandardScaler
-from sklearn.utils import check_X_y
 from sklearn.utils import check_random_state
 
 class BRKGA(_BaseMetaHeuristic):
@@ -38,7 +35,7 @@ class BRKGA(_BaseMetaHeuristic):
 
     cxUniform_indpb : float in [0,1], (default=0.5)
              A uniform crossover modify in place the two sequence individuals. 
-             The attributes are swapped according to the indpb probability.
+             Inherits from the allele of the elite chromossome with indpb.
     
     size_pop : positive integer, (default=40)
             Number of individuals (choromosome ) in the population
@@ -63,7 +60,7 @@ class BRKGA(_BaseMetaHeuristic):
     """
 
     def __init__(self, classifier=None,
-                 elite_size = 10, mutant_size = 10, cxUniform_indpb = 0.5,
+                 elite_size = 10, mutant_size = 10, cxUniform_indpb = 0.7,
                  number_gen=10, size_pop=40, verbose=0, repeat=1,
                  make_logbook=False, random_state=None, parallel=False,
                  cv_metric_fuction=None, features_metric_function=None):
@@ -90,7 +87,7 @@ class BRKGA(_BaseMetaHeuristic):
         self.elite_size = elite_size
         self.non_elite_size = size_pop - elite_size
         self.mutant_size = mutant_size
-        self.n_cross_over = round((size_pop - (elite_size + mutant_size))/2)
+        self.n_cross_over = size_pop - (elite_size + mutant_size)
         
         self.toolbox = base.Toolbox()
         self.toolbox.register("attribute", self._gen_in)
@@ -161,21 +158,22 @@ class BRKGA(_BaseMetaHeuristic):
                 child2 = [self.toolbox.clone(non_elite[ind]) for ind in mother_ind]
                 
                 self.toolbox.mate(child1, child2)
-                for ind1, ind2 in zip(child1, child2):
+                for ind1 in child1:
                     del ind1.fitness.values
-                    del ind2.fitness.values
                     
                 # Evaluate the individuals with an invalid fitness ( new individuals)
-                invalid_ind =  child1 + child2
-                fitnesses = self.toolbox.map(self.toolbox.evaluate, invalid_ind)
-                for ind, fit in zip(invalid_ind, fitnesses):
+                fitnesses = self.toolbox.map(self.toolbox.evaluate, child1)
+                for ind, fit in zip(child1, fitnesses):
                     ind.fitness.values = fit
 
                 # The botton is replaced by mutant individuals
                 mutant = self.toolbox.population(self.mutant_size)
-                
+                fitnesses = self.toolbox.map(self.toolbox.evaluate, mutant)
+                for ind, fit in zip(mutant, fitnesses):
+                    ind.fitness.values = fit
+                    
                 # The population is entirely replaced by the offspring
-                pop[:] = elite + child1 + child2 + mutant
+                pop[:] = elite + child1 + mutant
 
                 # Log Statistics 
                 hof.update(pop)
