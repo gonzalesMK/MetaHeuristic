@@ -12,6 +12,7 @@ from sklearn.svm import SVC
 from sklearn.preprocessing import StandardScaler
 import pandas as pd
 from sklearn.ensemble import RandomForestClassifier
+
 dataset = load_breast_cancer()
 X, y = dataset['data'], dataset['target_names'].take(dataset['target'])
 sc_X = StandardScaler()
