@@ -27,8 +27,9 @@ def test_plot():
 
     for metaclass in [HarmonicSearch, GeneticAlgorithm, RandomSearch,
                       BinaryBlackHole,SimulatedAnneling, BRKGA]:
-        meta = metaclass(classifier=clf, random_state=0, verbose=50,
-                        make_logbook=True, repeat=1, number_gen=10)
+        meta = metaclass(classifier=clf, random_state=0, verbose=False,
+                        make_logbook=True, repeat=1, number_gen=2,
+                        size_pop=2)
         
         print("Checking plotting: ", meta._name)
     
@@ -39,7 +40,7 @@ def test_plot():
         X_1 = meta.transform(X)
     
         meta = metaclass(classifier=clf, random_state=0,
-                        make_logbook=True, repeat=1, number_gen=10)
+                        make_logbook=True, repeat=1, number_gen=2, size_pop=2)
         
         # Fit and Transform
         X_2 = meta.fit_transform(X=X, y=y, normalize=True)
@@ -66,7 +67,8 @@ def test_parallel():
     for metaclass in [HarmonicSearch, GeneticAlgorithm, RandomSearch,
                       BinaryBlackHole, SimulatedAnneling, BRKGA]:
         meta = metaclass(classifier=clf, random_state=0, make_logbook=False,
-                        repeat=2, number_gen=2, parallel=True, verbose=True)
+                        repeat=2, number_gen=2, parallel=True, verbose=True,
+                        size_pop=2)
         print("Checking parallel ", meta._name)
         
         # Fit the classifier
@@ -76,7 +78,7 @@ def test_parallel():
         X_1 = meta.transform(X)
     
         meta = metaclass(classifier=clf, random_state=0, make_logbook=False,
-                        repeat=2, number_gen=2, parallel=True)
+                        repeat=2, number_gen=2, parallel=True, size_pop=2)
     
         # Fit and Transform
         X_2 = meta.fit_transform(X=X, y=y, normalize=True)
@@ -93,8 +95,9 @@ def test_score_grid_func():
 
     for metaclass in [HarmonicSearch, GeneticAlgorithm, RandomSearch, 
                       BinaryBlackHole, SimulatedAnneling, BRKGA]:
-        meta = metaclass(classifier=clf, random_state=0, verbose=50,
-                        make_logbook=True, repeat=1, number_gen=10)
+        meta = metaclass(classifier=clf, random_state=0, verbose=True,
+                        make_logbook=True, repeat=1, number_gen=3,
+                        size_pop=2))
         
         print("Checking Grid: ", meta._name)
     
@@ -114,8 +117,8 @@ def test_unusual_errors():
     for metaclass in [HarmonicSearch, GeneticAlgorithm, RandomSearch,
                       BinaryBlackHole, SimulatedAnneling, BRKGA]:
         meta = metaclass(classifier=clf, random_state=0, verbose=0,
-                        make_logbook=True, repeat=1, number_gen=1)
-        print("Checking unusual erros: ", meta._name)
+                        make_logbook=True, repeat=1, number_gen=2, size_pop=2)
+        print("Checking unusual error: ", meta._name)
         meta.fit(X, y, normalize=True)
     
         # Let's suppose you have a empty array 
@@ -124,7 +127,7 @@ def test_unusual_errors():
         assert_raises(ValueError, meta.safe_mask, X, meta.best_mask_)
 
     meta = metaclass(classifier=clf, random_state=0, verbose=0,
-                        make_logbook=True, repeat=1, number_gen=1)
+                        make_logbook=True, repeat=1, number_gen=2, size_pop=2)
     
     assert_raises(ValueError, meta.score_func_to_gridsearch, meta)
     
@@ -133,6 +136,6 @@ def test_predict():
     X, y = dataset['data'], dataset['target_names'].take(dataset['target'])
     
     # Classifier to be used in the metaheuristic
-    sa = SimulatedAnneling()
+    sa = SimulatedAnneling(size_pop=2, number_gen=2)
     sa.fit(X,y, normalize=True)
     sa.predict(X)
