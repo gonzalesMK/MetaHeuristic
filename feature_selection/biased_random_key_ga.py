@@ -101,7 +101,7 @@ class BRKGA(_BaseMetaHeuristic):
 
         if parallel:
             from multiprocessing import Pool
-            self.toolbox.register("map", Pool().map)
+            self.toolbox.register("map", Pool(processes=4).map)
         else:
             self.toolbox.register("map", map)
             

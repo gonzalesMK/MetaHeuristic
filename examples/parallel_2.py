@@ -1,66 +1,44 @@
-# Importing Libraries 
-" Algorithm is working by know. But it is too slow. Calculating all those symmetrical"
-"uncertanties is unfeasible. There is a space to some random search in it."
-
 ## Import dataset
-from multiprocessing import Process, Pool
 import numpy as np
-import matplotlib.pyplot as plt
 from sklearn.preprocessing import StandardScaler
-from sklearn.preprocessing import LabelEncoder
-from sklearn.feature_selection import mutual_info_classif
-import arff
-
-
-from feature_selection import HarmonicSearch
-from feature_selection import GeneticAlgorithm
-from feature_selection import RandomSearch
-from feature_selection import BinaryBlackHole
-from feature_selection import SimulatedAnneling
 from feature_selection import BRKGA
-from sklearn.naive_bayes import GaussianNB
 from six.moves import cPickle
-from functools import partial
+from multiprocessing import Pool
+import time
+from sklearn.datasets import load_breast_cancer
+
+def f(i):
+    print("Now in: ", int(i))
+    a = BRKGA(size_pop=10, mutant_size=2, elite_size=2,
+                  number_gen = int(i),repeat = repetition, make_logbook=True, 
+                  verbose=False, cxUniform_indpb=0.9).fit(X,y)
+    return a
 
 if __name__ == "__main__":
 
-    # Importing the dataset
-    dataset = arff.load(open('Colon.arff'))
-    data = np.array(dataset['data'])
-    label = data[:, -1]
-    X = data[:,:-1].astype(float)
-    
-    # Encoding categorical data in Y
-    labelencoder_y = LabelEncoder()
-    Y = labelencoder_y.fit_transform(label) #.reshape((-1,1))
-    
+    dataset = load_breast_cancer()
+    X, y = dataset['data'], dataset['target_names'].take(dataset['target'])    
     # Feature Scaling in X
     sc_X = StandardScaler()
     X = sc_X.fit_transform(X)
     
-    
     # Cleaning variabels
     del dataset, data, label
     
-    test = [1,2,3]
-    clf1 = []
+    # Teste A
+    print("Teste A")
+    t0 = time.time()
     
-    file = "Testing_number_gen_1"
-    f = open(file +'.save', 'wb')
-    f.writable()
+    number_gen = np.linspace(1,4,num=3)
+    repetition = 2
+
+    pool = Pool()              # start 4 worker processes
     
-    jobs = []
-    for i in test:
-        print("Parameter: ", i)
-        classifier = BRKGA(number_gen = i,repeat = 1, make_logbook=True,
-                           verbose=True,)
-        f = partial(classifier.fit, X=X, y=Y)
-        p = Process(target=f)
-        
-        jobs.append(p)
-        p.start()
+    clfsA=list( pool.map(f,number_gen))
+    pool.close()
     
-    clf1.append(classifier)
-    cPickle.dump(clf1, f, protocol=cPickle.HIGHEST_PROTOCOL)
-    f.close()
-    
+    print("Final Time: ", time.time()- t0)
+    file = open('teste_1_A2.save', 'wb')
+    cPickle.dump(clfsA, file, protocol=cPickle.HIGHEST_PROTOCOL)
+    file.close()   
+           
