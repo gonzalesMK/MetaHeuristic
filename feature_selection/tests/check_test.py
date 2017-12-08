@@ -97,7 +97,7 @@ def test_score_grid_func():
                       BinaryBlackHole, SimulatedAnneling, BRKGA]:
         meta = metaclass(classifier=clf, random_state=0, verbose=True,
                         make_logbook=True, repeat=1, number_gen=3,
-                        size_pop=2))
+                        size_pop=2)
         
         print("Checking Grid: ", meta._name)
     
