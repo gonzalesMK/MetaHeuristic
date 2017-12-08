@@ -1,3 +1,13 @@
+"""
+============================
+Parallel Example
+============================
+
+If a lot of cycles and tests are needed, this approach will lead to more fast
+results. Instead of making parallel the classifier, each metaheuristics will run
+into a different process.
+"""
+
 ## Import dataset
 import numpy as np
 from sklearn.preprocessing import StandardScaler
