@@ -61,8 +61,8 @@ class BRKGA(_BaseMetaHeuristic):
     """
 
     def __init__(self, classifier=None,
-                 elite_size = 10, mutant_size = 10, cxUniform_indpb = 0.7,
-                 number_gen=10, size_pop=40, verbose=0, repeat=1,
+                 elite_size = 1, mutant_size = 1, cxUniform_indpb = 0.7,
+                 number_gen=1, size_pop=3, verbose=0, repeat=1,
                  make_logbook=False, random_state=None, parallel=False,
                  cv_metric_fuction=None, features_metric_function=None):
     
