@@ -4,6 +4,7 @@ from .random_search import RandomSearch
 from .binary_black_hole import BinaryBlackHole
 from .simulated_anneling import SimulatedAnneling
 from .biased_random_key_ga import BRKGA
+from .brkga_nsga2 import BRKGA2
 
 __all__ = [
         'HarmonicSearch',
@@ -11,5 +12,6 @@ __all__ = [
         'RandomSearch',
         'BinaryBlackHole',
         'SimulatedAnneling',
-        'BRKGA'
+        'BRKGA',
+        'BRKGA2'
            ]
