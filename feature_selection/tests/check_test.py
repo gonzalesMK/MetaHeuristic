@@ -4,7 +4,7 @@ from sklearn.utils.testing import assert_array_equal
 from sklearn.datasets import load_breast_cancer
 from sklearn.svm import SVC
 from feature_selection import HarmonicSearch
-from feature_selection import  GeneticAlgorithm
+from feature_selection import GeneticAlgorithm
 from feature_selection import RandomSearch
 from feature_selection import BinaryBlackHole
 from feature_selection import SimulatedAnneling
@@ -12,9 +12,11 @@ from feature_selection import BRKGA
 from sklearn.utils.testing import assert_raises
 from sklearn.utils.testing import assert_warns
 
+METACLASSES = [HarmonicSearch, GeneticAlgorithm, RandomSearch,
+                      BinaryBlackHole, SimulatedAnneling, BRKGA]
+
 def test_check_estimator():
-    for metaclass in [HarmonicSearch, GeneticAlgorithm, RandomSearch, 
-                      BinaryBlackHole, SimulatedAnneling, BRKGA]:
+    for metaclass in METACLASSES:
         print("check_estimator: ", metaclass()._name)
         check_estimator(metaclass)        
     
@@ -25,8 +27,7 @@ def test_plot():
     # Classifier to be used in the metaheuristic
     clf = SVC()
 
-    for metaclass in [HarmonicSearch, GeneticAlgorithm, RandomSearch,
-                      BinaryBlackHole,SimulatedAnneling, BRKGA]:
+    for metaclass in METACLASSES:
         meta = metaclass(classifier=clf, random_state=0, verbose=False,
                         make_logbook=True, repeat=1, number_gen=2,
                         size_pop=2)
@@ -64,8 +65,7 @@ def test_parallel():
     # Classifier to be used in the metaheuristic
     clf = SVC()
 
-    for metaclass in [HarmonicSearch, GeneticAlgorithm, RandomSearch,
-                      BinaryBlackHole, SimulatedAnneling, BRKGA]:
+    for metaclass in METACLASSES :
         meta = metaclass(classifier=clf, random_state=0, make_logbook=False,
                         repeat=2, number_gen=2, parallel=True, verbose=True,
                         size_pop=2)
@@ -93,8 +93,7 @@ def test_score_grid_func():
     # Classifier to be used in the metaheuristic
     clf = SVC()
 
-    for metaclass in [HarmonicSearch, GeneticAlgorithm, RandomSearch, 
-                      BinaryBlackHole, SimulatedAnneling, BRKGA]:
+    for metaclass in METACLASSES:
         meta = metaclass(classifier=clf, random_state=0, verbose=True,
                         make_logbook=True, repeat=1, number_gen=3,
                         size_pop=2)
@@ -114,8 +113,7 @@ def test_unusual_errors():
     # Classifier to be used in the metaheuristic
     clf = SVC()
     
-    for metaclass in [HarmonicSearch, GeneticAlgorithm, RandomSearch,
-                      BinaryBlackHole, SimulatedAnneling, BRKGA]:
+    for metaclass in METACLASSES:
         meta = metaclass(classifier=clf, random_state=0, verbose=0,
                         make_logbook=True, repeat=1, number_gen=2, size_pop=2)
         print("Checking unusual error: ", meta._name)

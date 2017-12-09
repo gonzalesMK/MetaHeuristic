@@ -164,7 +164,7 @@ class _BaseMetaHeuristic(BaseEstimator, SelectorMixin, ClassifierMixin):
         """ Generate a individual, DEAP function
 
         """
-        random_number = self._random_object.randint(0, self.n_features_ + 1)
+        random_number = self._random_object.randint(1, self.n_features_ + 1)
         zeros = (np.zeros([self.n_features_-random_number,], dtype=int))
         ones = np.ones([random_number,], dtype=int)
         return   sample(list(np.concatenate((zeros, ones), axis=0)), self.n_features_)

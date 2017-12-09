@@ -17,30 +17,29 @@ from multiprocessing import Pool
 import time
 from sklearn.datasets import load_breast_cancer
 
+dataset = load_breast_cancer()
+X, y = dataset['data'], dataset['target_names'].take(dataset['target'])    
+# Feature Scaling in X
+sc_X = StandardScaler()
+X = sc_X.fit_transform(X)
+
 def f(i):
     print("Now in: ", int(i))
     a = BRKGA(size_pop=10, mutant_size=2, elite_size=2,
-                  number_gen = int(i),repeat = repetition, make_logbook=True, 
+                  number_gen = int(i),repeat = 2, make_logbook=True, 
                   verbose=False, cxUniform_indpb=0.9).fit(X,y)
     return a
 
 if __name__ == "__main__":
-
-    dataset = load_breast_cancer()
-    X, y = dataset['data'], dataset['target_names'].take(dataset['target'])    
-    # Feature Scaling in X
-    sc_X = StandardScaler()
-    X = sc_X.fit_transform(X)
     
     # Cleaning variabels
-    del dataset, data, label
+    del dataset
     
     # Teste A
     print("Teste A")
     t0 = time.time()
     
     number_gen = np.linspace(1,4,num=3)
-    repetition = 2
 
     pool = Pool()              # start 4 worker processes
     
