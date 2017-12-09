@@ -81,7 +81,7 @@ class BRKGA2(_BaseMetaHeuristicPareto):
         
         self.size_pop = size_pop        
         if( elite_size + mutant_size > size_pop ):
-            print(" Elite size({}) + Mutant_size({}) is bigger than population"
+            raise ValueError(" Elite size({}) + Mutant_size({}) is bigger than population"
                    " size({})\n The algorithm may not work properly".format( 
                   elite_size, mutant_size, size_pop))
         
@@ -213,7 +213,7 @@ class BRKGA2(_BaseMetaHeuristicPareto):
         super(BRKGA2, self).set_params(**params)
 
         if( self.elite_size + self.mutant_size > self.size_pop ):
-            print(" Elite size({}) + Mutant_size({}) is bigger than population"
+            raise ValueError(" Elite size({}) + Mutant_size({}) is bigger than population"
                    " size({})\n The algorithm may not work properly".format( 
                   self.elite_size, self.mutant_size, self.size_pop))
 
