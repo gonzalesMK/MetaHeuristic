@@ -11,8 +11,6 @@ from deap import tools
 from .base import _BaseMetaHeuristic
 from .base import BaseMask
 
-from sklearn.preprocessing import StandardScaler
-from sklearn.utils import check_X_y
 from sklearn.svm import  SVC
 from sklearn.base import clone
 from sklearn.utils import check_random_state
@@ -36,7 +34,7 @@ class HarmonicSearch(_BaseMetaHeuristic):
     number_gen : positive integer, (default=100)
             Number of generations
 
-    mem_size : positive integer, (default=50)
+    size_pop : positive integer, (default=50)
             Size of the Harmonic Memory
 
     verbose : boolean, (default=False)
@@ -48,31 +46,39 @@ class HarmonicSearch(_BaseMetaHeuristic):
     parallel : boolean, (default=False)
             Set to True if you want to use multiprocessors            
 
-    make_logbook: boolean, (default=False)
+    make_logbook : boolean, (default=False)
             If True, a logbook from DEAP will be made
+            
+    cv_metric_fuction : callable, (default=matthews_corrcoef)            
+            A metric score function as stated in the sklearn http://scikit-learn.org/stable/modules/model_evaluation.html#scoring-parameter
+    
+    features_metric_function : callable, (default=pow(sum(mask)/(len(mask)*5), 2))
+            A function that return a float from the binary mask of features
     """
 
     def __init__(self, classifier=None, HMCR=0.95, indpb=0.05, pitch=0.05,
-                 number_gen=100, mem_size=50, verbose=0, repeat=1,
-                 make_logbook=False, random_state=None, parallel = False):
+                 number_gen=100, size_pop=50, verbose=0, repeat=1,
+                 make_logbook=False, random_state=None, parallel = False,
+                 cv_metric_fuction=None, features_metric_function=None):
 
-        self._name = "HarmonicSearch"
+        super(HarmonicSearch, self).__init__(
+                name = "HarmonicSearch",
+                classifier=classifier, 
+                number_gen=number_gen,  
+                verbose=verbose,
+                repeat=repeat,
+                parallel=parallel, 
+                make_logbook=make_logbook,
+                random_state=random_state,
+                cv_metric_fuction=cv_metric_fuction,
+                features_metric_function=features_metric_function)
+
         self.HMCR = HMCR
         self.indpb = indpb
         self.pitch = pitch
-        self.number_gen = number_gen
-        self.mem_size = mem_size
-        self.score_func = None
         self.estimator = SVC(kernel='linear', verbose=False, max_iter=10000) if classifier is None else clone(classifier)
-
-        self.repeat = repeat
-        self.parallel = parallel
-        self.make_logbook = make_logbook
-        self.verbose = verbose
-        self.random_state = random_state
+        self.size_pop = size_pop
         
-        random.seed(self.random_state)        
-        self._random_object = check_random_state(self.random_state)
         self.toolbox = base.Toolbox()
         self.toolbox.register("attribute", self._gen_in)
         self.toolbox.register("individual", tools.initIterate,
@@ -80,6 +86,7 @@ class HarmonicSearch(_BaseMetaHeuristic):
         self.toolbox.register("population", tools.initRepeat, list, self.toolbox.individual)
         self.toolbox.register("get_worst", tools.selWorst, k=1)
         self.toolbox.register("evaluate", self._evaluate, X=None, y=None)
+        
         if parallel:
             self.toolbox.register("map", Pool().map)
         else:
@@ -90,7 +97,6 @@ class HarmonicSearch(_BaseMetaHeuristic):
                               indpb=self.indpb)
         self.toolbox.register("pitch_adjustament", tools.mutFlipBit,
                               indpb=self.pitch)
-        #
 
     def fit(self, X=None, y=None, normalize=False, **arg):
         """ Fit method
@@ -109,49 +115,20 @@ class HarmonicSearch(_BaseMetaHeuristic):
         **arg : parameters
                 Set parameters
         """
-        self.set_params(**arg)
-        
         initial_time = time.clock()
         
-        if normalize:
-            self._sc_X = StandardScaler()
-            X = self._sc_X.fit_transform(X)
-            
-        self.normalize_ = normalize
-        
-        y = self._validate_targets(y)
-        X, y = check_X_y(X, y, dtype=np.float64, order='C', accept_sparse='csr')
-
-        self.X_ = X
-        self.y_ = y
-
-        self.n_features_ = X.shape[1]
-        self.mask_ = []
-        self.fitnesses_ = []
-        # pylint: disable=E1101
-        random.seed(self.random_state)        
-        self._random_object = check_random_state(self.random_state)
-        self.toolbox.register("get_worst", tools.selWorst, k=1)
-        self.toolbox.register("evaluate", self._evaluate, X=X, y=y)
-        self.toolbox.register("improvise", self._improvise, HMCR=self.HMCR)
-        self.toolbox.register("mutate", tools.mutUniformInt, low=0, up=1,
-                              indpb=self.indpb)
-        self.toolbox.register("pitch_adjustament", tools.mutFlipBit,
-                              indpb=self.pitch)
+        self.set_params(**arg)
+        X,y = self._set_dataset(X=X, y=y, normalize=normalize)
 
         if self.make_logbook:
-            self.stats = tools.Statistics(self._get_accuracy)
-            self.stats.register("avg", np.mean)
-            self.stats.register("std", np.std)
-            self.stats.register("min", np.min)
-            self.stats.register("max", np.max)
-            self.logbook = [tools.Logbook() for i in range(self.repeat)]
-            for i in range(self.repeat):
-                self.logbook[i].header = ["gen"] + self.stats.fields
+            self._make_stats()
 
+        self._random_object = check_random_state(self.random_state)
+        random.seed(self.random_state)
+        
         best = tools.HallOfFame(1)
         for i in range(self.repeat):
-            harmony_mem = self.toolbox.population(n=self.mem_size)
+            harmony_mem = self.toolbox.population(n=self.size_pop)
             hof = tools.HallOfFame(1)
 
             # Evaluate the entire population
@@ -194,10 +171,7 @@ class HarmonicSearch(_BaseMetaHeuristic):
         self.best_mask_ = np.asarray(best[0][:], dtype=bool)
         self.fitness_ = best[0].fitness.values
 
-        features = list(compress(range(len(self.best_mask_)), self.best_mask_))
-        train = np.reshape([X[:, i] for i in features], [len(features), len(X)]).T
-
-        self.estimator.fit(X=train, y=y)
+        self.estimator.fit(X= self.transform(X), y=y)
 
         return self
 
@@ -216,3 +190,19 @@ class HarmonicSearch(_BaseMetaHeuristic):
         self.toolbox.pitch_adjustament(new_harmony)
         return new_harmony
     
+    def set_params(self, **params):
+        
+        super(HarmonicSearch, self).set_params(**params)
+        
+        self.toolbox.register("improvise", self._improvise, HMCR=self.HMCR)
+        self.toolbox.register("mutate", tools.mutUniformInt, low=0, up=1,
+                              indpb=self.indpb)
+        self.toolbox.register("pitch_adjustament", tools.mutFlipBit,
+                              indpb=self.pitch)
+        if self.parallel:
+            from multiprocessing import Pool
+            self.toolbox.register("map", Pool().map)
+        else:
+            self.toolbox.register("map", map)    
+        
+        return self

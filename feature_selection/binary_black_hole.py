@@ -38,19 +38,32 @@ class BinaryBlackHole(_BaseMetaHeuristic):
             If True, a logbook from DEAP will be made
 
     parallel : boolean, (default=False)
-            Set to True if you want to use multiprocessors            
+            Set to True if you want to use multiprocessors
+            
+    cv_metric_fuction : callable, (default=matthews_corrcoef)            
+            A metric score function as stated in the sklearn http://scikit-learn.org/stable/modules/model_evaluation.html#scoring-parameter
+    
+    features_metric_function : callable, (default=pow(sum(mask)/(len(mask)*5), 2))
+            A function that return a float from the binary mask of features            
     """
 
     def __init__(self, classifier=None, number_gen=10, size_pop=40, verbose=False, 
-                 repeat=1, make_logbook=False, random_state=None, 
-                 parallel=False):
+                 repeat=1, make_logbook=False, random_state=None, parallel=False,
+                 cv_metric_fuction=None, features_metric_function=None):
     
         super(BinaryBlackHole, self).__init__(
-            classifier=classifier, number_gen=number_gen, size_pop=size_pop, 
-            verbose=verbose, repeat=repeat, parallel=parallel, 
-            make_logbook=make_logbook, random_state=random_state)
+                name = "BinaryBlackHole",
+                classifier=classifier, 
+                number_gen=number_gen,  
+                verbose=verbose,
+                repeat=repeat,
+                parallel=parallel, 
+                make_logbook=make_logbook,
+                random_state=random_state,
+                cv_metric_fuction=cv_metric_fuction,
+                features_metric_function=features_metric_function)
 
-        self._name = "BinaryBlackHole"
+        self.size_pop = size_pop        
         
         self.toolbox = base.Toolbox()
         self.toolbox.register("attribute", self._gen_in)
@@ -83,35 +96,16 @@ class BinaryBlackHole(_BaseMetaHeuristic):
         **arg : parameters
                 Set parameters
         """
-        self.set_params(**arg)
         initial_time = time.clock()
         
-        if normalize:
-            self._sc_X = StandardScaler()
-            X = self._sc_X.fit_transform(X)
+        self.set_params(**arg)
+        X,y = self._set_dataset(X=X, y=y, normalize=normalize)
         
-        y = self._validate_targets(y)
-        X, y = check_X_y(X, y, dtype=np.float64, order='C', accept_sparse='csr')
-        
-        self.normalize_ = normalize
-        self.n_features_ = X.shape[1]
-        self.mask_ = []
-        self.fitnesses_ = []
-        
-        # pylint: disable=E1101
-        random.seed(self.random_state)
-        self._random_object = check_random_state(self.random_state)
-        self.toolbox.register("evaluate", self._evaluate, X=X, y=y)
-
         if self.make_logbook:
-            self.stats = tools.Statistics(self._get_accuracy)
-            self.stats.register("avg", np.mean)
-            self.stats.register("std", np.std)
-            self.stats.register("min", np.min)
-            self.stats.register("max", np.max)
-            self.logbook = [tools.Logbook() for i in range(self.repeat)]
-            for i in range(self.repeat):
-                self.logbook[i].header = ["gen"] + self.stats.fields
+            self._make_stats()
+
+        self._random_object = check_random_state(self.random_state)
+        random.seed(self.random_state)
 
         best = tools.HallOfFame(1)
         for i in range(self.repeat):
@@ -167,4 +161,13 @@ class BinaryBlackHole(_BaseMetaHeuristic):
         else:
             star[:] = [ 1 if  abs(np.tanh(star[x] + self._random_object.uniform(0,1) * (blackhole[x] - star[x]))) > self._random_object.uniform(0,1) else 0 for x in range(0,self.n_features_)]
     
-    
+    def set_params(self, **params):
+        super(BinaryBlackHole, self).set_params(**params)
+        
+        if self.parallel:
+            from multiprocessing import Pool
+            self.toolbox.register("map", Pool().map)
+        else:
+            self.toolbox.register("map", map)    
+            
+        return self

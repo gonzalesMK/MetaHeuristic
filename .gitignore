@@ -58,3 +58,5 @@ feature_selection/tests/utils.py
 coverage/*
 *.egg
 .coverage
+*.pyc
+*.pyc

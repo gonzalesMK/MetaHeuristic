@@ -1,6 +1,5 @@
 from __future__ import print_function
 import random
-from itertools import compress
 from timeit import time
 
 import numpy as np
@@ -12,11 +11,7 @@ import copy
 
 from .base import _BaseMetaHeuristic
 from .base import BaseMask
-from sklearn.preprocessing import StandardScaler
-from sklearn.utils import check_X_y
 from sklearn.utils import check_random_state
-from sklearn.base import clone
-from sklearn.svm import  SVC
 
 class SimulatedAnneling(_BaseMetaHeuristic):
     """Implementation of a Simulated Anneling Algorithm for Feature Selection as
@@ -50,24 +45,37 @@ class SimulatedAnneling(_BaseMetaHeuristic):
 
     make_logbook : boolean, (default=False)
             If True, a logbook from DEAP will be made
+            
+    cv_metric_fuction : callable, (default=matthews_corrcoef)            
+            A metric score function as stated in the sklearn http://scikit-learn.org/stable/modules/model_evaluation.html#scoring-parameter
+    
+    features_metric_function : callable, (default=pow(sum(mask)/(len(mask)*5), 2))
+            A function that return a float from the binary mask of features
+            
+    size_pop: None
+            It is needed to 
     """
     def __init__(self, classifier=None, mutation_prob=0.05, initial_temp=10,
                  repetition_schedule=10, number_gen=10, repeat=1, verbose=0,
-                 parallel=False, make_logbook=False, random_state=None):
+                 parallel=False, make_logbook=False, random_state=None,
+                 cv_metric_fuction=None, features_metric_function=None, 
+                 **arg):
     
-        self._name = "SimulatedAnneling"
-        self.estimator = SVC(kernel='linear', verbose=False, max_iter=10000) if classifier is None else clone(classifier)
+        super(SimulatedAnneling, self).__init__(
+                name = "SimulatedAnneling",
+                classifier=classifier, 
+                number_gen=number_gen,  
+                verbose=verbose,
+                repeat=repeat,
+                parallel=parallel, 
+                make_logbook=make_logbook,
+                random_state=random_state,
+                cv_metric_fuction=cv_metric_fuction,
+                features_metric_function=features_metric_function)
+        
         self.mutation_prob = mutation_prob
         self.initial_temp = initial_temp
         self.repetition_schedule = repetition_schedule
-        self.number_gen = number_gen
-        self.repeat = repeat
-        self.verbose = verbose
-        self.parallel = parallel
-        self.make_logbook = make_logbook
-        self.random_state = random_state
-        self._random_object = check_random_state(self.random_state)
-        random.seed(self.random_state)        
         
         self.toolbox = base.Toolbox()
         self.toolbox.register("attribute", self._gen_in)
@@ -102,37 +110,16 @@ class SimulatedAnneling(_BaseMetaHeuristic):
         **arg : parameters
                 Set parameters
         """
-
-        self.set_params(**arg)
         initial_time = time.clock()
         
-        if normalize:
-            self._sc_X = StandardScaler()
-            X = self._sc_X.fit_transform(X)
-            
-        y = self._validate_targets(y)
-        X, y = check_X_y(X, y, dtype=np.float64, order='C', accept_sparse='csr')
+        self.set_params(**arg)
+        X,y = self._set_dataset(X=X, y=y, normalize=normalize)
 
-        self.normalize_ = normalize
-        self.n_features_ = X.shape[1]
-        self.mask_ = []
-        self.fitnesses_ = []
-        # pylint: disable=E1101
-        random.seed(self.random_state)        
-        self._random_object = check_random_state(self.random_state)
-        self.toolbox.register("evaluate", self._evaluate, X=X, y=y)
-        self.toolbox.register("mutate", tools.mutUniformInt, low=0, up=1,
-                              indpb=self.mutation_prob)
-        
         if self.make_logbook:
-            self.stats = tools.Statistics(self._get_accuracy)
-            self.stats.register("avg", np.mean)
-            self.stats.register("std", np.std)
-            self.stats.register("min", np.min)
-            self.stats.register("max", np.max)
-            self.logbook = [tools.Logbook() for i in range(self.repeat)]
-            for i in range(self.repeat):
-                self.logbook[i].header = ["gen"] + self.stats.fields
+            self._make_stats()
+
+        self._random_object = check_random_state(self.random_state)
+        random.seed(self.random_state)
 
         best = tools.HallOfFame(1)
         for i in range(self.repeat):
@@ -150,7 +137,6 @@ class SimulatedAnneling(_BaseMetaHeuristic):
                     solution.fitness.values = self.toolbox.evaluate(solution)
                     
                     if prev_solution.fitness > solution.fitness:
-                        print("Prev is better")
                         solution = self._metropolis_criterion(solution, prev_solution, temp)
                     
                     # Log statistic
@@ -173,10 +159,7 @@ class SimulatedAnneling(_BaseMetaHeuristic):
         self.best_mask_ = np.asarray(best[0][:], dtype=bool)
         self.fitness_ = best[0].fitness.values
 
-        features = list(compress(range(len(self.best_mask_)), self.best_mask_))
-        train = np.reshape([X[:, i] for i in features], [len(features), len(X)]).T
-
-        self.estimator.fit(X=train, y=y)
+        self.estimator.fit(X= self.transform(X), y=y)
 
         return self
 
@@ -189,3 +172,15 @@ class SimulatedAnneling(_BaseMetaHeuristic):
         else:
             return prev_solution
         
+    def set_params(self, **params):
+        super(SimulatedAnneling, self).set_params(**params)
+        self.toolbox.register("mutate", tools.mutUniformInt, low=0, up=1,
+                              indpb=self.mutation_prob)
+
+        if self.parallel:
+            from multiprocessing import Pool
+            self.toolbox.register("map", Pool().map)
+        else:
+            self.toolbox.register("map", map)    
+            
+        return self

@@ -7,12 +7,18 @@ import numpy as np
 import matplotlib.pyplot as plt
 from sklearn.base import BaseEstimator, ClassifierMixin, TransformerMixin, clone
 from sklearn.model_selection import cross_val_score
+from sklearn.metrics import matthews_corrcoef
+from sklearn.metrics import make_scorer
 from sklearn.utils.validation import check_array, check_is_fitted, column_or_1d
 from sklearn.externals import six
 from sklearn.utils.multiclass import check_classification_targets
 from sklearn.utils import check_random_state
 from sklearn.svm import  SVC
 from deap import  base
+from deap import tools
+from sklearn.preprocessing import StandardScaler
+from sklearn.utils import check_X_y
+
 
 class Fitness(base.Fitness):
     
@@ -135,18 +141,22 @@ class SelectorMixin(six.with_metaclass(ABCMeta, TransformerMixin)):
 
 class _BaseMetaHeuristic(BaseEstimator, SelectorMixin, ClassifierMixin):
 
-    def __init__(self, classifier=None, number_gen=20, size_pop=40,
+    def __init__(self, name,classifier=None, number_gen=20,
                  verbose=0, repeat=1, parallel=False,
-                 make_logbook=False, random_state=None):
+                 make_logbook=False, random_state=None,
+                 cv_metric_fuction=make_scorer(matthews_corrcoef), 
+                 features_metric_function=None):
         
+        self._name = name
         self.estimator = SVC(kernel='linear', max_iter=10000) if classifier is None else clone(classifier)
         self.number_gen = number_gen
-        self.size_pop = size_pop
         self.verbose = verbose
         self.repeat = repeat
         self.parallel=parallel
         self.make_logbook = make_logbook
         self.random_state = random_state
+        self.cv_metric_function= cv_metric_fuction
+        self.features_metric_function= features_metric_function
         self._random_object = check_random_state(self.random_state)
         random.seed(self.random_state)
 
@@ -154,7 +164,7 @@ class _BaseMetaHeuristic(BaseEstimator, SelectorMixin, ClassifierMixin):
         """ Generate a individual, DEAP function
 
         """
-        random_number = self._random_object.randint(0, self.n_features_ + 1)
+        random_number = self._random_object.randint(1, self.n_features_ + 1)
         zeros = (np.zeros([self.n_features_-random_number,], dtype=int))
         ones = np.ones([random_number,], dtype=int)
         return   sample(list(np.concatenate((zeros, ones), axis=0)), self.n_features_)
@@ -169,8 +179,7 @@ class _BaseMetaHeuristic(BaseEstimator, SelectorMixin, ClassifierMixin):
 
         Return
         ----------
-
-        Score of the individual : float
+        Score of the individual : turple( cross_val_score, feature score)
         """
         # Select Features
         features = list(compress(range(len(individual)), individual))
@@ -181,9 +190,16 @@ class _BaseMetaHeuristic(BaseEstimator, SelectorMixin, ClassifierMixin):
             return 0,1,
 
         # Applying K-Fold Cross Validation
-        accuracies = cross_val_score(estimator=clone(self.estimator), X=train, y=y, cv=cv)
-
-        return accuracies.mean() - accuracies.std(), pow(sum(individual)/(X.shape[1]*5), 2),
+        accuracies = cross_val_score(estimator=clone(self.estimator), X=train, 
+                                     y=y, cv=cv, 
+                                     scoring=self.cv_metric_function)
+        
+        if self.features_metric_function == None :
+            feature_score = pow(sum(individual)/(len(individual)*5), 2)
+        else:
+            feature_score = self.features_metric_function(individual)
+        
+        return accuracies.mean() - accuracies.std(), feature_score 
 
 
     def predict(self, X):
@@ -295,3 +311,30 @@ class _BaseMetaHeuristic(BaseEstimator, SelectorMixin, ClassifierMixin):
     
     def __setstate__(self,state):
         self.__dict__.update(state)
+
+    def _make_stats(self):
+        self.stats = tools.Statistics(self._get_accuracy)
+        self.stats.register("avg", np.mean)
+        self.stats.register("std", np.std)
+        self.stats.register("min", np.min)
+        self.stats.register("max", np.max)
+        self.logbook = [tools.Logbook() for i in range(self.repeat)]
+        for i in range(self.repeat):
+            self.logbook[i].header = ["gen"] + self.stats.fields
+
+    def _set_dataset(self, X, y, normalize):
+        if normalize:
+            self._sc_X = StandardScaler()
+            X = self._sc_X.fit_transform(X)
+        self.normalize_ = normalize
+        
+        y = self._validate_targets(y)
+        X, y = check_X_y(X, y, dtype=np.float64, order='C', accept_sparse='csr')
+
+        self.n_features_ = X.shape[1]
+        self.mask_ = []
+        self.fitnesses_ = []
+        
+        self.toolbox.register("evaluate", self._evaluate, X=X, y=y)
+        
+        return X,y 
