@@ -7,13 +7,13 @@ import numpy as np
 from deap import base
 from deap import tools
 
-from .base import _BaseMetaHeuristic
-from .base import BaseMask
+from .base_pareto import _BaseMetaHeuristicPareto
+from .base_pareto import BaseMask
 
 
 from sklearn.utils import check_random_state
 
-class BRKGA2(_BaseMetaHeuristic):
+class BRKGA2(_BaseMetaHeuristicPareto):
     """Implementation of a Biased Random Key Genetic Algorithm as the papers:
     
     Biased random-key genetic algorithms for combinatorial optimization
@@ -56,7 +56,7 @@ class BRKGA2(_BaseMetaHeuristic):
     cv_metric_fuction : callable, (default=matthews_corrcoef)            
             A metric score function as stated in the sklearn http://scikit-learn.org/stable/modules/model_evaluation.html#scoring-parameter
     
-    features_metric_function : callable, (default=pow(sum(mask)/(len(mask)*5), 2))
+    features_metric_function : { "log", "poly" }
             A function that return a float from the binary mask of features
     """
 
@@ -64,7 +64,7 @@ class BRKGA2(_BaseMetaHeuristic):
                  elite_size = 1, mutant_size = 1, cxUniform_indpb = 0.7,
                  number_gen=10, size_pop=3, verbose=0, repeat=1,
                  make_logbook=False, random_state=None, parallel=False,
-                 cv_metric_fuction=None, features_metric_function=None):
+                 cv_metric_fuction=None, features_metric_function="log"):
     
         super(BRKGA2, self).__init__(
                 name = "BRKGA2",
@@ -100,8 +100,6 @@ class BRKGA2(_BaseMetaHeuristic):
         self.toolbox.register("map", map)
         self.toolbox.register("evaluate", self._evaluate, X= None, y=None)
         
-        self.features_metric_function = lambda ind:0.05*np.log10( 9*(sum(ind)/len(ind))+1) 
-        
         if parallel:
             from multiprocessing import Pool
             self.toolbox.register("map", Pool(processes=4).map)
@@ -133,13 +131,15 @@ class BRKGA2(_BaseMetaHeuristic):
         
         if self.make_logbook:
             self._make_stats()
-            self.pareto_front = []
+            self.pareto_front_ = []
+            
 
         self._random_object = check_random_state(self.random_state)
         random.seed(self.random_state)
 
         best = tools.HallOfFame(1)
-        self.best_pareto_front = tools.ParetoFront()
+        self.best_pareto_front_ = tools.ParetoFront()
+        
         
         for i in range(self.repeat):
             # Generate Population
@@ -196,8 +196,10 @@ class BRKGA2(_BaseMetaHeuristic):
                           "Elapsed time: ", time.clock() - initial_time, end="\r")
 
             best.update(hof)                
-            self.best_pareto_front.update(pareto_front)    
-            self.pareto_front.append(pareto_front)
+            self.best_pareto_front_.update(pareto_front)    
+            if self.make_logbook: 
+                self.pareto_front_.append(pareto_front)
+            
         self.mask_ = np.array(self.mask_)
         self.best_mask_ = np.asarray(best[0][:], dtype=bool)
         self.fitness_ = best[0].fitness.values
