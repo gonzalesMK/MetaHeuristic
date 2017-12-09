@@ -39,8 +39,8 @@
         <link rel="search" title="Search" href="../search.html"/>
     <link rel="top" title="MetaHeuristic 1.0 documentation" href="../index.html"/>
         <link rel="up" title="General examples" href="index.html"/>
-        <link rel="next" title="Plotting MetaHeuristics - Basic Use" href="plot.html"/>
-        <link rel="prev" title="Using Pickle to save models" href="pickle.html"/> 
+        <link rel="next" title="Parallel Processing" href="../parallel_processing/index.html"/>
+        <link rel="prev" title="Parallel Example" href="parallel_2.html"/> 
 
   
   <script src="../_static/js/modernizr.min.js"></script>
@@ -96,9 +96,11 @@
               <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="../api_reference/index.html">API Reference</a></li>
 <li class="toctree-l1 current"><a class="reference internal" href="index.html">General examples</a><ul class="current">
-<li class="toctree-l2"><a class="reference internal" href="pickle.html">Using Pickle to save models</a></li>
-<li class="toctree-l2 current"><a class="current reference internal" href="#">Parallel Example</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pickle_demonstration.html">Using Pickle to save models</a></li>
 <li class="toctree-l2"><a class="reference internal" href="plot.html">Plotting MetaHeuristics - Basic Use</a></li>
+<li class="toctree-l2"><a class="reference internal" href="grid_search.html">Grid Search Example</a></li>
+<li class="toctree-l2"><a class="reference internal" href="parallel_2.html">Parallel Example</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Parallel Example</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="../parallel_processing/index.html">Parallel Processing</a></li>
@@ -170,7 +172,7 @@
   <div class="section" id="parallel-example">
 <span id="sphx-glr-auto-examples-parallel-py"></span><h1>Parallel Example<a class="headerlink" href="#parallel-example" title="Permalink to this headline">¶</a></h1>
 <p>An example plot of :class:<a href="#id1"><span class="problematic" id="id2">`</span></a>feature_selection.HarmonicSearch</p>
-<div class="highlight-python"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">feature_selection</span> <span class="kn">import</span> <span class="n">GeneticAlgorithm</span>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">feature_selection</span> <span class="kn">import</span> <span class="n">BRKGA</span>
 <span class="kn">from</span> <span class="nn">sklearn.datasets</span> <span class="kn">import</span> <span class="n">load_breast_cancer</span>
 <span class="kn">from</span> <span class="nn">sklearn.svm</span> <span class="kn">import</span> <span class="n">SVC</span>
 
@@ -182,7 +184,21 @@
     <span class="c1"># Classifier to be used in the metaheuristic</span>
     <span class="n">clf</span> <span class="o">=</span> <span class="n">SVC</span><span class="p">()</span>
 
-    <span class="n">ga</span> <span class="o">=</span> <span class="n">GeneticAlgorithm</span><span class="p">(</span><span class="n">classifier</span><span class="o">=</span><span class="n">clf</span><span class="p">,</span> <span class="n">make_logbook</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">repeat</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">parallel</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
+    <span class="k">print</span><span class="p">(</span><span class="s2">&quot;Starting Algorithm&quot;</span><span class="p">)</span>
+    <span class="n">ga</span> <span class="o">=</span><span class="n">BRKGA</span><span class="p">(</span><span class="n">classifier</span><span class="o">=</span><span class="n">clf</span><span class="p">,</span> <span class="n">make_logbook</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">repeat</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">parallel</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
+                          <span class="n">verbose</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">size_pop</span><span class="o">=</span><span class="mi">100</span><span class="p">)</span>
+
+    <span class="c1"># Fit the classifier</span>
+    <span class="n">ga</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">normalize</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+
+    <span class="k">print</span><span class="p">(</span><span class="s2">&quot;Number of Features Selected: </span><span class="se">\n</span><span class="s2"> </span><span class="se">\t</span><span class="s2"> HS: &quot;</span> <span class="p">,</span> <span class="nb">sum</span><span class="p">(</span><span class="n">ga</span><span class="o">.</span><span class="n">best_mask_</span><span class="p">)</span><span class="o">/</span><span class="n">X</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="s2">&quot;%&quot;</span><span class="p">)</span>
+    <span class="k">print</span><span class="p">(</span><span class="s2">&quot;Accuracy of the classifier: </span><span class="se">\n</span><span class="s2"> </span><span class="se">\t</span><span class="s2"> HS: &quot;</span><span class="p">,</span> <span class="n">ga</span><span class="o">.</span><span class="n">fitness_</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+
+    <span class="c1"># Plot the results of each test</span>
+    <span class="n">ga</span><span class="o">.</span><span class="n">plot_results</span><span class="p">()</span>
+
+    <span class="k">print</span><span class="p">(</span><span class="s2">&quot;Starting Algorithm&quot;</span><span class="p">)</span>
+    <span class="n">ga</span> <span class="o">=</span><span class="n">BRKGA</span><span class="p">(</span><span class="n">classifier</span><span class="o">=</span><span class="n">clf</span><span class="p">,</span> <span class="n">make_logbook</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">repeat</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">parallel</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
                           <span class="n">verbose</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">size_pop</span><span class="o">=</span><span class="mi">100</span><span class="p">)</span>
 
     <span class="c1"># Fit the classifier</span>
@@ -202,7 +218,7 @@
 <div class="sphx-glr-download docutils container">
 <a class="reference download internal" href="../_downloads/parallel.ipynb" download=""><code class="xref download docutils literal"><span class="pre">Download</span> <span class="pre">Jupyter</span> <span class="pre">notebook:</span> <span class="pre">parallel.ipynb</span></code></a></div>
 </div>
-<p class="sphx-glr-signature"><a class="reference external" href="https://sphinx-gallery.readthedocs.io">Generated by Sphinx-Gallery</a></p>
+<p class="sphx-glr-signature"><a class="reference external" href="https://sphinx-gallery.readthedocs.io">Gallery generated by Sphinx-Gallery</a></p>
 </div>
 
 
@@ -215,10 +231,10 @@
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
-        <a href="plot.html" class="btn btn-neutral float-right" title="Plotting MetaHeuristics - Basic Use" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+        <a href="../parallel_processing/index.html" class="btn btn-neutral float-right" title="Parallel Processing" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
-        <a href="pickle.html" class="btn btn-neutral" title="Using Pickle to save models" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+        <a href="parallel_2.html" class="btn btn-neutral" title="Parallel Example" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
       
     </div>
   

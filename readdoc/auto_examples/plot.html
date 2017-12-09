@@ -39,8 +39,8 @@
         <link rel="search" title="Search" href="../search.html"/>
     <link rel="top" title="MetaHeuristic 1.0 documentation" href="../index.html"/>
         <link rel="up" title="General examples" href="index.html"/>
-        <link rel="next" title="Parallel Processing" href="../parallel_processing/index.html"/>
-        <link rel="prev" title="Parallel Example" href="parallel.html"/> 
+        <link rel="next" title="Grid Search Example" href="grid_search.html"/>
+        <link rel="prev" title="Using Pickle to save models" href="pickle_demonstration.html"/> 
 
   
   <script src="../_static/js/modernizr.min.js"></script>
@@ -96,9 +96,11 @@
               <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="../api_reference/index.html">API Reference</a></li>
 <li class="toctree-l1 current"><a class="reference internal" href="index.html">General examples</a><ul class="current">
-<li class="toctree-l2"><a class="reference internal" href="pickle.html">Using Pickle to save models</a></li>
-<li class="toctree-l2"><a class="reference internal" href="parallel.html">Parallel Example</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pickle_demonstration.html">Using Pickle to save models</a></li>
 <li class="toctree-l2 current"><a class="current reference internal" href="#">Plotting MetaHeuristics - Basic Use</a></li>
+<li class="toctree-l2"><a class="reference internal" href="grid_search.html">Grid Search Example</a></li>
+<li class="toctree-l2"><a class="reference internal" href="parallel_2.html">Parallel Example</a></li>
+<li class="toctree-l2"><a class="reference internal" href="parallel.html">Parallel Example</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="../parallel_processing/index.html">Parallel Processing</a></li>
@@ -181,10 +183,8 @@
 </li>
 </ul>
 <p class="sphx-glr-script-out">Out:</p>
-<div class="sphx-glr-script-out highlight-default"><div class="highlight"><pre><span></span><span class="n">Number</span> <span class="n">of</span> <span class="n">Features</span> <span class="n">Selected</span><span class="p">:</span>
-         <span class="n">HS</span><span class="p">:</span>  <span class="mf">0.8</span> <span class="o">%</span>      <span class="n">GA</span><span class="p">:</span>  <span class="mf">0.766666666667</span> <span class="o">%</span>
-<span class="n">Accuracy</span> <span class="n">of</span> <span class="n">the</span> <span class="n">classifier</span><span class="p">:</span>
-         <span class="n">HS</span><span class="p">:</span>  <span class="mf">0.974700609783</span>     <span class="n">GA</span><span class="p">:</span>  <span class="mf">0.97996667133</span>
+<div class="sphx-glr-script-out highlight-default"><div class="highlight"><pre><span></span><span class="p">(</span><span class="s1">&#39;Number of Features Selected: </span><span class="se">\n</span><span class="s1"> </span><span class="se">\t</span><span class="s1"> HS: &#39;</span><span class="p">,</span> <span class="mf">0.66666666666666663</span><span class="p">,</span> <span class="s1">&#39;% </span><span class="se">\t</span><span class="s1"> GA: &#39;</span><span class="p">,</span> <span class="mf">0.66666666666666663</span><span class="p">,</span> <span class="s1">&#39;%&#39;</span><span class="p">)</span>
+<span class="p">(</span><span class="s1">&#39;Accuracy of the classifier: </span><span class="se">\n</span><span class="s1"> </span><span class="se">\t</span><span class="s1"> HS: &#39;</span><span class="p">,</span> <span class="mf">0.97573132754761194</span><span class="p">,</span> <span class="s1">&#39;</span><span class="se">\t</span><span class="s1"> GA: &#39;</span><span class="p">,</span> <span class="mf">0.97996667133048077</span><span class="p">)</span>
 </pre></div>
 </div>
 <div class="line-block">
@@ -224,14 +224,14 @@
 <span class="n">ga</span><span class="o">.</span><span class="n">plot_results</span><span class="p">()</span>
 </pre></div>
 </div>
-<p><strong>Total running time of the script:</strong> ( 0 minutes  15.053 seconds)</p>
+<p><strong>Total running time of the script:</strong> ( 0 minutes  14.795 seconds)</p>
 <div class="sphx-glr-footer docutils container">
 <div class="sphx-glr-download docutils container">
 <a class="reference download internal" href="../_downloads/plot.py" download=""><code class="xref download docutils literal"><span class="pre">Download</span> <span class="pre">Python</span> <span class="pre">source</span> <span class="pre">code:</span> <span class="pre">plot.py</span></code></a></div>
 <div class="sphx-glr-download docutils container">
 <a class="reference download internal" href="../_downloads/plot.ipynb" download=""><code class="xref download docutils literal"><span class="pre">Download</span> <span class="pre">Jupyter</span> <span class="pre">notebook:</span> <span class="pre">plot.ipynb</span></code></a></div>
 </div>
-<p class="sphx-glr-signature"><a class="reference external" href="https://sphinx-gallery.readthedocs.io">Generated by Sphinx-Gallery</a></p>
+<p class="sphx-glr-signature"><a class="reference external" href="https://sphinx-gallery.readthedocs.io">Gallery generated by Sphinx-Gallery</a></p>
 </div>
 
 
@@ -244,10 +244,10 @@
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
-        <a href="../parallel_processing/index.html" class="btn btn-neutral float-right" title="Parallel Processing" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+        <a href="grid_search.html" class="btn btn-neutral float-right" title="Grid Search Example" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
-        <a href="parallel.html" class="btn btn-neutral" title="Parallel Example" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+        <a href="pickle_demonstration.html" class="btn btn-neutral" title="Using Pickle to save models" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
       
     </div>
   

@@ -172,8 +172,6 @@
 <span class="kn">from</span> <span class="nn">.base</span> <span class="k">import</span> <span class="n">_BaseMetaHeuristic</span>
 <span class="kn">from</span> <span class="nn">.base</span> <span class="k">import</span> <span class="n">BaseMask</span>
 
-<span class="kn">from</span> <span class="nn">sklearn.preprocessing</span> <span class="k">import</span> <span class="n">StandardScaler</span>
-<span class="kn">from</span> <span class="nn">sklearn.utils</span> <span class="k">import</span> <span class="n">check_X_y</span>
 <span class="kn">from</span> <span class="nn">sklearn.svm</span> <span class="k">import</span>  <span class="n">SVC</span>
 <span class="kn">from</span> <span class="nn">sklearn.base</span> <span class="k">import</span> <span class="n">clone</span>
 <span class="kn">from</span> <span class="nn">sklearn.utils</span> <span class="k">import</span> <span class="n">check_random_state</span>
@@ -197,7 +195,7 @@
 <span class="sd">    number_gen : positive integer, (default=100)</span>
 <span class="sd">            Number of generations</span>
 
-<span class="sd">    mem_size : positive integer, (default=50)</span>
+<span class="sd">    size_pop : positive integer, (default=50)</span>
 <span class="sd">            Size of the Harmonic Memory</span>
 
 <span class="sd">    verbose : boolean, (default=False)</span>
@@ -209,31 +207,39 @@
 <span class="sd">    parallel : boolean, (default=False)</span>
 <span class="sd">            Set to True if you want to use multiprocessors            </span>
 
-<span class="sd">    make_logbook: boolean, (default=False)</span>
+<span class="sd">    make_logbook : boolean, (default=False)</span>
 <span class="sd">            If True, a logbook from DEAP will be made</span>
+<span class="sd">            </span>
+<span class="sd">    cv_metric_fuction : callable, (default=matthews_corrcoef)            </span>
+<span class="sd">            A metric score function as stated in the sklearn http://scikit-learn.org/stable/modules/model_evaluation.html#scoring-parameter</span>
+<span class="sd">    </span>
+<span class="sd">    features_metric_function : callable, (default=pow(sum(mask)/(len(mask)*5), 2))</span>
+<span class="sd">            A function that return a float from the binary mask of features</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">classifier</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">HMCR</span><span class="o">=</span><span class="mf">0.95</span><span class="p">,</span> <span class="n">indpb</span><span class="o">=</span><span class="mf">0.05</span><span class="p">,</span> <span class="n">pitch</span><span class="o">=</span><span class="mf">0.05</span><span class="p">,</span>
-                 <span class="n">number_gen</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span> <span class="n">mem_size</span><span class="o">=</span><span class="mi">50</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">repeat</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
-                 <span class="n">make_logbook</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">random_state</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">parallel</span> <span class="o">=</span> <span class="kc">False</span><span class="p">):</span>
+                 <span class="n">number_gen</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span> <span class="n">size_pop</span><span class="o">=</span><span class="mi">50</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">repeat</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+                 <span class="n">make_logbook</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">random_state</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">parallel</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+                 <span class="n">cv_metric_fuction</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">features_metric_function</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 
-        <span class="bp">self</span><span class="o">.</span><span class="n">_name</span> <span class="o">=</span> <span class="s2">&quot;HarmonicSearch&quot;</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">HarmonicSearch</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span>
+                <span class="n">name</span> <span class="o">=</span> <span class="s2">&quot;HarmonicSearch&quot;</span><span class="p">,</span>
+                <span class="n">classifier</span><span class="o">=</span><span class="n">classifier</span><span class="p">,</span> 
+                <span class="n">number_gen</span><span class="o">=</span><span class="n">number_gen</span><span class="p">,</span>  
+                <span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">,</span>
+                <span class="n">repeat</span><span class="o">=</span><span class="n">repeat</span><span class="p">,</span>
+                <span class="n">parallel</span><span class="o">=</span><span class="n">parallel</span><span class="p">,</span> 
+                <span class="n">make_logbook</span><span class="o">=</span><span class="n">make_logbook</span><span class="p">,</span>
+                <span class="n">random_state</span><span class="o">=</span><span class="n">random_state</span><span class="p">,</span>
+                <span class="n">cv_metric_fuction</span><span class="o">=</span><span class="n">cv_metric_fuction</span><span class="p">,</span>
+                <span class="n">features_metric_function</span><span class="o">=</span><span class="n">features_metric_function</span><span class="p">)</span>
+
         <span class="bp">self</span><span class="o">.</span><span class="n">HMCR</span> <span class="o">=</span> <span class="n">HMCR</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">indpb</span> <span class="o">=</span> <span class="n">indpb</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">pitch</span> <span class="o">=</span> <span class="n">pitch</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">number_gen</span> <span class="o">=</span> <span class="n">number_gen</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">mem_size</span> <span class="o">=</span> <span class="n">mem_size</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">score_func</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">estimator</span> <span class="o">=</span> <span class="n">SVC</span><span class="p">(</span><span class="n">kernel</span><span class="o">=</span><span class="s1">&#39;linear&#39;</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">max_iter</span><span class="o">=</span><span class="mi">10000</span><span class="p">)</span> <span class="k">if</span> <span class="n">classifier</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">clone</span><span class="p">(</span><span class="n">classifier</span><span class="p">)</span>
-
-        <span class="bp">self</span><span class="o">.</span><span class="n">repeat</span> <span class="o">=</span> <span class="n">repeat</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">parallel</span> <span class="o">=</span> <span class="n">parallel</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">make_logbook</span> <span class="o">=</span> <span class="n">make_logbook</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">verbose</span> <span class="o">=</span> <span class="n">verbose</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">random_state</span> <span class="o">=</span> <span class="n">random_state</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">size_pop</span> <span class="o">=</span> <span class="n">size_pop</span>
         
-        <span class="n">random</span><span class="o">.</span><span class="n">seed</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">random_state</span><span class="p">)</span>        
-        <span class="bp">self</span><span class="o">.</span><span class="n">_random_object</span> <span class="o">=</span> <span class="n">check_random_state</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">random_state</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">toolbox</span> <span class="o">=</span> <span class="n">base</span><span class="o">.</span><span class="n">Toolbox</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">toolbox</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="s2">&quot;attribute&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_gen_in</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">toolbox</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="s2">&quot;individual&quot;</span><span class="p">,</span> <span class="n">tools</span><span class="o">.</span><span class="n">initIterate</span><span class="p">,</span>
@@ -241,6 +247,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">toolbox</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="s2">&quot;population&quot;</span><span class="p">,</span> <span class="n">tools</span><span class="o">.</span><span class="n">initRepeat</span><span class="p">,</span> <span class="nb">list</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">toolbox</span><span class="o">.</span><span class="n">individual</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">toolbox</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="s2">&quot;get_worst&quot;</span><span class="p">,</span> <span class="n">tools</span><span class="o">.</span><span class="n">selWorst</span><span class="p">,</span> <span class="n">k</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">toolbox</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="s2">&quot;evaluate&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_evaluate</span><span class="p">,</span> <span class="n">X</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
+        
         <span class="k">if</span> <span class="n">parallel</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">toolbox</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="s2">&quot;map&quot;</span><span class="p">,</span> <span class="n">Pool</span><span class="p">()</span><span class="o">.</span><span class="n">map</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
@@ -251,7 +258,6 @@
                               <span class="n">indpb</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">indpb</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">toolbox</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="s2">&quot;pitch_adjustament&quot;</span><span class="p">,</span> <span class="n">tools</span><span class="o">.</span><span class="n">mutFlipBit</span><span class="p">,</span>
                               <span class="n">indpb</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">pitch</span><span class="p">)</span>
-        <span class="c1">#</span>
 
 <div class="viewcode-block" id="HarmonicSearch.fit"><a class="viewcode-back" href="../../api_reference/feature_selection.HarmonicSearch.html#feature_selection.harmonic_search.HarmonicSearch.fit">[docs]</a>    <span class="k">def</span> <span class="nf">fit</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">X</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">normalize</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="n">arg</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot; Fit method</span>
@@ -270,49 +276,20 @@
 <span class="sd">        **arg : parameters</span>
 <span class="sd">                Set parameters</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">set_params</span><span class="p">(</span><span class="o">**</span><span class="n">arg</span><span class="p">)</span>
-        
         <span class="n">initial_time</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">clock</span><span class="p">()</span>
         
-        <span class="k">if</span> <span class="n">normalize</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_sc_X</span> <span class="o">=</span> <span class="n">StandardScaler</span><span class="p">()</span>
-            <span class="n">X</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_sc_X</span><span class="o">.</span><span class="n">fit_transform</span><span class="p">(</span><span class="n">X</span><span class="p">)</span>
-            
-        <span class="bp">self</span><span class="o">.</span><span class="n">normalize_</span> <span class="o">=</span> <span class="n">normalize</span>
-        
-        <span class="n">y</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_validate_targets</span><span class="p">(</span><span class="n">y</span><span class="p">)</span>
-        <span class="n">X</span><span class="p">,</span> <span class="n">y</span> <span class="o">=</span> <span class="n">check_X_y</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">,</span> <span class="n">order</span><span class="o">=</span><span class="s1">&#39;C&#39;</span><span class="p">,</span> <span class="n">accept_sparse</span><span class="o">=</span><span class="s1">&#39;csr&#39;</span><span class="p">)</span>
-
-        <span class="bp">self</span><span class="o">.</span><span class="n">X_</span> <span class="o">=</span> <span class="n">X</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">y_</span> <span class="o">=</span> <span class="n">y</span>
-
-        <span class="bp">self</span><span class="o">.</span><span class="n">n_features_</span> <span class="o">=</span> <span class="n">X</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">mask_</span> <span class="o">=</span> <span class="p">[]</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">fitnesses_</span> <span class="o">=</span> <span class="p">[]</span>
-        <span class="c1"># pylint: disable=E1101</span>
-        <span class="n">random</span><span class="o">.</span><span class="n">seed</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">random_state</span><span class="p">)</span>        
-        <span class="bp">self</span><span class="o">.</span><span class="n">_random_object</span> <span class="o">=</span> <span class="n">check_random_state</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">random_state</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">toolbox</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="s2">&quot;get_worst&quot;</span><span class="p">,</span> <span class="n">tools</span><span class="o">.</span><span class="n">selWorst</span><span class="p">,</span> <span class="n">k</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">toolbox</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="s2">&quot;evaluate&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_evaluate</span><span class="p">,</span> <span class="n">X</span><span class="o">=</span><span class="n">X</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="n">y</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">toolbox</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="s2">&quot;improvise&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_improvise</span><span class="p">,</span> <span class="n">HMCR</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">HMCR</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">toolbox</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="s2">&quot;mutate&quot;</span><span class="p">,</span> <span class="n">tools</span><span class="o">.</span><span class="n">mutUniformInt</span><span class="p">,</span> <span class="n">low</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">up</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
-                              <span class="n">indpb</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">indpb</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">toolbox</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="s2">&quot;pitch_adjustament&quot;</span><span class="p">,</span> <span class="n">tools</span><span class="o">.</span><span class="n">mutFlipBit</span><span class="p">,</span>
-                              <span class="n">indpb</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">pitch</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">set_params</span><span class="p">(</span><span class="o">**</span><span class="n">arg</span><span class="p">)</span>
+        <span class="n">X</span><span class="p">,</span><span class="n">y</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_set_dataset</span><span class="p">(</span><span class="n">X</span><span class="o">=</span><span class="n">X</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="n">y</span><span class="p">,</span> <span class="n">normalize</span><span class="o">=</span><span class="n">normalize</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">make_logbook</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">stats</span> <span class="o">=</span> <span class="n">tools</span><span class="o">.</span><span class="n">Statistics</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_get_accuracy</span><span class="p">)</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">stats</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="s2">&quot;avg&quot;</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">)</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">stats</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="s2">&quot;std&quot;</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">std</span><span class="p">)</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">stats</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="s2">&quot;min&quot;</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">min</span><span class="p">)</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">stats</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="s2">&quot;max&quot;</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">)</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">logbook</span> <span class="o">=</span> <span class="p">[</span><span class="n">tools</span><span class="o">.</span><span class="n">Logbook</span><span class="p">()</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">repeat</span><span class="p">)]</span>
-            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">repeat</span><span class="p">):</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">logbook</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">header</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;gen&quot;</span><span class="p">]</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">stats</span><span class="o">.</span><span class="n">fields</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_make_stats</span><span class="p">()</span>
 
+        <span class="bp">self</span><span class="o">.</span><span class="n">_random_object</span> <span class="o">=</span> <span class="n">check_random_state</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">random_state</span><span class="p">)</span>
+        <span class="n">random</span><span class="o">.</span><span class="n">seed</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">random_state</span><span class="p">)</span>
+        
         <span class="n">best</span> <span class="o">=</span> <span class="n">tools</span><span class="o">.</span><span class="n">HallOfFame</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
         <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">repeat</span><span class="p">):</span>
-            <span class="n">harmony_mem</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">toolbox</span><span class="o">.</span><span class="n">population</span><span class="p">(</span><span class="n">n</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">mem_size</span><span class="p">)</span>
+            <span class="n">harmony_mem</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">toolbox</span><span class="o">.</span><span class="n">population</span><span class="p">(</span><span class="n">n</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">size_pop</span><span class="p">)</span>
             <span class="n">hof</span> <span class="o">=</span> <span class="n">tools</span><span class="o">.</span><span class="n">HallOfFame</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
 
             <span class="c1"># Evaluate the entire population</span>
@@ -355,10 +332,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">best_mask_</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">best</span><span class="p">[</span><span class="mi">0</span><span class="p">][:],</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">bool</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">fitness_</span> <span class="o">=</span> <span class="n">best</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">fitness</span><span class="o">.</span><span class="n">values</span>
 
-        <span class="n">features</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">compress</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">best_mask_</span><span class="p">)),</span> <span class="bp">self</span><span class="o">.</span><span class="n">best_mask_</span><span class="p">))</span>
-        <span class="n">train</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">reshape</span><span class="p">([</span><span class="n">X</span><span class="p">[:,</span> <span class="n">i</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">features</span><span class="p">],</span> <span class="p">[</span><span class="nb">len</span><span class="p">(</span><span class="n">features</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">X</span><span class="p">)])</span><span class="o">.</span><span class="n">T</span>
-
-        <span class="bp">self</span><span class="o">.</span><span class="n">estimator</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">X</span><span class="o">=</span><span class="n">train</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="n">y</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">estimator</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">X</span><span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">transform</span><span class="p">(</span><span class="n">X</span><span class="p">),</span> <span class="n">y</span><span class="o">=</span><span class="n">y</span><span class="p">)</span>
 
         <span class="k">return</span> <span class="bp">self</span></div>
 
@@ -375,8 +349,24 @@
             <span class="n">new_harmony</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">pop</span><span class="p">[</span><span class="n">rand_list</span><span class="p">[</span><span class="n">i</span><span class="p">]][</span><span class="n">i</span><span class="p">]</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">toolbox</span><span class="o">.</span><span class="n">mutate</span><span class="p">(</span><span class="n">new_harmony</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">toolbox</span><span class="o">.</span><span class="n">pitch_adjustament</span><span class="p">(</span><span class="n">new_harmony</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">new_harmony</span></div>
+        <span class="k">return</span> <span class="n">new_harmony</span>
     
+    <span class="k">def</span> <span class="nf">set_params</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">params</span><span class="p">):</span>
+        
+        <span class="nb">super</span><span class="p">(</span><span class="n">HarmonicSearch</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">set_params</span><span class="p">(</span><span class="o">**</span><span class="n">params</span><span class="p">)</span>
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">toolbox</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="s2">&quot;improvise&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_improvise</span><span class="p">,</span> <span class="n">HMCR</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">HMCR</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">toolbox</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="s2">&quot;mutate&quot;</span><span class="p">,</span> <span class="n">tools</span><span class="o">.</span><span class="n">mutUniformInt</span><span class="p">,</span> <span class="n">low</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">up</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+                              <span class="n">indpb</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">indpb</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">toolbox</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="s2">&quot;pitch_adjustament&quot;</span><span class="p">,</span> <span class="n">tools</span><span class="o">.</span><span class="n">mutFlipBit</span><span class="p">,</span>
+                              <span class="n">indpb</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">pitch</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">parallel</span><span class="p">:</span>
+            <span class="kn">from</span> <span class="nn">multiprocessing</span> <span class="k">import</span> <span class="n">Pool</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">toolbox</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="s2">&quot;map&quot;</span><span class="p">,</span> <span class="n">Pool</span><span class="p">()</span><span class="o">.</span><span class="n">map</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">toolbox</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="s2">&quot;map&quot;</span><span class="p">,</span> <span class="nb">map</span><span class="p">)</span>    
+        
+        <span class="k">return</span> <span class="bp">self</span></div>
 </pre></div>
 
            </div>
