@@ -8,12 +8,12 @@ from feature_selection import GeneticAlgorithm
 from feature_selection import RandomSearch
 from feature_selection import BinaryBlackHole
 from feature_selection import SimulatedAnneling
-from feature_selection import BRKGA
+from feature_selection import BRKGA, BRKGA2
 from sklearn.utils.testing import assert_raises
 from sklearn.utils.testing import assert_warns
 
 METACLASSES = [HarmonicSearch, GeneticAlgorithm, RandomSearch,
-                      BinaryBlackHole, SimulatedAnneling, BRKGA]
+                      BinaryBlackHole, SimulatedAnneling, BRKGA, BRKGA2]
 
 def test_check_estimator():
     for metaclass in METACLASSES:
