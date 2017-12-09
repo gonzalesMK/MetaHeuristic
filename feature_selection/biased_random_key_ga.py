@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 from __future__ import print_function
 import random
 from timeit import time
@@ -14,7 +16,6 @@ from sklearn.utils import check_random_state
 
 class BRKGA(_BaseMetaHeuristic):
     """Implementation of a Biased Random Key Genetic Algorithm as the papers:
-    
     Biased random-key genetic algorithms for combinatorial optimization
     
     Introdução aos algoritmos genéticos de chaves aleatórias viciadas

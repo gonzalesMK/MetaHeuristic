@@ -1,6 +1,5 @@
 from __future__ import print_function
 import random
-from itertools import compress
 from timeit import time
 
 import numpy as np
@@ -12,11 +11,7 @@ import copy
 
 from .base import _BaseMetaHeuristic
 from .base import BaseMask
-from sklearn.preprocessing import StandardScaler
-from sklearn.utils import check_X_y
 from sklearn.utils import check_random_state
-from sklearn.base import clone
-from sklearn.svm import  SVC
 
 class SimulatedAnneling(_BaseMetaHeuristic):
     """Implementation of a Simulated Anneling Algorithm for Feature Selection as
