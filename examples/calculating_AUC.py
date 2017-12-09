@@ -21,7 +21,7 @@ X = sc_X.fit_transform(X)
  
 ga = BRKGA2(number_gen=10, size_pop=40, elite_size=10, mutant_size=10,
             make_logbook=True, repeat=2, random_state=1,
-            features_metric_function='log')
+            features_metric_function='poly')
 
 # Fit the classifier
 ga.fit(X, y, normalize=True)
@@ -47,5 +47,7 @@ for i in range(len(ga.best_pareto_front_)):
     obj2.append(ga.best_pareto_front_[i].fitness.values[1]*20)
 plt.scatter(obj2, obj1, marker='+', label="Best Pareto", color="black")
 plt.title(" Pareto front and Area under Curve")
+plt.xlabel("#SelectedFeatures/#TotalFeatures) ")
+plt.xlabel("Accuracy - Variation")
 plt.legend()
 

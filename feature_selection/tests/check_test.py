@@ -133,7 +133,7 @@ def test_unusual_errors():
             assert_raises(ValueError, metaclass(classifier=clf, random_state=0, verbose=0,
                         make_logbook=True, repeat=1, number_gen=2, size_pop=2,
                         elite_size=5))
-    
+            
 def test_predict():
     dataset = load_breast_cancer()
     X, y = dataset['data'], dataset['target_names'].take(dataset['target'])
