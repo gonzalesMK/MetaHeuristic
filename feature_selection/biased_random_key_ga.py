@@ -94,8 +94,10 @@ class BRKGA(_BaseMetaHeuristic):
         self.toolbox.register("attribute", self._gen_in)
         self.toolbox.register("individual", tools.initIterate,
                               BaseMask, self.toolbox.attribute)
-        self.toolbox.register("population", tools.initRepeat, list, self.toolbox.individual)
-        self.toolbox.register("mate", tools.cxUniform, indpb = self.cxUniform_indpb)
+        self.toolbox.register("population", tools.initRepeat, list,
+                              self.toolbox.individual)
+        self.toolbox.register("mate", tools.cxUniform, 
+                              indpb = self.cxUniform_indpb)
         self.toolbox.register("select", tools.selTournament, tournsize=3)
         self.toolbox.register("map", map)
         self.toolbox.register("evaluate", self._evaluate, X= None, y=None)
@@ -152,8 +154,10 @@ class BRKGA(_BaseMetaHeuristic):
                 non_elite = tools.selWorst( pop, self.non_elite_size)
                 
                 # Cross_over between Elite and Non Elite 
-                father_ind = np.random.randint(0, self.elite_size, self.n_cross_over)
-                mother_ind = np.random.randint(0, self.non_elite_size, self.n_cross_over)
+                father_ind = np.random.randint(0, self.elite_size,
+                                               self.n_cross_over)
+                mother_ind = np.random.randint(0, self.non_elite_size, 
+                                               self.n_cross_over)
                 
                 child1 = [self.toolbox.clone(elite[ind]) for ind in father_ind]
                 child2 = [self.toolbox.clone(non_elite[ind]) for ind in mother_ind]
@@ -183,8 +187,9 @@ class BRKGA(_BaseMetaHeuristic):
                                                best_fit=hof[0].fitness.values[0],
                                                **self.stats.compile(pop))
                 if self.verbose:
-                    print("Repetition:", i+1 ,"Generation: ", g + 1, "/", self.number_gen,
-                          "Elapsed time: ", time.clock() - initial_time, end="\r")
+                    print("Repetition:", i+1 ,"Generation: ", g + 1, "/", 
+                          self.number_gen, "Elapsed time: ", 
+                          time.clock() - initial_time, end="\r")
 
             best.update(hof)
             if self.make_logbook :
