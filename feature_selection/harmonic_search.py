@@ -147,7 +147,6 @@ class HarmonicSearch(_BaseMetaHeuristic):
                     worst[:] = new_harmony[:]
                     worst.fitness.values = new_harmony.fitness.values
 
-
                 # Log statistic
                 hof.update(harmony_mem)
                 pareto_front.update(harmony_mem)
@@ -160,7 +159,6 @@ class HarmonicSearch(_BaseMetaHeuristic):
                           "Elapsed time: ", time.clock() - initial_time, end="\r")
 
             self._make_repetition(hof,pareto_front)
-            
 
         self.estimator.fit(X= self.transform(X), y=y)
 
