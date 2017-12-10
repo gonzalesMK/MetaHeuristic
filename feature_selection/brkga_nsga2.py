@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 from __future__ import print_function
-import random
 from timeit import time
 
 import numpy as np
@@ -10,9 +9,6 @@ from deap import tools
 
 from .base_pareto import _BaseMetaHeuristicPareto
 from .base_pareto import BaseMask
-
-
-from sklearn.utils import check_random_state
 
 class BRKGA2(_BaseMetaHeuristicPareto):
     """Implementation of a Biased Random Key Genetic Algorithm as the papers:

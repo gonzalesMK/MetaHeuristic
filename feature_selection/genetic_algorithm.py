@@ -1,20 +1,12 @@
 from __future__ import print_function
 import random
-from itertools import compress
 from timeit import time
-
-import numpy as np
 
 from deap import base
 from deap import tools
 
 from .base import _BaseMetaHeuristic
 from .base import BaseMask
-
-from sklearn.preprocessing import StandardScaler
-from sklearn.utils import check_X_y
-from sklearn.utils import check_random_state
-
 
 class GeneticAlgorithm(_BaseMetaHeuristic):
     """Implementation of a Genetic Algorithm for Feature Selection
