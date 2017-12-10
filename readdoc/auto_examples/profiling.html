@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Grid Search Example &mdash; MetaHeuristic 1.0 documentation</title>
+  <title>Profiling Example &mdash; MetaHeuristic 1.0 documentation</title>
   
 
   
@@ -39,8 +39,8 @@
         <link rel="search" title="Search" href="../search.html"/>
     <link rel="top" title="MetaHeuristic 1.0 documentation" href="../index.html"/>
         <link rel="up" title="General examples" href="index.html"/>
-        <link rel="next" title="Parallel Example" href="parallel_2.html"/>
-        <link rel="prev" title="Plotting MetaHeuristics - Basic Use" href="plot.html"/> 
+        <link rel="next" title="Plotting MetaHeuristics - Basic Use" href="plot.html"/>
+        <link rel="prev" title="Using Pickle to save models" href="pickle_demonstration.html"/> 
 
   
   <script src="../_static/js/modernizr.min.js"></script>
@@ -97,9 +97,9 @@
 <li class="toctree-l1"><a class="reference internal" href="../api_reference/index.html">API Reference</a></li>
 <li class="toctree-l1 current"><a class="reference internal" href="index.html">General examples</a><ul class="current">
 <li class="toctree-l2"><a class="reference internal" href="pickle_demonstration.html">Using Pickle to save models</a></li>
-<li class="toctree-l2"><a class="reference internal" href="profiling.html">Profiling Example</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Profiling Example</a></li>
 <li class="toctree-l2"><a class="reference internal" href="plot.html">Plotting MetaHeuristics - Basic Use</a></li>
-<li class="toctree-l2 current"><a class="current reference internal" href="#">Grid Search Example</a></li>
+<li class="toctree-l2"><a class="reference internal" href="grid_search.html">Grid Search Example</a></li>
 <li class="toctree-l2"><a class="reference internal" href="parallel_2.html">Parallel Example</a></li>
 <li class="toctree-l2"><a class="reference internal" href="parallel.html">Parallel Example</a></li>
 <li class="toctree-l2"><a class="reference internal" href="calculating_AUC.html">How to Compare NSGA2 Results - AUC</a></li>
@@ -152,13 +152,13 @@
         
           <li><a href="index.html">General examples</a> &raquo;</li>
         
-      <li>Grid Search Example</li>
+      <li>Profiling Example</li>
     
     
       <li class="wy-breadcrumbs-aside">
         
             
-            <a href="../_sources/auto_examples/grid_search.rst.txt" rel="nofollow"> View page source</a>
+            <a href="../_sources/auto_examples/profiling.rst.txt" rel="nofollow"> View page source</a>
           
         
       </li>
@@ -171,49 +171,40 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <div class="section" id="grid-search-example">
-<span id="sphx-glr-auto-examples-grid-search-py"></span><h1>Grid Search Example<a class="headerlink" href="#grid-search-example" title="Permalink to this headline">¶</a></h1>
-<p>An example of how to use Metaheuristics and GridSearch</p>
-<div class="highlight-python"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">feature_selection</span> <span class="kn">import</span> <span class="n">HarmonicSearch</span>
+  <div class="section" id="profiling-example">
+<span id="sphx-glr-auto-examples-profiling-py"></span><h1>Profiling Example<a class="headerlink" href="#profiling-example" title="Permalink to this headline">¶</a></h1>
+<p>An example of how to use Profile in the algorithm</p>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="c1"># Commmand &quot;python -m cProfile -o profile_output script.py&quot;</span>
+<span class="kn">from</span> <span class="nn">feature_selection</span> <span class="kn">import</span> <span class="n">BRKGA2</span>
 <span class="kn">from</span> <span class="nn">sklearn.datasets</span> <span class="kn">import</span> <span class="n">load_breast_cancer</span>
-<span class="kn">from</span> <span class="nn">sklearn.model_selection</span> <span class="kn">import</span> <span class="n">GridSearchCV</span>
-<span class="kn">from</span> <span class="nn">sklearn.svm</span> <span class="kn">import</span> <span class="n">SVC</span>
 <span class="kn">from</span> <span class="nn">sklearn.preprocessing</span> <span class="kn">import</span> <span class="n">StandardScaler</span>
-<span class="kn">import</span> <span class="nn">pandas</span> <span class="kn">as</span> <span class="nn">pd</span>
-<span class="kn">from</span> <span class="nn">sklearn.ensemble</span> <span class="kn">import</span> <span class="n">RandomForestClassifier</span>
+
+<span class="kn">import</span> <span class="nn">cProfile</span>
 
 <span class="n">dataset</span> <span class="o">=</span> <span class="n">load_breast_cancer</span><span class="p">()</span>
 <span class="n">X</span><span class="p">,</span> <span class="n">y</span> <span class="o">=</span> <span class="n">dataset</span><span class="p">[</span><span class="s1">&#39;data&#39;</span><span class="p">],</span> <span class="n">dataset</span><span class="p">[</span><span class="s1">&#39;target_names&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">take</span><span class="p">(</span><span class="n">dataset</span><span class="p">[</span><span class="s1">&#39;target&#39;</span><span class="p">])</span>
 <span class="n">sc_X</span> <span class="o">=</span> <span class="n">StandardScaler</span><span class="p">()</span>
 <span class="n">X</span> <span class="o">=</span> <span class="n">sc_X</span><span class="o">.</span><span class="n">fit_transform</span><span class="p">(</span><span class="n">X</span><span class="p">)</span>
 
-<span class="c1"># Classifier to be used in the metaheuristic</span>
-<span class="n">clf</span> <span class="o">=</span> <span class="n">SVC</span><span class="p">()</span>
-<span class="n">clf</span> <span class="o">=</span> <span class="n">RandomForestClassifier</span><span class="p">()</span>
-<span class="n">clf</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">X</span><span class="p">,</span><span class="n">y</span><span class="p">)</span>
-<span class="n">clf</span><span class="o">.</span><span class="n">predict</span><span class="p">(</span><span class="n">X</span><span class="p">)</span> <span class="o">==</span> <span class="n">y</span>
-<span class="c1"># Parameter Grid</span>
-<span class="n">param_grid</span><span class="o">=</span> <span class="p">{</span>
-    <span class="s2">&quot;HMCR&quot;</span><span class="p">:[</span><span class="mi">0</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">,</span> <span class="mf">0.95</span><span class="p">],</span>
-    <span class="s2">&quot;indpb&quot;</span><span class="p">:[</span><span class="mf">0.05</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">,</span> <span class="mi">1</span><span class="p">],</span>
-    <span class="s2">&quot;pitch&quot;</span><span class="p">:[</span><span class="mf">0.05</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">,</span> <span class="mi">1</span><span class="p">],</span>
-    <span class="s2">&quot;repeat&quot;</span><span class="p">:[</span><span class="mi">3</span><span class="p">]</span>
-     <span class="p">}</span>
-<span class="n">hs</span> <span class="o">=</span> <span class="n">HarmonicSearch</span><span class="p">(</span><span class="n">classifier</span><span class="o">=</span><span class="n">clf</span><span class="p">,</span> <span class="n">make_logbook</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
-<span class="n">grid_search</span> <span class="o">=</span> <span class="n">GridSearchCV</span><span class="p">(</span><span class="n">hs</span><span class="p">,</span> <span class="n">param_grid</span><span class="o">=</span><span class="n">param_grid</span><span class="p">,</span> <span class="n">scoring</span><span class="o">=</span><span class="n">hs</span><span class="o">.</span><span class="n">score_func_to_gridsearch</span><span class="p">,</span> <span class="n">cv</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span>
-                           <span class="n">verbose</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
-<span class="n">grid_search</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">X</span><span class="p">,</span><span class="n">y</span><span class="p">)</span>
 
-<span class="n">grid_search</span><span class="o">.</span><span class="n">best_params_</span>
-<span class="n">results</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="o">.</span><span class="n">from_dict</span><span class="p">(</span><span class="n">grid_search</span><span class="o">.</span><span class="n">cv_results_</span><span class="p">)</span>
+<span class="c1"># Classifier to be used in the metaheuristic</span>
+<span class="k">print</span><span class="p">(</span><span class="s2">&quot;Starting Algorithm&quot;</span><span class="p">)</span>
+<span class="n">ga</span> <span class="o">=</span><span class="n">BRKGA2</span><span class="p">(</span><span class="n">make_logbook</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">repeat</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">parallel</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
+           <span class="n">size_pop</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span> <span class="n">elite_size</span><span class="o">=</span><span class="mi">30</span><span class="p">,</span> <span class="n">mutant_size</span><span class="o">=</span><span class="mi">10</span><span class="p">)</span>
+
+<span class="n">cProfile</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="s1">&#39;ga.fit(X,y)&#39;</span><span class="p">,</span> <span class="s1">&#39;restats&#39;</span><span class="p">)</span>
+
+<span class="kn">import</span> <span class="nn">pstats</span>
+<span class="n">p</span> <span class="o">=</span> <span class="n">pstats</span><span class="o">.</span><span class="n">Stats</span><span class="p">(</span><span class="s1">&#39;restats&#39;</span><span class="p">)</span>
+<span class="n">p</span><span class="o">.</span><span class="n">sort_stats</span><span class="p">(</span><span class="s1">&#39;cumulative&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">print_stats</span><span class="p">(</span><span class="mi">50</span><span class="p">)</span>
 </pre></div>
 </div>
 <p><strong>Total running time of the script:</strong> ( 0 minutes  0.000 seconds)</p>
 <div class="sphx-glr-footer docutils container">
 <div class="sphx-glr-download docutils container">
-<a class="reference download internal" href="../_downloads/grid_search.py" download=""><code class="xref download docutils literal"><span class="pre">Download</span> <span class="pre">Python</span> <span class="pre">source</span> <span class="pre">code:</span> <span class="pre">grid_search.py</span></code></a></div>
+<a class="reference download internal" href="../_downloads/profiling.py" download=""><code class="xref download docutils literal"><span class="pre">Download</span> <span class="pre">Python</span> <span class="pre">source</span> <span class="pre">code:</span> <span class="pre">profiling.py</span></code></a></div>
 <div class="sphx-glr-download docutils container">
-<a class="reference download internal" href="../_downloads/grid_search.ipynb" download=""><code class="xref download docutils literal"><span class="pre">Download</span> <span class="pre">Jupyter</span> <span class="pre">notebook:</span> <span class="pre">grid_search.ipynb</span></code></a></div>
+<a class="reference download internal" href="../_downloads/profiling.ipynb" download=""><code class="xref download docutils literal"><span class="pre">Download</span> <span class="pre">Jupyter</span> <span class="pre">notebook:</span> <span class="pre">profiling.ipynb</span></code></a></div>
 </div>
 <p class="sphx-glr-signature"><a class="reference external" href="https://sphinx-gallery.readthedocs.io">Gallery generated by Sphinx-Gallery</a></p>
 </div>
@@ -228,10 +219,10 @@
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
-        <a href="parallel_2.html" class="btn btn-neutral float-right" title="Parallel Example" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+        <a href="plot.html" class="btn btn-neutral float-right" title="Plotting MetaHeuristics - Basic Use" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
-        <a href="plot.html" class="btn btn-neutral" title="Plotting MetaHeuristics - Basic Use" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+        <a href="pickle_demonstration.html" class="btn btn-neutral" title="Using Pickle to save models" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
       
     </div>
   
