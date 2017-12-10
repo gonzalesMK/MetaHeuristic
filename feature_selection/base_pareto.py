@@ -23,24 +23,24 @@ from sklearn.metrics import auc
 " Change the score_func_to_gridsearch(estimator, X_test=None, y_test=None):"
 
 class Fitness(base.Fitness):
-    
+
     def __init__(self, weights=(1,-1), values=(0,0)):
         self.weights = weights
         super(Fitness, self).__init__(values)
-        
+
 class BaseMask(list, object):
-    
+
     def __init__(self, mask):
         self[:] = mask
         self.fitness = Fitness((1, -0.05), (0, 0))
-    
+
 #    def __getstate__(self):
-#        self_dict = self.__dict__.copy()        
+#        self_dict = self.__dict__.copy()
 #        return self_dict
-#        
+#
 #    def __setstate__(self,state):
 #        self.__dict__.update(state)
-#        
+#
 
 class SelectorMixin(six.with_metaclass(ABCMeta, TransformerMixin)):
     """
@@ -63,17 +63,17 @@ class SelectorMixin(six.with_metaclass(ABCMeta, TransformerMixin)):
             mask
         """
         mask = np.asarray(mask)
-    
+
         if np.issubdtype(mask.dtype, np.int) or np.issubdtype(mask.dtype, np.bool):
             if x.shape[1] != len(mask):
                 raise ValueError("X columns %d != mask length %d"
                                  % (x.shape[1], len(mask)))
-    
+
     # I don't see utility in here
-#        if hasattr(x, "toarray"): 
+#        if hasattr(x, "toarray"):
 #            ind = np.arange(mask.shape[0])
 #            mask = ind[mask]
-#            
+#
         return mask
 
     def get_support(self, indices=False):
@@ -144,9 +144,9 @@ class _BaseMetaHeuristicPareto(BaseEstimator, SelectorMixin, ClassifierMixin):
     def __init__(self, name,classifier=None, number_gen=20,
                  verbose=0, repeat=1, parallel=False,
                  make_logbook=False, random_state=None,
-                 cv_metric_fuction=make_scorer(matthews_corrcoef), 
+                 cv_metric_fuction=make_scorer(matthews_corrcoef),
                  features_metric_function=None):
-        
+
         self._name = name
         self.estimator = SVC(kernel='linear', max_iter=10000) if classifier is None else clone(classifier)
         self.number_gen = number_gen
@@ -190,27 +190,27 @@ class _BaseMetaHeuristicPareto(BaseEstimator, SelectorMixin, ClassifierMixin):
             return 0,1,
 
         # Applying K-Fold Cross Validation
-        accuracies = cross_val_score(estimator=clone(self.estimator), X=train, 
-                                     y=y, cv=cv, 
+        accuracies = cross_val_score(estimator=clone(self.estimator), X=train,
+                                     y=y, cv=cv,
                                      scoring=self.cv_metric_function)
-        
+
         if self.features_metric_function == "log" :
-            feature_score = np.log10(9*(sum(individual)/len(individual))+1) 
+            feature_score = np.log10(9*(sum(individual)/len(individual))+1)
         elif self.features_metric_function == "poly" :
             feature_score = sum(individual)/len(individual)
         else:
             raise ValueError('Unknow evaluation')
-        
-        return accuracies.mean() - accuracies.std(), feature_score 
+
+        return accuracies.mean() - accuracies.std(), feature_score
 
 
     def predict(self, X):
-        if not hasattr(self, "classes_"):        
+        if not hasattr(self, "classes_"):
             raise ValueError('fit')
-            
+
         if self.normalize_:
             X = self._sc_X.fit_transform(X)
-            
+
         X_ = self.transform(X)
         y_pred = self.estimator.predict(X_)
         return   self.classes_.take(np.asarray(y_pred, dtype=np.intp))
@@ -218,7 +218,7 @@ class _BaseMetaHeuristicPareto(BaseEstimator, SelectorMixin, ClassifierMixin):
 #        elif self.predict_with == 'all':
 #
 #            predict_ = []
-#            
+#
 #            for mask in self.mask_:
 #                self.estimator.fit(X=self.transform(self.X_, mask=mask), y=self.y_)
 #                X_ = self.transform(X, mask=mask)
@@ -234,16 +234,16 @@ class _BaseMetaHeuristicPareto(BaseEstimator, SelectorMixin, ClassifierMixin):
         """
         if not hasattr(estimator, 'fitnesses_'):
             raise ValueError("Fit")
-        
+
         obj1=[]
         obj2=[]
         for i in range(len(estimator.best_pareto_front_)):
             obj1.append(estimator.best_pareto_front_[i].fitness.values[0])
             obj2.append(estimator.best_pareto_front_[i].fitness.values[1])
-    
+
         obj1.append(obj1[0])
         obj2.append(1)
-    
+
         return auc(obj2, obj1, reorder=True)
 
     def _validate_targets(self, y):
@@ -313,14 +313,14 @@ class _BaseMetaHeuristicPareto(BaseEstimator, SelectorMixin, ClassifierMixin):
     @staticmethod
     def _get_accuracy(ind):
         return ind.fitness.wvalues[0]
-    
+
     def __getstate__(self):
         self_dict = self.__dict__.copy()
-        
+
         del self_dict['toolbox']
-        
+
         return self_dict
-    
+
     def __setstate__(self,state):
         self.__dict__.update(state)
 
@@ -339,38 +339,37 @@ class _BaseMetaHeuristicPareto(BaseEstimator, SelectorMixin, ClassifierMixin):
             self._sc_X = StandardScaler()
             X = self._sc_X.fit_transform(X)
         self.normalize_ = normalize
-        
+
         y = self._validate_targets(y)
         X, y = check_X_y(X, y, dtype=np.float64, order='C', accept_sparse='csr')
 
         self.n_features_ = X.shape[1]
-        self.mask_ = []
         self.fitnesses_ = []
-        
+
         self.toolbox.register("evaluate", self._evaluate, X=X, y=y)
-        
-        return X,y 
-    
+
+        return X,y
+
     def _set_fit(self):
         if self.make_logbook:
                     self._make_stats()
                     self.pareto_front_ = []
-        
+
         self._random_object = check_random_state(self.random_state)
         random.seed(self.random_state)
-    
+
         self.best_ = tools.HallOfFame(1)
         self.best_pareto_front_ = tools.ParetoFront()
-        
-    def _make_repetition(self, hof, pareto_front):        
+
+    def _make_repetition(self, hof, pareto_front):
         self.best_.update(hof)
-        self.best_pareto_front_.update(pareto_front)    
+        self.best_pareto_front_.update(pareto_front)
         if self.make_logbook:
             self.fitnesses_.append(hof[0].fitness.values)
             self.pareto_front_.append(pareto_front)
-            
-    def get_pareto(self):        
+
+    def get_pareto(self):
         return self.best_pareto_front_
-    
-    def get_solution(self):        
+
+    def get_solution(self):
         return self.best_
