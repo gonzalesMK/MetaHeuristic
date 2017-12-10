@@ -101,15 +101,8 @@ class RandomSearch(_BaseMetaHeuristic):
         self.set_params(**arg)
         X,y = self._set_dataset(X=X, y=y, normalize=normalize)
 
-        if self.make_logbook:
-            self._make_stats()
-            self.pareto_front_ = []
-
-        self._random_object = check_random_state(self.random_state)
-        random.seed(self.random_state)
-            
-        best = tools.HallOfFame(1)
-        self.best_pareto_front_ = tools.ParetoFront()
+        self._set_fit()
+        
         for i in range(self.repeat):
             hof = tools.HallOfFame(1)
             pareto_front = tools.ParetoFront()
@@ -133,18 +126,8 @@ class RandomSearch(_BaseMetaHeuristic):
                     print("Repetition:", i+1 ,"Generation: ", g + 1, "/", self.number_gen,
                           "Elapsed time: ", time.clock() - initial_time, end="\r")
 
-            best.update(hof)
-            self.best_pareto_front_.update(pareto_front)    
-            if self.make_logbook:
-                self.mask_.append(hof[0][:])
-                self.fitnesses_.append(hof[0].fitness.values)
-                self.pareto_front_.append(pareto_front)
+            self._make_repetition(hof,pareto_front)
             
-
-        self.mask_ = np.array(self.mask_)
-        self.best_mask_ = np.asarray(best[0][:], dtype=bool)
-        self.fitness_ = best[0].fitness.values
-
         self.estimator.fit(X= self.transform(X), y=y)
 
         return self

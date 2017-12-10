@@ -130,17 +130,8 @@ class BRKGA2(_BaseMetaHeuristicPareto):
         
         X,y = self._set_dataset(X=X, y=y, normalize=normalize)
         
-        if self.make_logbook:
-            self._make_stats()
-            self.pareto_front_ = []
-            
-
-        self._random_object = check_random_state(self.random_state)
-        random.seed(self.random_state)
-
-        best = tools.HallOfFame(1)
-        self.best_pareto_front_ = tools.ParetoFront()
-
+        self._set_fit()
+        
         for i in range(self.repeat):
             # Generate Population
             pop = self.toolbox.population(self.size_pop)
@@ -196,14 +187,7 @@ class BRKGA2(_BaseMetaHeuristicPareto):
                     print("Repetition:", i+1 ,"Generation: ", g + 1, "/", self.number_gen,
                           "Elapsed time: ", time.clock() - initial_time, end="\r")
 
-            best.update(hof)                
-            self.best_pareto_front_.update(pareto_front)    
-            if self.make_logbook: 
-                self.pareto_front_.append(pareto_front)
-            
-        self.mask_ = np.array(self.mask_)
-        self.best_mask_ = np.asarray(best[0][:], dtype=bool)
-        self.fitness_ = best[0].fitness.values
+            self._make_repetition(hof,pareto_front)
 
         self.estimator.fit(X= self.transform(X), y=y)
 

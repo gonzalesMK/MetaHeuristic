@@ -113,16 +113,12 @@ class SimulatedAnneling(_BaseMetaHeuristic):
         self.set_params(**arg)
         X,y = self._set_dataset(X=X, y=y, normalize=normalize)
 
-        if self.make_logbook:
-            self._make_stats()
-
-        self._random_object = check_random_state(self.random_state)
-        random.seed(self.random_state)
-
-        best = tools.HallOfFame(1)
+        self._set_fit()        
+        
         for i in range(self.repeat):
             solution = self.toolbox.individual()
             hof = tools.HallOfFame(1)
+            pareto_front = tools.ParetoFront()
             # Evaluate the solution
             solution.fitness.values = self.toolbox.evaluate(solution)
 
@@ -141,7 +137,7 @@ class SimulatedAnneling(_BaseMetaHeuristic):
 
                     # Log statistic
                     hof.update([solution])
-
+                    pareto_front.update([solution])
                 if self.make_logbook:
                     self.logbook[i].record(gen=temp,
                                 best_fit=hof[0].fitness.values[0],
@@ -152,14 +148,7 @@ class SimulatedAnneling(_BaseMetaHeuristic):
                           "Elapsed time: ", time.clock() - initial_time,
                           end="\r")
 
-            best.update(hof)
-            if self.make_logbook:
-                self.mask_.append(hof[0][:])
-                self.fitnesses_.append(hof[0].fitness.values)
-
-        self.mask_ = np.array(self.mask_)
-        self.best_mask_ = np.asarray(best[0][:], dtype=bool)
-        self.fitness_ = best[0].fitness.values
+            self._make_repetition(hof, pareto_front)
 
         self.estimator.fit(X= self.transform(X), y=y)
 

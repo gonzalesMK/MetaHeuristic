@@ -120,17 +120,13 @@ class HarmonicSearch(_BaseMetaHeuristic):
         self.set_params(**arg)
         X,y = self._set_dataset(X=X, y=y, normalize=normalize)
 
-        if self.make_logbook:
-            self._make_stats()
-
-        self._random_object = check_random_state(self.random_state)
-        random.seed(self.random_state)
+        self._set_fit()
         
-        best = tools.HallOfFame(1)
         for i in range(self.repeat):
             harmony_mem = self.toolbox.population(n=self.size_pop)
             hof = tools.HallOfFame(1)
-
+            pareto_front = tools.ParetoFront()
+            
             # Evaluate the entire population
             fitnesses = self.toolbox.map(self.toolbox.evaluate, harmony_mem)
 
@@ -154,6 +150,7 @@ class HarmonicSearch(_BaseMetaHeuristic):
 
                 # Log statistic
                 hof.update(harmony_mem)
+                pareto_front.update(harmony_mem)
                 if self.make_logbook:
                     self.logbook[i].record(gen=g,
                                            best_fit=hof[0].fitness.values[0],
@@ -162,14 +159,8 @@ class HarmonicSearch(_BaseMetaHeuristic):
                     print("Repetition:", i+1 ,"Generation: ", g + 1, "/", self.number_gen,
                           "Elapsed time: ", time.clock() - initial_time, end="\r")
 
-            best.update(hof)
-            if self.make_logbook:
-                self.mask_.append(hof[0][:])
-                self.fitnesses_.append(hof[0].fitness.values)
-
-        self.mask_ = np.array(self.mask_)
-        self.best_mask_ = np.asarray(best[0][:], dtype=bool)
-        self.fitness_ = best[0].fitness.values
+            self._make_repetition(hof,pareto_front)
+            
 
         self.estimator.fit(X= self.transform(X), y=y)
 

@@ -123,16 +123,12 @@ class GeneticAlgorithm(_BaseMetaHeuristic):
         
         X,y = self._set_dataset(X=X, y=y, normalize=normalize)
         
-        if self.make_logbook:
-            self._make_stats()
-
-        self._random_object = check_random_state(self.random_state)
-        random.seed(self.random_state)
-
-        best = tools.HallOfFame(1)
+        self._set_fit()
         for i in range(self.repeat):
             pop = self.toolbox.population(self.size_pop)
             hof = tools.HallOfFame(1)
+            pareto_front = tools.ParetoFront()
+            
             # Evaluate the entire population
             fitnesses = self.toolbox.map(self.toolbox.evaluate, pop)
             for ind, fit in zip(pop, fitnesses):
@@ -167,6 +163,7 @@ class GeneticAlgorithm(_BaseMetaHeuristic):
 
                 # Log statistic
                 hof.update(pop)
+                pareto_front.update(pop)
                 if self.make_logbook:
                         self.logbook[i].record(gen=g,
                                                best_fit=hof[0].fitness.values[0],
@@ -175,14 +172,7 @@ class GeneticAlgorithm(_BaseMetaHeuristic):
                     print("Repetition:", i+1 ,"Generation: ", g + 1, "/", self.number_gen,
                           "Elapsed time: ", time.clock() - initial_time, end="\r")
 
-            best.update(hof)
-            if self.make_logbook :
-                self.mask_.append(hof[0][:])
-                self.fitnesses_.append(hof[0].fitness.values)
-
-        self.mask_ = np.array(self.mask_)
-        self.best_mask_ = np.asarray(best[0][:], dtype=bool)
-        self.fitness_ = best[0].fitness.values
+            self._make_repetition(hof,pareto_front)
 
         self.estimator.fit(X= self.transform(X), y=y)
 

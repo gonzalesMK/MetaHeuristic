@@ -101,17 +101,13 @@ class BinaryBlackHole(_BaseMetaHeuristic):
         self.set_params(**arg)
         X,y = self._set_dataset(X=X, y=y, normalize=normalize)
         
-        if self.make_logbook:
-            self._make_stats()
-
-        self._random_object = check_random_state(self.random_state)
-        random.seed(self.random_state)
-
-        best = tools.HallOfFame(1)
+        self._set_fit()
+        
         for i in range(self.repeat):
             galaxy = self.toolbox.galaxy(n=self.size_pop)
             hof = tools.HallOfFame(1)
-
+            pareto_front = tools.ParetoFront()
+            
             for g in range(self.number_gen):
 
                 # Evaluate the entire population
@@ -121,6 +117,7 @@ class BinaryBlackHole(_BaseMetaHeuristic):
 
                 # Update Global Information
                 hof.update(galaxy)    
+                pareto_front.update(galaxy)
                 hof[0].radius = sum(hof[0].fitness.wvalues) / sum( [sum(i.fitness.wvalues) for i in galaxy] )
                  
                 # Update particles
@@ -129,6 +126,7 @@ class BinaryBlackHole(_BaseMetaHeuristic):
 
                 # Log statistic
                 hof.update(galaxy)
+                pareto_front.update(galaxy)
                 if self.make_logbook:
                         self.logbook[i].record(gen=g,
                                                best_fit=hof[0].fitness.values[0],
@@ -137,15 +135,7 @@ class BinaryBlackHole(_BaseMetaHeuristic):
                     print("Repetition:", i+1 ,"Generation: ", g + 1, "/", self.number_gen,
                           "Elapsed time: ", time.clock() - initial_time, end="\r")
 
-
-            best.update(hof)
-            if self.make_logbook :
-                self.mask_.append(hof[0][:])
-                self.fitnesses_.append(hof[0].fitness.values)
-
-        self.mask_ = np.array(self.mask_)
-        self.best_mask_ = np.asarray(best[0][:], dtype=bool)
-        self.fitness_ = best[0].fitness.values
+            self._make_repetition(hof,pareto_front)
 
         self.estimator.fit(X= self.transform(X), y=y)
 
@@ -159,7 +149,8 @@ class BinaryBlackHole(_BaseMetaHeuristic):
         if self._dist(star, blackhole) < blackhole.radius :
             star[:] = self.toolbox.galaxy(n=1)[0]            
         else:
-            star[:] = [ 1 if  abs(np.tanh(star[x] + self._random_object.uniform(0,1) * (blackhole[x] - star[x]))) > self._random_object.uniform(0,1) else 0 for x in range(0,self.n_features_)]
+            star[:] = [ 1 if  abs(np.tanh(star[x] + self._random_object.uniform(0,1) * 
+                 (blackhole[x] - star[x]))) > self._random_object.uniform(0,1) else 0 for x in range(0,self.n_features_)]
     
     def set_params(self, **params):
         super(BinaryBlackHole, self).set_params(**params)
