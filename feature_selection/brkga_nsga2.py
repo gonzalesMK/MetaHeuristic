@@ -140,8 +140,7 @@ class BRKGA2(_BaseMetaHeuristicPareto):
 
         best = tools.HallOfFame(1)
         self.best_pareto_front_ = tools.ParetoFront()
-        
-        
+
         for i in range(self.repeat):
             # Generate Population
             pop = self.toolbox.population(self.size_pop)
