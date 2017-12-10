@@ -157,15 +157,16 @@ class BRKGA2(_BaseMetaHeuristicPareto):
                 
             for g in range(self.number_gen):
                 # Partitionate elite members
-                elite = tools.selNSGA2( pop, self.elite_size)
-                non_elite = tools.selRandom( pop, self.non_elite_size)
+                ordered = tools.selNSGA2( pop, self.size_pop)
+                elite = ordered[0:self.elite_size]
+                non_elite = ordered[self.elite_size:self.non_elite_size+self.elite_size]
                 
                 # Cross_over between Elite and Non Elite 
                 father_ind = np.random.randint(0, self.elite_size, self.n_cross_over)
-                mother_ind = np.random.randint(0, self.non_elite_size, self.n_cross_over)
+                mother_ind = np.random.permutation(np.arange(0, self.non_elite_size))[0:self.n_cross_over]
                 
-                child1 = [self.toolbox.clone(elite[ind]) for ind in father_ind]
-                child2 = [self.toolbox.clone(non_elite[ind]) for ind in mother_ind]
+                child1 = self.toolbox.clone([elite[ind] for ind in father_ind])
+                child2 = [non_elite[ind] for ind in mother_ind]
                 
                 self.toolbox.mate(child1, child2)
                 for ind1 in child1:
