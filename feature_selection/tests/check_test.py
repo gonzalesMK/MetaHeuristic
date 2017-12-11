@@ -3,7 +3,7 @@ from sklearn.utils.estimator_checks import check_estimator
 from sklearn.utils.testing import assert_array_equal
 from sklearn.datasets import load_breast_cancer
 from sklearn.svm import SVC
-from feature_selection import HarmonicSearch
+from feature_selection import HarmonicSearch,HarmonicSearch2
 from feature_selection import GeneticAlgorithm
 from feature_selection import RandomSearch
 from feature_selection import BinaryBlackHole
@@ -13,8 +13,10 @@ from sklearn.utils.testing import assert_raises
 from sklearn.utils.testing import assert_warns
 
 METACLASSES = [HarmonicSearch, GeneticAlgorithm, RandomSearch,
-                      BinaryBlackHole, SimulatedAnneling, BRKGA, BRKGA2]
+               BinaryBlackHole, SimulatedAnneling, BRKGA, BRKGA2, 
+               HarmonicSearch2]
 
+NSGA2 = [BRKGA2, HarmonicSearch2]
 def test_check_estimator():
     for metaclass in METACLASSES:
         print("check_estimator: ", metaclass()._name)
@@ -47,6 +49,10 @@ def test_plot():
         X_2 = meta.fit_transform(X=X, y=y, normalize=True)
 
         assert_array_equal(X_1, X_2)
+        meta.best_pareto()
+        meta.all_paretos()
+        meta.best_solution()
+        meta.all_solutions()
     
         # Plot the results of each test
         meta.plot_results()
@@ -132,6 +138,19 @@ def test_unusual_errors():
                         make_logbook=True, repeat=1, number_gen=2, size_pop=2,
                         elite_size=5)
             
+def test_nsga2():
+    dataset = load_breast_cancer()
+    X, y = dataset['data'], dataset['target_names'].take(dataset['target'])
+
+    for metaclass in NSGA2:
+        meta = metaclass(random_state=0, verbose=0, make_logbook=True, repeat=1, 
+                    number_gen=2, size_pop=2, features_metric_function='poly')
+        print("Checking NSGA2: ", meta._name)
+        meta.fit(X, y, normalize=True)
+        meta = metaclass(random_state=0, verbose=0, make_logbook=True, repeat=1, 
+                    number_gen=2, size_pop=2, features_metric_function='uou')
+        assert_raises(ValueError, meta.fit, X,y)
+          
 def test_predict():
     dataset = load_breast_cancer()
     X, y = dataset['data'], dataset['target_names'].take(dataset['target'])
