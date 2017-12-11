@@ -332,7 +332,6 @@ class _BaseMetaHeuristic(BaseEstimator, SelectorMixin, ClassifierMixin):
         X, y = check_X_y(X, y, dtype=np.float64, order='C', accept_sparse='csr')
 
         self.n_features_ = X.shape[1]
-        self.fitnesses_ = []
 
         self.toolbox.register("evaluate", self._evaluate, X=X, y=y)
 
@@ -342,6 +341,7 @@ class _BaseMetaHeuristic(BaseEstimator, SelectorMixin, ClassifierMixin):
         if self.make_logbook:
                     self._make_stats()
                     self.pareto_front_ = []
+                    self.hof_ = []
 
         self._random_object = check_random_state(self.random_state)
         random.seed(self.random_state)
@@ -353,11 +353,17 @@ class _BaseMetaHeuristic(BaseEstimator, SelectorMixin, ClassifierMixin):
         self.best_.update(hof)
         self.best_pareto_front_.update(pareto_front)
         if self.make_logbook:
-            self.fitnesses_.append(hof[0].fitness.values)
             self.pareto_front_.append(pareto_front)
+            self.hof_.append(hof[0])
 
-    def get_pareto(self):
+    def best_pareto(self):
         return self.best_pareto_front_
 
-    def get_solution(self):
-        return self.best_
+    def all_paretos(self):
+        return self.pareto_front_
+
+    def best_solution(self):
+        return self.best_[0]
+
+    def all_solutions(self):
+        return self.hof_

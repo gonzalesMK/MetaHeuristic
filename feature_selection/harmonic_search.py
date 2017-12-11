@@ -19,7 +19,7 @@ from multiprocessing import Pool
 
 class HarmonicSearch(_BaseMetaHeuristic):
     """Implementation of a Harmonic Search Algorithm for Feature Selection
-    
+
     Parameters
     ----------
     HMCR : float in [0,1], (default=0.95)
@@ -39,19 +39,19 @@ class HarmonicSearch(_BaseMetaHeuristic):
 
     verbose : boolean, (default=False)
             If true, print information in every generation
-            
+
     repeat : positive int, (default=1)
             Number of times to repeat the fitting process
-            
+
     parallel : boolean, (default=False)
-            Set to True if you want to use multiprocessors            
+            Set to True if you want to use multiprocessors
 
     make_logbook : boolean, (default=False)
             If True, a logbook from DEAP will be made
-            
-    cv_metric_fuction : callable, (default=matthews_corrcoef)            
+
+    cv_metric_fuction : callable, (default=matthews_corrcoef)
             A metric score function as stated in the sklearn http://scikit-learn.org/stable/modules/model_evaluation.html#scoring-parameter
-    
+
     features_metric_function : callable, (default=pow(sum(mask)/(len(mask)*5), 2))
             A function that return a float from the binary mask of features
     """
@@ -63,11 +63,11 @@ class HarmonicSearch(_BaseMetaHeuristic):
 
         super(HarmonicSearch, self).__init__(
                 name = "HarmonicSearch",
-                classifier=classifier, 
-                number_gen=number_gen,  
+                classifier=classifier,
+                number_gen=number_gen,
                 verbose=verbose,
                 repeat=repeat,
-                parallel=parallel, 
+                parallel=parallel,
                 make_logbook=make_logbook,
                 random_state=random_state,
                 cv_metric_fuction=cv_metric_fuction,
@@ -78,7 +78,7 @@ class HarmonicSearch(_BaseMetaHeuristic):
         self.pitch = pitch
         self.estimator = SVC(kernel='linear', verbose=False, max_iter=10000) if classifier is None else clone(classifier)
         self.size_pop = size_pop
-        
+
         self.toolbox = base.Toolbox()
         self.toolbox.register("attribute", self._gen_in)
         self.toolbox.register("individual", tools.initIterate,
@@ -86,12 +86,12 @@ class HarmonicSearch(_BaseMetaHeuristic):
         self.toolbox.register("population", tools.initRepeat, list, self.toolbox.individual)
         self.toolbox.register("get_worst", tools.selWorst, k=1)
         self.toolbox.register("evaluate", self._evaluate, X=None, y=None)
-        
+
         if parallel:
             self.toolbox.register("map", Pool().map)
         else:
             self.toolbox.register("map", map)
-            
+
         self.toolbox.register("improvise", self._improvise, HMCR=self.HMCR)
         self.toolbox.register("mutate", tools.mutUniformInt,low=0, up=1,
                               indpb=self.indpb)
@@ -116,17 +116,17 @@ class HarmonicSearch(_BaseMetaHeuristic):
                 Set parameters
         """
         initial_time = time.clock()
-        
+
         self.set_params(**arg)
         X,y = self._set_dataset(X=X, y=y, normalize=normalize)
 
         self._set_fit()
-        
+
         for i in range(self.repeat):
             harmony_mem = self.toolbox.population(n=self.size_pop)
             hof = tools.HallOfFame(1)
             pareto_front = tools.ParetoFront()
-            
+
             # Evaluate the entire population
             fitnesses = self.toolbox.map(self.toolbox.evaluate, harmony_mem)
 
@@ -178,11 +178,11 @@ class HarmonicSearch(_BaseMetaHeuristic):
         self.toolbox.mutate(new_harmony)
         self.toolbox.pitch_adjustament(new_harmony)
         return new_harmony
-    
+
     def set_params(self, **params):
-        
+
         super(HarmonicSearch, self).set_params(**params)
-        
+
         self.toolbox.register("improvise", self._improvise, HMCR=self.HMCR)
         self.toolbox.register("mutate", tools.mutUniformInt, low=0, up=1,
                               indpb=self.indpb)
@@ -192,6 +192,6 @@ class HarmonicSearch(_BaseMetaHeuristic):
             from multiprocessing import Pool
             self.toolbox.register("map", Pool().map)
         else:
-            self.toolbox.register("map", map)    
-        
+            self.toolbox.register("map", map)
+
         return self

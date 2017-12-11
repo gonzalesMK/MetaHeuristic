@@ -17,15 +17,14 @@ if __name__ == "__main__":
     # Classifier to be used in the metaheuristic
     clf = SVC()
     
-    print("Starting Algorithm")
+    print("Starting Algorithm in Parallel")
     ga =BRKGA(classifier=clf, make_logbook=True, repeat=2, parallel=True,
                           verbose=True, size_pop=100)
     
     # Fit the classifier
     ga.fit(X, y, normalize=True)
-    
-    print("Number of Features Selected: \n \t HS: " , sum(ga.best_mask_)/X.shape[1], "%")
-    print("Accuracy of the classifier: \n \t HS: ", ga.fitness_[0])
+    print("Number of Features Selected: \n \t HS: " , sum(ga.best_solution())/X.shape[1], "%")
+    print("Accuracy of the classifier: \n \t HS: ", ga.best_solution().fitness.values[0])
     
     # Plot the results of each test
     ga.plot_results()
@@ -36,9 +35,8 @@ if __name__ == "__main__":
     
     # Fit the classifier
     ga.fit(X, y, normalize=True)
-    
-    print("Number of Features Selected: \n \t HS: " , sum(ga.best_mask_)/X.shape[1], "%")
-    print("Accuracy of the classifier: \n \t HS: ", ga.fitness_[0])
+    print("Number of Features Selected: \n \t HS: " , sum(ga.best_solution())/X.shape[1], "%")
+    print("Accuracy of the classifier: \n \t HS: ", ga.best_solution().fitness.values[0])
     
     # Plot the results of each test
     ga.plot_results()
