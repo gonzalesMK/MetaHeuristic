@@ -316,8 +316,8 @@ class _BaseMetaHeuristicPareto(BaseEstimator, SelectorMixin, ClassifierMixin):
 
     def __getstate__(self):
         self_dict = self.__dict__.copy()
-
-        del self_dict['toolbox']
+        if 'toolbox' in self_dict:
+	        del self_dict['toolbox']
 
         return self_dict
 
@@ -351,9 +351,9 @@ class _BaseMetaHeuristicPareto(BaseEstimator, SelectorMixin, ClassifierMixin):
 
     def _set_fit(self):
         if self.make_logbook:
-                    self._make_stats()
-                    self.pareto_front_ = []
-                    self.hof_ = []
+            self._make_stats()
+            self.pareto_front_ = []
+            self.hof_ = []
 
         self._random_object = check_random_state(self.random_state)
         random.seed(self.random_state)

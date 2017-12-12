@@ -304,10 +304,11 @@ class _BaseMetaHeuristic(BaseEstimator, SelectorMixin, ClassifierMixin):
 
     def __getstate__(self):
         self_dict = self.__dict__.copy()
-
-        del self_dict['toolbox']
+        if 'toolbox' in self_dict:
+	        del self_dict['toolbox']
 
         return self_dict
+
 
     def __setstate__(self,state):
         self.__dict__.update(state)

@@ -3,7 +3,7 @@ from sklearn.utils.estimator_checks import check_estimator
 from sklearn.utils.testing import assert_array_equal
 from sklearn.datasets import load_breast_cancer
 from sklearn.svm import SVC
-from feature_selection import HarmonicSearch,HarmonicSearch2
+from feature_selection import HarmonicSearch, HarmonicSearch2
 from feature_selection import GeneticAlgorithm
 from feature_selection import RandomSearch
 from feature_selection import BinaryBlackHole
