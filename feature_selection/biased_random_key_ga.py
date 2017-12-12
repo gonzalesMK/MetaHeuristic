@@ -185,6 +185,8 @@ class BRKGA(_BaseMetaHeuristic):
                         self.logbook[i].record(gen=g,
                                                best_fit=hof[0].fitness.values[0],
                                                **self.stats.compile(pop))
+                        self._make_generation( hof, pareto_front)
+                        
                 if self.verbose:
                     print("Repetition:", i+1 ,"Generation: ", g + 1, "/", 
                           self.number_gen, "Elapsed time: ", 

@@ -354,6 +354,10 @@ class _BaseMetaHeuristicPareto(BaseEstimator, SelectorMixin, ClassifierMixin):
             self._make_stats()
             self.pareto_front_ = []
             self.hof_ = []
+            self.gen_hof_ = []
+            self.gen_pareto_ = []
+            self.i_gen_hof_ = []
+            self.i_gen_pareto_ = []
 
         self._random_object = check_random_state(self.random_state)
         random.seed(self.random_state)
@@ -361,13 +365,21 @@ class _BaseMetaHeuristicPareto(BaseEstimator, SelectorMixin, ClassifierMixin):
         self.best_ = tools.HallOfFame(1)
         self.best_pareto_front_ = tools.ParetoFront()
 
+    def _make_generation(self, hof, pareto_front):
+            self.i_gen_pareto_.append(pareto_front)
+            self.i_gen_hof_.append(hof[0])
+
     def _make_repetition(self, hof, pareto_front):
         self.best_.update(hof)
         self.best_pareto_front_.update(pareto_front)
         if self.make_logbook:
             self.pareto_front_.append(pareto_front)
             self.hof_.append(hof[0])
-
+            self.gen_pareto_.append(self.i_gen_pareto_)
+            self.gen_hof_.append(self.i_gen_hof_)
+            self.i_gen_pareto_=[]
+            self.i_gen_hof_=[]
+             
     def best_pareto(self):
         return self.best_pareto_front_
     

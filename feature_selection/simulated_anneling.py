@@ -142,6 +142,7 @@ class SimulatedAnneling(_BaseMetaHeuristic):
                     self.logbook[i].record(gen=temp,
                                 best_fit=hof[0].fitness.values[0],
                                 **self.stats.compile([solution]))
+                    self._make_generation( hof, pareto_front)
                 if self.verbose:
                     #if (int)(temp * self.number_gen/ self.initial_temp) % self.verbose == 0:
                     print("Repetition:", i+1, "Temperature: ", temp ,
