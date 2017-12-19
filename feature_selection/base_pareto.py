@@ -373,10 +373,10 @@ class _BaseMetaHeuristicPareto(BaseEstimator, SelectorMixin, ClassifierMixin):
         self.best_.update(hof)
         self.best_pareto_front_.update(pareto_front)
         if self.make_logbook:
-            self.pareto_front_.append(pareto_front)
+            self.pareto_front_.append(pareto_front[:])
             self.hof_.append(hof[0])
-            self.gen_pareto_.append(self.i_gen_pareto_)
-            self.gen_hof_.append(self.i_gen_hof_)
+            self.gen_pareto_.append(self.i_gen_pareto_[:])
+            self.gen_hof_.append(self.i_gen_hof_[0])
             self.i_gen_pareto_=[]
             self.i_gen_hof_=[]
              
