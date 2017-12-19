@@ -56,7 +56,7 @@ class HarmonicSearch2(_BaseMetaHeuristicPareto):
                  make_logbook=False, random_state=None, parallel = False,
                  cv_metric_fuction=None, features_metric_function=None):
 
-        super(HarmonicSearch, self).__init__(
+        super(HarmonicSearch2, self).__init__(
                 name = "HarmonicSearch",
                 classifier=classifier, 
                 number_gen=number_gen,  
@@ -176,7 +176,7 @@ class HarmonicSearch2(_BaseMetaHeuristicPareto):
     
     def set_params(self, **params):
         
-        super(HarmonicSearch, self).set_params(**params)
+        super(HarmonicSearch2, self).set_params(**params)
         
         self.toolbox.register("improvise", self._improvise, HMCR=self.HMCR)
         self.toolbox.register("mutate", tools.mutUniformInt, low=0, up=1,
