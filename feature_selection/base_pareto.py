@@ -195,9 +195,9 @@ class _BaseMetaHeuristicPareto(BaseEstimator, SelectorMixin, ClassifierMixin):
                                      scoring=self.cv_metric_function)
 
         if self.features_metric_function == "log" :
-            feature_score = np.log10(9*(sum(individual)/len(individual))+1)
+            feature_score = np.log10(9*(float(sum(individual))/len(individual))+1)
         elif self.features_metric_function == "poly" :
-            feature_score = sum(individual)/len(individual)
+            feature_score = float(sum(individual))/len(individual)
         else:
             raise ValueError('Unknow evaluation')
 

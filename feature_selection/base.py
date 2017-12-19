@@ -195,7 +195,7 @@ class _BaseMetaHeuristic(BaseEstimator, SelectorMixin, ClassifierMixin):
                                      scoring=self.cv_metric_function)
 
         if self.features_metric_function == None :
-            feature_score = pow(sum(individual)/(len(individual)*5), 2)
+            feature_score = pow(float(sum(individual))/(len(individual)*5), 2)
         else:
             feature_score = self.features_metric_function(individual)
 
@@ -233,7 +233,7 @@ class _BaseMetaHeuristic(BaseEstimator, SelectorMixin, ClassifierMixin):
         if not hasattr(estimator, 'fitnesses_'):
             raise ValueError("Fit")
 
-        return sum([ i[0]-i[1] for i in estimator.fitnesses_]) / len(estimator.fitnesses_)
+        return sum([ i[0]-i[1] for i in estimator.fitnesses_]) / float(len(estimator.fitnesses_))
 
     def _validate_targets(self, y):
         y_ = column_or_1d(y, warn=True)
