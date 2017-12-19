@@ -54,7 +54,7 @@ class HarmonicSearch2(_BaseMetaHeuristicPareto):
     def __init__(self, classifier=None, HMCR=0.95, indpb=0.05, pitch=0.05,
                  number_gen=100, size_pop=50, verbose=0, repeat=1,
                  make_logbook=False, random_state=None, parallel = False,
-                 cv_metric_fuction=None, features_metric_function=None):
+                 cv_metric_fuction=None, features_metric_function="log"):
 
         super(HarmonicSearch2, self).__init__(
                 name = "HarmonicSearch",
