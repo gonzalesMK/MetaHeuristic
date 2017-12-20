@@ -153,7 +153,6 @@ class HarmonicSearch2(_BaseMetaHeuristicPareto):
                           "Elapsed time: ", time.clock() - initial_time, end="\r")
 
             self._make_repetition(hof,pareto_front)
-            
 
         self.estimator.fit(X= self.transform(X), y=y)
 

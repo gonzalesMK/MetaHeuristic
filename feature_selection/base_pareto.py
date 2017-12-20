@@ -366,7 +366,7 @@ class _BaseMetaHeuristicPareto(BaseEstimator, SelectorMixin, ClassifierMixin):
         self.best_pareto_front_ = tools.ParetoFront()
 
     def _make_generation(self, hof, pareto_front):
-            self.i_gen_pareto_.append(pareto_front)
+            self.i_gen_pareto_.append(pareto_front[:])
             self.i_gen_hof_.append(hof[0])
 
     def _make_repetition(self, hof, pareto_front):
@@ -375,8 +375,8 @@ class _BaseMetaHeuristicPareto(BaseEstimator, SelectorMixin, ClassifierMixin):
         if self.make_logbook:
             self.pareto_front_.append(pareto_front[:])
             self.hof_.append(hof[0])
-            self.gen_pareto_.append(self.i_gen_pareto_[:])
-            self.gen_hof_.append(self.i_gen_hof_[0])
+            self.gen_pareto_.append(self.i_gen_pareto_)
+            self.gen_hof_.append(self.i_gen_hof_)
             self.i_gen_pareto_=[]
             self.i_gen_hof_=[]
              

@@ -41,7 +41,6 @@ class BaseMask(list, object):
 #
 
 
-
 class SelectorMixin(six.with_metaclass(ABCMeta, TransformerMixin)):
     """
     Transformer mixin that performs feature selection given a support mask
@@ -201,7 +200,6 @@ class _BaseMetaHeuristic(BaseEstimator, SelectorMixin, ClassifierMixin):
 
         return accuracies.mean() - accuracies.std(), feature_score
 
-
     def predict(self, X):
         if not hasattr(self, "classes_"):
             raise ValueError('fit')
@@ -309,7 +307,6 @@ class _BaseMetaHeuristic(BaseEstimator, SelectorMixin, ClassifierMixin):
 
         return self_dict
 
-
     def __setstate__(self,state):
         self.__dict__.update(state)
 
@@ -355,7 +352,7 @@ class _BaseMetaHeuristic(BaseEstimator, SelectorMixin, ClassifierMixin):
         self.best_pareto_front_ = tools.ParetoFront()
 
     def _make_generation(self, hof, pareto_front):
-            self.i_gen_pareto_.append(pareto_front)
+            self.i_gen_pareto_.append(pareto_front[:])
             self.i_gen_hof_.append(hof[0])
 
     def _make_repetition(self, hof, pareto_front):
@@ -364,8 +361,8 @@ class _BaseMetaHeuristic(BaseEstimator, SelectorMixin, ClassifierMixin):
         if self.make_logbook:
             self.pareto_front_.append(pareto_front[:])
             self.hof_.append(hof[0])
-            self.gen_pareto_.append(self.i_gen_pareto_[:])
-            self.gen_hof_.append(self.i_gen_hof_[0])
+            self.gen_pareto_.append(self.i_gen_pareto_)
+            self.gen_hof_.append(self.i_gen_hof_)
             self.i_gen_pareto_=[]
             self.i_gen_hof_=[]
 
