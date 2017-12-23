@@ -1,15 +1,11 @@
 from __future__ import print_function
 from timeit import time
-
 from deap import base
 from deap import tools
-
 from .base_pareto import _BaseMetaHeuristicPareto
 from .base_pareto import BaseMask
-
 from sklearn.svm import  SVC
 from sklearn.base import clone
-
 from multiprocessing import Pool
 
 class HarmonicSearch2(_BaseMetaHeuristicPareto):
@@ -19,12 +15,6 @@ class HarmonicSearch2(_BaseMetaHeuristicPareto):
     ----------
     HMCR : float in [0,1], (default=0.95)
             Is the Harmonic Memory Considering Rate
-
-    indpb : float in [0,1], (default=0.05)
-            Is the mutation rate of each new harmony
-
-    pitch : float in [0,1], (default=0.05)
-            Is the Pitch Adjustament factor
 
     number_gen : positive integer, (default=100)
             Number of generations
@@ -51,7 +41,7 @@ class HarmonicSearch2(_BaseMetaHeuristicPareto):
             A function that return a float from the binary mask of features
     """
 
-    def __init__(self, classifier=None, HMCR=0.95, indpb=0.05, pitch=0.05,
+    def __init__(self, classifier=None, HMCR=0.95,
                  number_gen=100, size_pop=50, verbose=0, repeat=1,
                  make_logbook=False, random_state=None, parallel = False,
                  cv_metric_fuction=None, features_metric_function="log"):
@@ -69,8 +59,6 @@ class HarmonicSearch2(_BaseMetaHeuristicPareto):
                 features_metric_function=features_metric_function)
 
         self.HMCR = HMCR
-        self.indpb = indpb
-        self.pitch = pitch
         self.estimator = SVC(kernel='linear', verbose=False, max_iter=10000) if classifier is None else clone(classifier)
         self.size_pop = size_pop
         
@@ -87,11 +75,8 @@ class HarmonicSearch2(_BaseMetaHeuristicPareto):
         else:
             self.toolbox.register("map", map)
             
-        self.toolbox.register("improvise", self._improvise, HMCR=self.HMCR)
         self.toolbox.register("mutate", tools.mutUniformInt,low=0, up=1,
-                              indpb=self.indpb)
-        self.toolbox.register("pitch_adjustament", tools.mutFlipBit,
-                              indpb=self.pitch)
+                              indpb=1-self.HMCR)
 
     def fit(self, X=None, y=None, normalize=False, **arg):
         """ Fit method
@@ -131,10 +116,11 @@ class HarmonicSearch2(_BaseMetaHeuristicPareto):
             for g in range(self.number_gen):
 
                 # Improvise a New Harmony
-                new_harmony = self.toolbox.improvise(harmony_mem)
+                new_harmony = self._improvise(harmony_mem)
                 new_harmony.fitness.values = self.toolbox.evaluate(new_harmony)
                 
                 harmony_mem.append(new_harmony)
+                
                 # Remove the Worst Harmony
                 harmony_mem = tools.selNSGA2( harmony_mem, self.size_pop)
                 harmony_mem.pop()
@@ -142,6 +128,7 @@ class HarmonicSearch2(_BaseMetaHeuristicPareto):
                 # Log statistic
                 hof.update(harmony_mem)
                 pareto_front.update(harmony_mem)
+                
                 if self.make_logbook:
                     self.logbook[i].record(gen=g,
                                            best_fit=hof[0].fitness.values[0],
@@ -158,7 +145,7 @@ class HarmonicSearch2(_BaseMetaHeuristicPareto):
 
         return self
 
-    def _improvise(self, pop, HMCR):
+    def _improvise(self, pop):
         """ Function that improvise a new harmony"""
         # HMCR = Harmonic Memory Considering Rate
         # pylint: disable=E1101
@@ -169,19 +156,18 @@ class HarmonicSearch2(_BaseMetaHeuristicPareto):
 
         for i in range(len(new_harmony)):
             new_harmony[i] = pop[rand_list[i]][i]
+        
         self.toolbox.mutate(new_harmony)
-        self.toolbox.pitch_adjustament(new_harmony)
+        
         return new_harmony
     
     def set_params(self, **params):
         
         super(HarmonicSearch2, self).set_params(**params)
         
-        self.toolbox.register("improvise", self._improvise, HMCR=self.HMCR)
         self.toolbox.register("mutate", tools.mutUniformInt, low=0, up=1,
-                              indpb=self.indpb)
-        self.toolbox.register("pitch_adjustament", tools.mutFlipBit,
-                              indpb=self.pitch)
+                              indpb=1-self.HMCR)
+        
         if self.parallel:
             from multiprocessing import Pool
             self.toolbox.register("map", Pool().map)
