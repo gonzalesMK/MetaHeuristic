@@ -31,7 +31,7 @@ class BRKGA2(_BaseMetaHeuristicPareto):
     number_gen : positive integer, (default=10)
             Number of generations
 
-    cxUniform_indpb : float in [0,1], (default=0.5)
+    cxUniform_indpb : float in [0,1], (default=0.2)
              A uniform crossover modify in place the two sequence individuals. 
              Inherits from the allele of the elite chromossome with indpb.
     
@@ -58,7 +58,7 @@ class BRKGA2(_BaseMetaHeuristicPareto):
     """
 
     def __init__(self, classifier=None,
-                 elite_size = 1, mutant_size = 1, cxUniform_indpb = 0.7,
+                 elite_size = 1, mutant_size = 1, cxUniform_indpb = 0.2,
                  number_gen=10, size_pop=3, verbose=0, repeat=1,
                  make_logbook=False, random_state=None, parallel=False,
                  cv_metric_fuction=None, features_metric_function="log"):
@@ -142,8 +142,10 @@ class BRKGA2(_BaseMetaHeuristicPareto):
             pareto_front.update(pop)   
                 
             for g in range(self.number_gen):
-                # Partitionate elite members
+                # Ordering 
                 ordered = tools.selNSGA2( pop, self.size_pop)
+                
+                # Partitioning
                 elite = ordered[0:self.elite_size]
                 non_elite = ordered[self.elite_size:self.non_elite_size+self.elite_size]
                 
