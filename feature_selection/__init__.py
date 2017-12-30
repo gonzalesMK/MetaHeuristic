@@ -6,6 +6,7 @@ from .simulated_anneling import SimulatedAnneling
 from .biased_random_key_ga import BRKGA
 from .brkga_nsga2 import BRKGA2
 from .harmonic_search_nsga2 import HarmonicSearch2
+from .spea2 import SPEA2
 
 __all__ = [
         'HarmonicSearch',
@@ -15,5 +16,6 @@ __all__ = [
         'SimulatedAnneling',
         'BRKGA',
         'BRKGA2',
-        'HarmonicSearch2'
+        'HarmonicSearch2',
+        'SPEA2'
            ]

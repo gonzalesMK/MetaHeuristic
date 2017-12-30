@@ -9,14 +9,16 @@ from feature_selection import RandomSearch
 from feature_selection import BinaryBlackHole
 from feature_selection import SimulatedAnneling
 from feature_selection import BRKGA, BRKGA2
+from feature_selection import SPEA2
 from sklearn.utils.testing import assert_raises
 from sklearn.utils.testing import assert_warns
 
 METACLASSES = [HarmonicSearch, GeneticAlgorithm, RandomSearch,
                BinaryBlackHole, SimulatedAnneling, BRKGA, BRKGA2, 
-               HarmonicSearch2]
+               HarmonicSearch2, SPEA2]
 
-NSGA2 = [BRKGA2, HarmonicSearch2]
+NSGA2 = [BRKGA2, HarmonicSearch2, SPEA2]
+
 def test_check_estimator():
     for metaclass in METACLASSES:
         print("check_estimator: ", metaclass()._name)
@@ -150,7 +152,7 @@ def test_nsga2():
         meta = metaclass(random_state=0, verbose=0, make_logbook=True, repeat=1, 
                     number_gen=2, size_pop=2, features_metric_function='uou')
         assert_raises(ValueError, meta.fit, X,y)
-          
+
 def test_predict():
     dataset = load_breast_cancer()
     X, y = dataset['data'], dataset['target_names'].take(dataset['target'])
