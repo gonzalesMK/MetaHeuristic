@@ -310,6 +310,8 @@ class _BaseMetaHeuristic(BaseEstimator, SelectorMixin, ClassifierMixin):
         self_dict = self.__dict__.copy()
         if 'toolbox' in self_dict:
 	        del self_dict['toolbox']
+        if 'print_fnc' in self_dict:
+	        del self_dict['print_fnc']
 
         return self_dict
 
