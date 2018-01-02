@@ -19,7 +19,6 @@ from deap import tools
 from sklearn.preprocessing import StandardScaler
 from sklearn.utils import check_X_y
 
-
 class Fitness(base.Fitness):
 
     def __init__(self, weights=(1,-1), values=(0,0)):

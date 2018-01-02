@@ -10,12 +10,13 @@ from feature_selection import BinaryBlackHole
 from feature_selection import SimulatedAnneling
 from feature_selection import BRKGA, BRKGA2
 from feature_selection import SPEA2
+from feature_selection import PSO
 from sklearn.utils.testing import assert_raises
 from sklearn.utils.testing import assert_warns
 
 METACLASSES = [HarmonicSearch, GeneticAlgorithm, RandomSearch,
                BinaryBlackHole, SimulatedAnneling, BRKGA, BRKGA2, 
-               HarmonicSearch2, SPEA2]
+               HarmonicSearch2, SPEA2, PSO]
 
 NSGA2 = [BRKGA2, HarmonicSearch2, SPEA2]
 

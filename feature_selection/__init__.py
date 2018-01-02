@@ -7,6 +7,7 @@ from .biased_random_key_ga import BRKGA
 from .brkga_nsga2 import BRKGA2
 from .harmonic_search_nsga2 import HarmonicSearch2
 from .spea2 import SPEA2
+from .pso import PSO
 
 __all__ = [
         'HarmonicSearch',
@@ -17,5 +18,6 @@ __all__ = [
         'BRKGA',
         'BRKGA2',
         'HarmonicSearch2',
-        'SPEA2'
+        'SPEA2',
+        'PSO'
            ]
