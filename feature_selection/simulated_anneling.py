@@ -59,7 +59,7 @@ class SimulatedAnneling(_BaseMetaHeuristic):
                  repetition_schedule=10, number_gen=10, repeat=1, verbose=0,
                  parallel=False, make_logbook=False, random_state=None,
                  cv_metric_fuction=None, features_metric_function=None,
-                 **arg):
+                 print_fnc = None,**arg):
 
         super(SimulatedAnneling, self).__init__(
                 name = "SimulatedAnneling",
@@ -71,7 +71,8 @@ class SimulatedAnneling(_BaseMetaHeuristic):
                 make_logbook=make_logbook,
                 random_state=random_state,
                 cv_metric_fuction=cv_metric_fuction,
-                features_metric_function=features_metric_function)
+                features_metric_function=features_metric_function,
+                print_fnc=print_fnc)
 
         self.mutation_prob = mutation_prob
         self.initial_temp = initial_temp
@@ -144,10 +145,7 @@ class SimulatedAnneling(_BaseMetaHeuristic):
                                 **self.stats.compile([solution]))
                     self._make_generation( hof, pareto_front)
                 if self.verbose:
-                    #if (int)(temp * self.number_gen/ self.initial_temp) % self.verbose == 0:
-                    print("Repetition:", i+1, "Temperature: ", temp ,
-                          "Elapsed time: ", time.clock() - initial_time,
-                          end="\r")
+                    self._print(g, i, initial_time, time.clock())
 
             self._make_repetition(hof, pareto_front)
 

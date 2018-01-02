@@ -145,7 +145,7 @@ class _BaseMetaHeuristicPareto(BaseEstimator, SelectorMixin, ClassifierMixin):
                  verbose=0, repeat=1, parallel=False,
                  make_logbook=False, random_state=None,
                  cv_metric_fuction=make_scorer(matthews_corrcoef),
-                 features_metric_function=None):
+                 features_metric_function=None,print_fnc = None):
 
         self._name = name
         self.estimator = SVC(kernel='linear', max_iter=10000) if classifier is None else clone(classifier)
@@ -159,6 +159,11 @@ class _BaseMetaHeuristicPareto(BaseEstimator, SelectorMixin, ClassifierMixin):
         self.features_metric_function= features_metric_function
         self._random_object = check_random_state(self.random_state)
         random.seed(self.random_state)
+        self.print_fnc =  print_fnc               
+        if print_fnc == None:
+            self.toolbox.register("print", print)
+        else:
+            self.toolbox.register("print", print_fnc)
 
     def _gen_in(self):
         """ Generate a individual, DEAP function
@@ -391,3 +396,8 @@ class _BaseMetaHeuristicPareto(BaseEstimator, SelectorMixin, ClassifierMixin):
     
     def all_solutions(self):
         return self.hof_
+    
+    def _print(self,gen, rep, initial_time, final_time):
+        self.toolbox.print("""Repetition: {:d} \t Generation: {:d}/{:d} 
+                Elapsed time: {:.4f} \r""".format( rep+1,gen + 1,
+                self.number_gen,final_time - initial_time))

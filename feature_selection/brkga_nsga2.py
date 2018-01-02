@@ -61,7 +61,8 @@ class BRKGA2(_BaseMetaHeuristicPareto):
                  elite_size = 1, mutant_size = 1, cxUniform_indpb = 0.2,
                  number_gen=10, size_pop=3, verbose=0, repeat=1,
                  make_logbook=False, random_state=None, parallel=False,
-                 cv_metric_fuction=None, features_metric_function="log"):
+                 cv_metric_fuction=None, features_metric_function="log",
+                 print_fnc = None):
     
         super(BRKGA2, self).__init__(
                 name = "BRKGA2",
@@ -73,7 +74,8 @@ class BRKGA2(_BaseMetaHeuristicPareto):
                 make_logbook=make_logbook,
                 random_state=random_state,
                 cv_metric_fuction=cv_metric_fuction,
-                features_metric_function=features_metric_function)
+                features_metric_function=features_metric_function,
+                print_fnc=print_fnc)
         
         self.size_pop = size_pop        
         if( elite_size + mutant_size > size_pop ):
@@ -184,8 +186,7 @@ class BRKGA2(_BaseMetaHeuristicPareto):
                         self._make_generation( hof, pareto_front)
                         
                 if self.verbose:
-                    print("Repetition:", i+1 ,"Generation: ", g + 1, "/", self.number_gen,
-                          "Elapsed time: ", time.clock() - initial_time, end="\r")
+                    self._print(g, i, initial_time, time.clock())
 
             self._make_repetition(hof,pareto_front)
 

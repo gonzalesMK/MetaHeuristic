@@ -44,7 +44,8 @@ class HarmonicSearch(_BaseMetaHeuristic):
     def __init__(self, classifier=None, HMCR=0.95, 
                  number_gen=100, size_pop=50, verbose=0, repeat=1,
                  make_logbook=False, random_state=None, parallel = False,
-                 cv_metric_fuction=None, features_metric_function=None):
+                 cv_metric_fuction=None, features_metric_function=None,
+                 print_fnc = None):
 
         super(HarmonicSearch, self).__init__(
                 name = "HarmonicSearch",
@@ -56,7 +57,8 @@ class HarmonicSearch(_BaseMetaHeuristic):
                 make_logbook=make_logbook,
                 random_state=random_state,
                 cv_metric_fuction=cv_metric_fuction,
-                features_metric_function=features_metric_function)
+                features_metric_function=features_metric_function,
+                print_fnc=print_fnc)
 
         self.HMCR = HMCR
         self.estimator = SVC(kernel='linear', verbose=False, max_iter=10000) if classifier is None else clone(classifier)
@@ -137,8 +139,7 @@ class HarmonicSearch(_BaseMetaHeuristic):
                     self._make_generation( hof, pareto_front)
 
                 if self.verbose:
-                    print("Repetition:", i+1 ,"Generation: ", g + 1, "/", self.number_gen,
-                          "Elapsed time: ", time.clock() - initial_time, end="\r")
+                    self._print(g, i, initial_time, time.clock())
 
             self._make_repetition(hof,pareto_front)
 

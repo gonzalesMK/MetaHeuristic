@@ -55,7 +55,8 @@ class GeneticAlgorithm(_BaseMetaHeuristic):
                  individual_mut_prob=0.05, gene_mutation_prob=0.05,
                  number_gen=10, size_pop=40, verbose=0, repeat=1,
                  make_logbook=False, random_state=None, parallel=False,
-                 cv_metric_fuction=None, features_metric_function=None):
+                 cv_metric_fuction=None, features_metric_function=None,
+                 print_fnc = None):
     
         super(GeneticAlgorithm, self).__init__(
                 name = "GeneticAlgorithm",
@@ -67,7 +68,8 @@ class GeneticAlgorithm(_BaseMetaHeuristic):
                 make_logbook=make_logbook,
                 random_state=random_state,
                 cv_metric_fuction=cv_metric_fuction,
-                features_metric_function=features_metric_function)
+                features_metric_function=features_metric_function,
+                print_fnc=print_fnc)
         
         self.individual_mut_prob = individual_mut_prob
         self.gene_mutation_prob = gene_mutation_prob
@@ -163,8 +165,7 @@ class GeneticAlgorithm(_BaseMetaHeuristic):
                         self._make_generation( hof, pareto_front)
                         
                 if self.verbose:
-                    print("Repetition:", i+1 ,"Generation: ", g + 1, "/", self.number_gen,
-                          "Elapsed time: ", time.clock() - initial_time, end="\r")
+                    self._print(g, i, initial_time, time.clock())
 
             self._make_repetition(hof,pareto_front)
 

@@ -47,10 +47,14 @@ class RandomSearch(_BaseMetaHeuristic):
     """
 
     def __init__(self, classifier=None, number_gen=5, size_pop=40,verbose=0, 
-                 repeat=1, parallel=False, make_logbook=False,
-                 random_state=None,
-                 cv_metric_fuction=None, features_metric_function=None):
+                 repeat=1, 
+                 
+                 parallel=False, make_logbook=False, random_state=None,
+                 cv_metric_fuction=None, features_metric_function=None,
+                 print_fnc = None):
 
+        self.toolbox = base.Toolbox()
+        
         super(RandomSearch, self).__init__(
                 name = "RandomSearch",
                 classifier=classifier, 
@@ -61,11 +65,11 @@ class RandomSearch(_BaseMetaHeuristic):
                 make_logbook=make_logbook,
                 random_state=random_state,
                 cv_metric_fuction=cv_metric_fuction,
-                features_metric_function=features_metric_function)
+                features_metric_function=features_metric_function,
+                print_fnc=print_fnc)
 
         self.size_pop = size_pop
-                
-        self.toolbox = base.Toolbox()
+
         self.toolbox.register("attribute", self._gen_in)
         self.toolbox.register("individual", tools.initIterate,
                               BaseMask, self.toolbox.attribute)
@@ -125,8 +129,7 @@ class RandomSearch(_BaseMetaHeuristic):
                     self._make_generation( hof, pareto_front)
                     
                 if self.verbose:
-                    print("Repetition:", i+1 ,"Generation: ", g + 1, "/", self.number_gen,
-                          "Elapsed time: ", time.clock() - initial_time, end="\r")
+                    self._print(g, i, initial_time, time.clock())
 
             self._make_repetition(hof,pareto_front)
             
