@@ -76,7 +76,6 @@ class GeneticAlgorithm(_BaseMetaHeuristic):
         self.cross_over_prob = cross_over_prob
         self.size_pop = size_pop        
         
-        self.toolbox = base.Toolbox()
         self.toolbox.register("attribute", self._gen_in)
         self.toolbox.register("individual", tools.initIterate,
                               BaseMask, self.toolbox.attribute)

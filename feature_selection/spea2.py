@@ -84,7 +84,6 @@ class SPEA2(_BaseMetaHeuristicPareto):
         self.individual_mut_prob=individual_mut_prob
         self.gene_mutation_prob = gene_mutation_prob
         
-        self.toolbox = base.Toolbox()
         self.toolbox.register("attribute", self._gen_in)
         self.toolbox.register("individual", tools.initIterate,
                               BaseMask, self.toolbox.attribute)

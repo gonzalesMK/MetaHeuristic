@@ -92,7 +92,6 @@ class BRKGA(_BaseMetaHeuristic):
         self.mutant_size = mutant_size
         self.n_cross_over = size_pop - (elite_size + mutant_size)
         
-        self.toolbox = base.Toolbox()
         self.toolbox.register("attribute", self._gen_in)
         self.toolbox.register("individual", tools.initIterate,
                               BaseMask, self.toolbox.attribute)

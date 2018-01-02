@@ -67,7 +67,6 @@ class BinaryBlackHole(_BaseMetaHeuristic):
 
         self.size_pop = size_pop
 
-        self.toolbox = base.Toolbox()
         self.toolbox.register("attribute", self._gen_in)
         self.toolbox.register("star", tools.initIterate, BaseMask, self.toolbox.attribute)
         self.toolbox.register("galaxy", tools.initRepeat, list, self.toolbox.star)

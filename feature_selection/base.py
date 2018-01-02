@@ -159,6 +159,7 @@ class _BaseMetaHeuristic(BaseEstimator, SelectorMixin, ClassifierMixin):
         self.print_fnc =  print_fnc               
         random.seed(self.random_state)
         
+        self.toolbox = base.Toolbox()
         if print_fnc == None:
             self.toolbox.register("print", print)
         else:

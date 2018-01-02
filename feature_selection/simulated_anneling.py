@@ -78,7 +78,6 @@ class SimulatedAnneling(_BaseMetaHeuristic):
         self.initial_temp = initial_temp
         self.repetition_schedule = repetition_schedule
 
-        self.toolbox = base.Toolbox()
         self.toolbox.register("attribute", self._gen_in)
         self.toolbox.register("individual", tools.initIterate,
                               BaseMask, self.toolbox.attribute)

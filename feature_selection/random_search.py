@@ -53,8 +53,6 @@ class RandomSearch(_BaseMetaHeuristic):
                  cv_metric_fuction=None, features_metric_function=None,
                  print_fnc = None):
 
-        self.toolbox = base.Toolbox()
-        
         super(RandomSearch, self).__init__(
                 name = "RandomSearch",
                 classifier=classifier, 

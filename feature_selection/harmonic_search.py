@@ -64,7 +64,6 @@ class HarmonicSearch(_BaseMetaHeuristic):
         self.estimator = SVC(kernel='linear', verbose=False, max_iter=10000) if classifier is None else clone(classifier)
         self.size_pop = size_pop
 
-        self.toolbox = base.Toolbox()
         self.toolbox.register("attribute", self._gen_in)
         self.toolbox.register("individual", tools.initIterate,
                               BaseMask, self.toolbox.attribute)

@@ -91,7 +91,6 @@ class PSO(_BaseMetaHeuristic):
         self.phi2 = phi2
         self.slim = 1
         
-        self.toolbox = base.Toolbox()
         self.toolbox.register("attribute", self._gen_in)
         self.toolbox.register("individual", tools.initIterate, PSOBaseMask, self.toolbox.attribute)
         self.toolbox.register("population", tools.initRepeat, list, self.toolbox.individual)
