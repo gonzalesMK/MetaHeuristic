@@ -130,14 +130,15 @@ class HarmonicSearch2(_BaseMetaHeuristicPareto):
                 hof.update(harmony_mem)
                 pareto_front.update(harmony_mem)
                 
-                if self.make_logbook:
-                    self.logbook[i].record(gen=g,
-                                           best_fit=hof[0].fitness.values[0],
-                                           **self.stats.compile(harmony_mem))
-                    self._make_generation( hof, pareto_front)
-                    
-                if self.verbose:
-                    self._print(g, i, initial_time, time.clock())
+                if self.skip==0 or g % self.skip == 0 :
+                    if self.make_logbook:
+                        self.logbook[i].record(gen=g,
+                                               best_fit=hof[0].fitness.values[0],
+                                               **self.stats.compile(harmony_mem))
+                        self._make_generation( hof, pareto_front)
+                        
+                    if self.verbose:
+                        self._print(g, i, initial_time, time.clock())
 
             self._make_repetition(hof,pareto_front)
 

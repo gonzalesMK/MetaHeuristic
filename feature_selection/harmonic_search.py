@@ -45,7 +45,7 @@ class HarmonicSearch(_BaseMetaHeuristic):
                  number_gen=100, size_pop=50, verbose=0, repeat=1,
                  make_logbook=False, random_state=None, parallel = False,
                  cv_metric_fuction=None, features_metric_function=None,
-                 print_fnc = None):
+                 print_fnc = None, skip=1):
 
         super(HarmonicSearch, self).__init__(
                 name = "HarmonicSearch",
@@ -131,14 +131,16 @@ class HarmonicSearch(_BaseMetaHeuristic):
                 # Log statistic
                 hof.update(harmony_mem)
                 pareto_front.update(harmony_mem)
-                if self.make_logbook:
-                    self.logbook[i].record(gen=g,
-                                           best_fit=hof[0].fitness.values[0],
-                                           **self.stats.compile(harmony_mem))
-                    self._make_generation( hof, pareto_front)
-
-                if self.verbose:
-                    self._print(g, i, initial_time, time.clock())
+                
+                if self.skip==0 or g % self.skip == 0 :
+                    if self.make_logbook:
+                        self.logbook[i].record(gen=g,
+                                               best_fit=hof[0].fitness.values[0],
+                                               **self.stats.compile(harmony_mem))
+                        self._make_generation( hof, pareto_front)
+                        
+                    if self.verbose:
+                        self._print(g, i, initial_time, time.clock())
 
             self._make_repetition(hof,pareto_front)
 
