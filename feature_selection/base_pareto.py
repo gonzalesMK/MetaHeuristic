@@ -161,6 +161,7 @@ class _BaseMetaHeuristicPareto(BaseEstimator, SelectorMixin, ClassifierMixin):
         random.seed(self.random_state)
         self.print_fnc =  print_fnc               
         self.toolbox = base.Toolbox()
+        
         if print_fnc == None:
             self.toolbox.register("print", print)
         else:
