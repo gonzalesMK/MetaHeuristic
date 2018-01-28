@@ -132,14 +132,14 @@ class SPEA2(_BaseMetaHeuristicPareto):
             pop = self.toolbox.population(self.size_pop)
             hof = tools.HallOfFame(1)
             pareto_front = tools.ParetoFront()
-            
+
             # Evaluate the entire population
             fitnesses = self.toolbox.map(self.toolbox.evaluate, pop)
             for ind, fit in zip(pop, fitnesses):
                 ind.fitness.values = fit
             
             pareto_front.update(pop)   
-            archive = tools.selSPEA2(pop, self.archive_size)                
+            archive = tools.selSPEA2(pop, self.archive_size)
             
             for g in range(self.number_gen):
                 
@@ -151,7 +151,7 @@ class SPEA2(_BaseMetaHeuristicPareto):
 
                 # Apply variation
                 pop = self._variation(pop)
-                
+
                 # Evaluate the individuals with an invalid fitness
                 invalid_ind = [ind for ind in pop if not ind.fitness.valid]
                 fitnesses = self.toolbox.map(self.toolbox.evaluate, invalid_ind)

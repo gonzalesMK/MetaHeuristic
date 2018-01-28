@@ -148,9 +148,11 @@ class BRKGA(_BaseMetaHeuristic):
             pareto_front.update(pop)   
             hof.update(pop)
             for g in range(self.number_gen):
+                
                 # Partitionate elite members
-                elite = tools.selBest( pop, self.elite_size)
-                non_elite = tools.selWorst( pop, self.non_elite_size)
+                partition = tools.selBest(pop, self.elite_size+self.non_elite_size)
+                elite = tools.selBest( partition, self.elite_size)
+                non_elite = tools.selWorst( partition, self.non_elite_size)
                 
                 # Cross_over between Elite and Non Elite 
                 father_ind = np.random.randint(0, self.elite_size,
