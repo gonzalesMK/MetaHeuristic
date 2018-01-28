@@ -45,7 +45,7 @@ class HarmonicSearch(_BaseMetaHeuristic):
                  number_gen=100, size_pop=50, verbose=0, repeat=1,
                  make_logbook=False, random_state=None, parallel = False,
                  cv_metric_fuction=None, features_metric_function=None,
-                 print_fnc = None, skip=1):
+                 print_fnc = None, skip=0):
 
         super(HarmonicSearch, self).__init__(
                 name = "HarmonicSearch",
@@ -63,7 +63,7 @@ class HarmonicSearch(_BaseMetaHeuristic):
         self.HMCR = HMCR
         self.estimator = SVC(kernel='linear', verbose=False, max_iter=10000) if classifier is None else clone(classifier)
         self.size_pop = size_pop
-
+        self.skip = skip
         self.toolbox.register("attribute", self._gen_in)
         self.toolbox.register("individual", tools.initIterate,
                               BaseMask, self.toolbox.attribute)
