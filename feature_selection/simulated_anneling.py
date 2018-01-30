@@ -59,7 +59,7 @@ class SimulatedAnneling(_BaseMetaHeuristic):
                  repetition_schedule=10, number_gen=10, repeat=1, verbose=0,
                  parallel=False, make_logbook=False, random_state=None,
                  cv_metric_fuction=None, features_metric_function=None,
-                 print_fnc = None,**arg):
+                 print_fnc = None,skip=0,**arg):
 
         super(SimulatedAnneling, self).__init__(
                 name = "SimulatedAnneling",
@@ -77,7 +77,7 @@ class SimulatedAnneling(_BaseMetaHeuristic):
         self.mutation_prob = mutation_prob
         self.initial_temp = initial_temp
         self.repetition_schedule = repetition_schedule
-
+        self.skip = skip
         self.toolbox.register("attribute", self._gen_in)
         self.toolbox.register("individual", tools.initIterate,
                               BaseMask, self.toolbox.attribute)
@@ -122,6 +122,7 @@ class SimulatedAnneling(_BaseMetaHeuristic):
             # Evaluate the solution
             solution.fitness.values = self.toolbox.evaluate(solution)
 
+            g = 0
             for temp in np.arange(self.initial_temp, 0,
                                   - self.initial_temp/self.number_gen):
 
@@ -138,14 +139,16 @@ class SimulatedAnneling(_BaseMetaHeuristic):
                     # Log statistic
                     hof.update([solution])
                     pareto_front.update([solution])
-    
-                    if self.make_logbook:
-                        self.logbook[i].record(gen=temp,
-                                    best_fit=hof[0].fitness.values[0],
-                                    **self.stats.compile([solution]))
-                        self._make_generation( hof, pareto_front)
-                    if self.verbose:
-                        self._print(temp,_, i, initial_time, time.clock())
+                    
+                    g = g+1   
+                    if self.skip==0 or g % self.skip == 0 :    
+                        if self.make_logbook:
+                            self.logbook[i].record(gen=temp,
+                                        best_fit=hof[0].fitness.values[0],
+                                        **self.stats.compile([solution]))
+                            self._make_generation( hof, pareto_front)
+                        if self.verbose:
+                            self._print(temp,_, i, initial_time, time.clock())
 
             self._make_repetition(hof, pareto_front)
 
