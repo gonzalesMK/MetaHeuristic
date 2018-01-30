@@ -40,8 +40,8 @@ An example plot of :class:`feature_selection.HarmonicSearch
 
  Out::
 
-    ('Number of Features Selected: \n \t HS: ', 0.66666666666666663, '% \t GA: ', 0.66666666666666663, '%')
-    ('Accuracy of the classifier: \n \t HS: ', 0.97573132754761194, '\t GA: ', 0.97996667133048077)
+    ('Number of Features Selected: \n \t HS: ', 0.6666666666666666, '% \t GA: ', 0.6666666666666666, '%')
+    ('Accuracy of the classifier: \n \t HS: ', 0.9757313275476119, '\t GA: ', 0.9799666713304808)
 
 
 
@@ -84,7 +84,7 @@ An example plot of :class:`feature_selection.HarmonicSearch
     hs.plot_results()
     ga.plot_results()
 
-**Total running time of the script:** ( 0 minutes  15.013 seconds)
+**Total running time of the script:** ( 0 minutes  14.468 seconds)
 
 
 
