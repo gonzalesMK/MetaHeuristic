@@ -68,7 +68,7 @@ class PSO(_BaseMetaHeuristic):
     """
 
     def __init__(self, classifier=None, phi1=0.2, phi2 = 0.2,
-                 number_gen=10, size_pop=40, verbose=0, repeat=1,
+                 number_gen=10, size_pop=40, verbose=0, repeat=1, slim = 1,
                  make_logbook=False, random_state=None, parallel=False,
                  cv_metric_fuction=None, features_metric_function=None,
                  print_fnc = None):
@@ -89,7 +89,7 @@ class PSO(_BaseMetaHeuristic):
         self.size_pop = size_pop        
         self.phi1 = phi1
         self.phi2 = phi2
-        self.slim = 1
+        self.slim = slim
         
         self.toolbox.register("attribute", self._gen_in)
         self.toolbox.register("individual", tools.initIterate, PSOBaseMask, self.toolbox.attribute)
@@ -162,10 +162,10 @@ class PSO(_BaseMetaHeuristic):
         initial_time = time.clock()
         
         self.set_params(**arg)
-        
+         
         X,y = self._set_dataset(X=X, y=y, normalize=normalize)
         
-        if self.n_features_ > 2:
+        if self.n_features_ > 4:
             self._sigmoid_coeff = self.inverse_sigmoid(1-2/self.n_features_)
         else: 
             self._sigmoid_coeff = self.inverse_sigmoid(0.9)
