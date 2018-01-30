@@ -138,13 +138,14 @@ class SimulatedAnneling(_BaseMetaHeuristic):
                     # Log statistic
                     hof.update([solution])
                     pareto_front.update([solution])
-                if self.make_logbook:
-                    self.logbook[i].record(gen=temp,
-                                best_fit=hof[0].fitness.values[0],
-                                **self.stats.compile([solution]))
-                    self._make_generation( hof, pareto_front)
-                if self.verbose:
-                    self._print(g, i, initial_time, time.clock())
+    
+                    if self.make_logbook:
+                        self.logbook[i].record(gen=temp,
+                                    best_fit=hof[0].fitness.values[0],
+                                    **self.stats.compile([solution]))
+                        self._make_generation( hof, pareto_front)
+                    if self.verbose:
+                        self._print(temp,_, i, initial_time, time.clock())
 
             self._make_repetition(hof, pareto_front)
 
@@ -152,10 +153,16 @@ class SimulatedAnneling(_BaseMetaHeuristic):
 
         return self
 
+    def _print(self,temp, schedule, rep, initial_time, final_time):
+        self.toolbox.print("""Repetition: {:d} \tTemperature: {:d}/{:d} 
+                \tSchedule: {:d}/{:d} \tElapsed time: {:.4f} \r""".format(
+                rep+1,temp, self.initial_temp,schedule, self.repetition_schedule,
+                final_time - initial_time))
+            
     @staticmethod
     def _metropolis_criterion(solution, prev_solution, temp):
-        prob = np.exp(
-    (sum(solution.fitness.wvalues) - sum(prev_solution.fitness.wvalues))/temp )
+        prob = np.exp( (sum(solution.fitness.wvalues) - 
+                        sum(prev_solution.fitness.wvalues))/temp )
 
         if random.random() < prob:
             return solution

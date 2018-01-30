@@ -135,9 +135,9 @@ class PSO(_BaseMetaHeuristic):
                 part.speed[i] = self.slim
         
         # Update Position
-        rand = [random.random() for _ in range(len(part))]
-        part[:] = np.round(list(map(operator.sub, 
-            map(self.sigmoid, part.speed), rand)))
+        rand = [random.random() - 1 for _ in range(len(part))]
+        dif = map(operator.sub, map(self.sigmoid, part.speed), rand)
+        part[:] = np.sign( map( operator.mul, 0.5, dif))
 
         # Delete Fitness
         del part.fitness.values
