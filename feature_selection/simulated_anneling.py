@@ -157,8 +157,7 @@ class SimulatedAnneling(_BaseMetaHeuristic):
         return self
 
     def _print(self,temp, schedule, rep, initial_time, final_time):
-        self.toolbox.print("""Repetition: {:d} \tTemperature: {:d}/{:d} 
-                \tSchedule: {:d}/{:d} \tElapsed time: {:.4f} \r""".format(
+        self.toolbox.print("""Repetition: {:d}\tTemperature: {:f}/{:d}\tSchedule: {:d}/{:d}\tElapsed time:{:.4f} \r""".format(
                 rep+1,temp, self.initial_temp,schedule, self.repetition_schedule,
                 final_time - initial_time))
             
