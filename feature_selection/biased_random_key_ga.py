@@ -163,7 +163,9 @@ class BRKGA(_BaseMetaHeuristic):
                 child1 = [self.toolbox.clone(elite[ind]) for ind in father_ind]
                 child2 = [self.toolbox.clone(non_elite[ind]) for ind in mother_ind]
                 
-                self.toolbox.mate(child1, child2)
+                for ind in range(0, len(child1)):
+                    child1[ind], child2[ind] = self.toolbox.mate(child1[ind], child2[ind])
+
                 for ind1 in child1:
                     del ind1.fitness.values
                     

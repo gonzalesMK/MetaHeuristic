@@ -139,9 +139,10 @@ class BRKGA2(_BaseMetaHeuristicPareto):
             fitnesses = self.toolbox.map(self.toolbox.evaluate, pop)
             for ind, fit in zip(pop, fitnesses):
                 ind.fitness.values = fit
+            del fit, ind
             
             pareto_front.update(pop)   
-                
+            hof.update(pop)
             for g in range(self.number_gen):
                 # Ordering 
                 ordered = tools.selNSGA2( pop, self.size_pop)
@@ -157,7 +158,9 @@ class BRKGA2(_BaseMetaHeuristicPareto):
                 child1 = self.toolbox.clone([elite[ind] for ind in father_ind])
                 child2 = [non_elite[ind] for ind in mother_ind]
                 
-                self.toolbox.mate(child1, child2)
+                for ind in range(0, len(child1)):
+                    child1[ind], child2[ind] = self.toolbox.mate(child1[ind], child2[ind])
+                
                 for ind1 in child1:
                     del ind1.fitness.values
                     
