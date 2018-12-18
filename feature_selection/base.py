@@ -13,33 +13,34 @@ from sklearn.utils.validation import check_array, check_is_fitted, column_or_1d
 from sklearn.externals import six
 from sklearn.utils.multiclass import check_classification_targets
 from sklearn.utils import check_random_state
-from sklearn.svm import  SVC
-from deap import  base
+from sklearn.svm import SVC
+from deap import base
 from deap import tools
 from sklearn.preprocessing import StandardScaler
 from sklearn.utils import check_X_y
 
+from deap.itertools import repeat
 
 class Fitness(base.Fitness):
-    
-    def __init__(self, weights=(1,-1), values=(0,0)):
+
+    def __init__(self, weights=(1, -1), values=(0, 0)):
         self.weights = weights
         super(Fitness, self).__init__(values)
-        
+
+
 class BaseMask(list, object):
-    
+
     def __init__(self, mask):
         self[:] = mask
         self.fitness = Fitness((1, -1), (0, 0))
-    
+
 #    def __getstate__(self):
-#        self_dict = self.__dict__.copy()        
+#        self_dict = self.__dict__.copy()
 #        return self_dict
-#        
+#
 #    def __setstate__(self,state):
 #        self.__dict__.update(state)
-#        
-        
+#
 
 
 class SelectorMixin(six.with_metaclass(ABCMeta, TransformerMixin)):
@@ -62,17 +63,17 @@ class SelectorMixin(six.with_metaclass(ABCMeta, TransformerMixin)):
         -------
             mask
         """
-    
+
         if np.issubdtype(mask.dtype, np.int) or np.issubdtype(mask.dtype, np.bool):
             if x.shape[1] != len(mask):
                 raise ValueError("X columns %d != mask length %d"
                                  % (x.shape[1], len(mask)))
-    
+
     # I don't see utility in here
-#        if hasattr(x, "toarray"): 
+#        if hasattr(x, "toarray"):
 #            ind = np.arange(mask.shape[0])
 #            mask = ind[mask]
-#            
+#
         return mask
 
     def get_support(self, indices=False):
@@ -109,7 +110,6 @@ class SelectorMixin(six.with_metaclass(ABCMeta, TransformerMixin)):
         check_is_fitted(self, 'best_mask_')
         return self.best_mask_
 
-
     def transform(self, X, mask=None):
         """Reduce X to the selected features.
         Parameters
@@ -141,22 +141,23 @@ class SelectorMixin(six.with_metaclass(ABCMeta, TransformerMixin)):
 
 class _BaseMetaHeuristic(BaseEstimator, SelectorMixin, ClassifierMixin):
 
-    def __init__(self, name,classifier=None, number_gen=20,
+    def __init__(self, name, classifier=None, number_gen=20,
                  verbose=0, repeat=1, parallel=False,
                  make_logbook=False, random_state=None,
-                 cv_metric_fuction=make_scorer(matthews_corrcoef), 
+                 cv_metric_fuction=make_scorer(matthews_corrcoef),
                  features_metric_function=None):
-        
+
         self._name = name
-        self.estimator = SVC(kernel='linear', max_iter=10000) if classifier is None else clone(classifier)
+        self.estimator = SVC(
+            kernel='linear', max_iter=10000) if classifier is None else clone(classifier)
         self.number_gen = number_gen
         self.verbose = verbose
         self.repeat = repeat
-        self.parallel=parallel
+        self.parallel = parallel
         self.make_logbook = make_logbook
         self.random_state = random_state
-        self.cv_metric_function= cv_metric_fuction
-        self.features_metric_function= features_metric_function
+        self.cv_metric_function = cv_metric_fuction
+        self.features_metric_function = features_metric_function
         self._random_object = check_random_state(self.random_state)
         random.seed(self.random_state)
 
@@ -165,9 +166,9 @@ class _BaseMetaHeuristic(BaseEstimator, SelectorMixin, ClassifierMixin):
 
         """
         random_number = self._random_object.randint(1, self.n_features_ + 1)
-        zeros = (np.zeros([self.n_features_-random_number,], dtype=int))
-        ones = np.ones([random_number,], dtype=int)
-        return   sample(list(np.concatenate((zeros, ones), axis=0)), self.n_features_)
+        zeros = (np.zeros([self.n_features_-random_number, ], dtype=int))
+        ones = np.ones([random_number, ], dtype=int)
+        return sample(list(np.concatenate((zeros, ones), axis=0)), self.n_features_)
 
     def _evaluate(self, individual, X, y, cv=3):
         """ Evaluate method
@@ -187,36 +188,35 @@ class _BaseMetaHeuristic(BaseEstimator, SelectorMixin, ClassifierMixin):
                            [len(features), len(X)]).T
 
         if train.shape[1] == 0:
-            return 0,1,
+            return 0, 1,
 
         # Applying K-Fold Cross Validation
-        accuracies = cross_val_score(estimator=clone(self.estimator), X=train, 
-                                     y=y, cv=cv, 
+        accuracies = cross_val_score(estimator=clone(self.estimator), X=train,
+                                     y=y, cv=cv,
                                      scoring=self.cv_metric_function)
-        
-        if self.features_metric_function == None :
+
+        if self.features_metric_function == None:
             feature_score = pow(sum(individual)/(len(individual)*5), 2)
         else:
             feature_score = self.features_metric_function(individual)
-        
-        return accuracies.mean(), feature_score 
 
+        return accuracies.mean(), feature_score
 
     def predict(self, X):
-        if not hasattr(self, "classes_"):        
+        if not hasattr(self, "classes_"):
             raise ValueError('fit')
-            
+
         if self.normalize_:
             X = self._sc_X.fit_transform(X)
-            
+
         X_ = self.transform(X)
         y_pred = self.estimator.predict(X_)
-        return   self.classes_.take(np.asarray(y_pred, dtype=np.intp))
+        return self.classes_.take(np.asarray(y_pred, dtype=np.intp))
 
 #        elif self.predict_with == 'all':
 #
 #            predict_ = []
-#            
+#
 #            for mask in self.mask_:
 #                self.estimator.fit(X=self.transform(self.X_, mask=mask), y=self.y_)
 #                X_ = self.transform(X, mask=mask)
@@ -232,8 +232,8 @@ class _BaseMetaHeuristic(BaseEstimator, SelectorMixin, ClassifierMixin):
         """
         if not hasattr(estimator, 'fitnesses_'):
             raise ValueError("Fit")
-        
-        return sum([ i[0]-i[1] for i in estimator.fitnesses_]) / len(estimator.fitnesses_)
+
+        return sum([i[0]-i[1] for i in estimator.fitnesses_]) / len(estimator.fitnesses_)
 
     def _validate_targets(self, y):
         y_ = column_or_1d(y, warn=True)
@@ -271,10 +271,9 @@ class _BaseMetaHeuristic(BaseEstimator, SelectorMixin, ClassifierMixin):
             lns = line1 + line2 + line3
             labs = [l.get_label() for l in lns]
             ax1.legend(lns, labs, loc="center right")
-            ax1.set_title(self._name +" Repetition: " + str(i+1))
+            ax1.set_title(self._name + " Repetition: " + str(i+1))
 
-
-    def fit_transform(self, X, y, normalize = False, **fit_params):
+    def fit_transform(self, X, y, normalize=False, **fit_params):
         """Fit to data, then transform it.
 
         Fits transformer to X and y with optional parameters fit_params
@@ -301,16 +300,16 @@ class _BaseMetaHeuristic(BaseEstimator, SelectorMixin, ClassifierMixin):
     @staticmethod
     def _get_accuracy(ind):
         return ind.fitness.wvalues[0]
-    
+
     def __getstate__(self):
         self_dict = self.__dict__.copy()
-        
+
         if hasattr(self, 'toolbox'):
             del self_dict['toolbox']
 
         return self_dict
-    
-    def __setstate__(self,state):
+
+    def __setstate__(self, state):
         self.__dict__.update(state)
 
     def _make_stats(self):
@@ -322,6 +321,24 @@ class _BaseMetaHeuristic(BaseEstimator, SelectorMixin, ClassifierMixin):
         self.logbook = [tools.Logbook() for i in range(self.repeat)]
         for i in range(self.repeat):
             self.logbook[i].header = ["gen"] + self.stats.fields
+
+    @staticmethod
+    def adaptative_binary_mutation(individual, indpb):
+        size = len(individual)
+        Ones = sum(individual)
+        prob = Ones / (2*size)
+    
+        low = repeat(low, size)
+        up = repeat(up, size)
+
+        for i, xl, xu in zip(xrange(size), low, up):
+            if random.random() < indpb:
+                if random.random() < prob :
+                    individual[i] = 1
+                else:    
+                    individual[i] = 0
+
+        return individual,
 
     def _set_dataset(self, X, y, normalize):
         """  Standard datset pre-process:
@@ -351,14 +368,15 @@ class _BaseMetaHeuristic(BaseEstimator, SelectorMixin, ClassifierMixin):
             self._sc_X = StandardScaler()
             X = self._sc_X.fit_transform(X)
         self.normalize_ = normalize
-        
+
         y = self._validate_targets(y)
-        X, y = check_X_y(X, y, dtype=np.float64, order='C', accept_sparse='csr')
+        X, y = check_X_y(X, y, dtype=np.float64,
+                         order='C', accept_sparse='csr')
 
         self.n_features_ = X.shape[1]
         self.mask_ = []
         self.fitnesses_ = []
-        
+
         self.toolbox.register("evaluate", self._evaluate, X=X, y=y)
-        
-        return X,y 
+
+        return X, y
