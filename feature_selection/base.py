@@ -62,7 +62,6 @@ class SelectorMixin(six.with_metaclass(ABCMeta, TransformerMixin)):
         -------
             mask
         """
-        mask = np.asarray(mask)
     
         if np.issubdtype(mask.dtype, np.int) or np.issubdtype(mask.dtype, np.bool):
             if x.shape[1] != len(mask):
@@ -95,7 +94,8 @@ class SelectorMixin(six.with_metaclass(ABCMeta, TransformerMixin)):
             values are indices into the input feature vector.
         """
         mask = self._get_best_mask()
-        return mask if not indices else np.where(mask)[0]
+        mask = mask if not indices else np.where(mask)[0]
+        return np.asarray(mask, dtype=np.bool)
 
     def _get_best_mask(self):
         """
@@ -199,7 +199,7 @@ class _BaseMetaHeuristic(BaseEstimator, SelectorMixin, ClassifierMixin):
         else:
             feature_score = self.features_metric_function(individual)
         
-        return accuracies.mean() - accuracies.std(), feature_score 
+        return accuracies.mean(), feature_score 
 
 
     def predict(self, X):
@@ -305,8 +305,9 @@ class _BaseMetaHeuristic(BaseEstimator, SelectorMixin, ClassifierMixin):
     def __getstate__(self):
         self_dict = self.__dict__.copy()
         
-        del self_dict['toolbox']
-        
+        if hasattr(self, 'toolbox'):
+            del self_dict['toolbox']
+
         return self_dict
     
     def __setstate__(self,state):
@@ -323,7 +324,30 @@ class _BaseMetaHeuristic(BaseEstimator, SelectorMixin, ClassifierMixin):
             self.logbook[i].header = ["gen"] + self.stats.fields
 
     def _set_dataset(self, X, y, normalize):
+        """  Standard datset pre-process:
+        Using standardScaler()
+        Validating/setting the correct size of X and y
+        Validating the number of classes of y
+
+        Parameters
+        ----------
+        X : numpy array of shape [n_samples, n_features]
+            Training set.
+
+        y : numpy array of shape [n_samples]
+            Target values.
+
+        Returns
+        -------
+        X : numpy array of shape [n_samples, n_features_new]
+            Training set pre-processed
+
+        y : numpy array of shape [n_samples]
+            Training set pre-processed
+        """
+
         if normalize:
+            X = X.astype(np.float64, copy=False)
             self._sc_X = StandardScaler()
             X = self._sc_X.fit_transform(X)
         self.normalize_ = normalize

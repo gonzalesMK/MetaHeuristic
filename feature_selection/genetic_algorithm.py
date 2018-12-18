@@ -23,7 +23,7 @@ class GeneticAlgorithm(_BaseMetaHeuristic):
     ----------
     classifier : sklearn classifier , (default=SVM)
             Any classifier that adheres to the scikit-learn API
-    
+
     cross_over_prob :  float in [0,1], (default=0.5)
             Probability of happening a cross-over in a individual (chromosome)
 
@@ -42,19 +42,19 @@ class GeneticAlgorithm(_BaseMetaHeuristic):
 
     verbose : boolean, (default=False)
             If true, print information in every generation
-            
+
     repeat : positive int, (default=1)
             Number of times to repeat the fitting process
 
     make_logbook : boolean, (default=False)
             If True, a logbook from DEAP will be made
-            
+
     parallel : boolean, (default=False)
             Set to True if you want to use multiprocessors
-            
-    cv_metric_fuction : callable, (default=matthews_corrcoef)            
+
+    cv_metric_fuction : callable, (default=matthews_corrcoef)
             A metric score function as stated in the sklearn http://scikit-learn.org/stable/modules/model_evaluation.html#scoring-parameter
-    
+
     features_metric_function : callable, (default=pow(sum(mask)/(len(mask)*5), 2))
             A function that return a float from the binary mask of features
     """
@@ -64,42 +64,44 @@ class GeneticAlgorithm(_BaseMetaHeuristic):
                  number_gen=10, size_pop=40, verbose=0, repeat=1,
                  make_logbook=False, random_state=None, parallel=False,
                  cv_metric_fuction=None, features_metric_function=None):
-    
+
         super(GeneticAlgorithm, self).__init__(
-                name = "GeneticAlgorithm",
-                classifier=classifier, 
-                number_gen=number_gen,  
-                verbose=verbose,
-                repeat=repeat,
-                parallel=parallel, 
-                make_logbook=make_logbook,
-                random_state=random_state,
-                cv_metric_fuction=cv_metric_fuction,
-                features_metric_function=features_metric_function)
-        
+            name="GeneticAlgorithm",
+            classifier=classifier,
+            number_gen=number_gen,
+            verbose=verbose,
+            repeat=repeat,
+            parallel=parallel,
+            make_logbook=make_logbook,
+            random_state=random_state,
+            cv_metric_fuction=cv_metric_fuction,
+            features_metric_function=features_metric_function)
+
         self.individual_mut_prob = individual_mut_prob
         self.gene_mutation_prob = gene_mutation_prob
         self.cross_over_prob = cross_over_prob
-        self.size_pop = size_pop        
-        
+        self.size_pop = size_pop
+
         self.toolbox = base.Toolbox()
         self.toolbox.register("attribute", self._gen_in)
         self.toolbox.register("individual", tools.initIterate,
                               BaseMask, self.toolbox.attribute)
-        self.toolbox.register("population", tools.initRepeat, list, self.toolbox.individual)
+        self.toolbox.register("population", tools.initRepeat,
+                              list, self.toolbox.individual)
         self.toolbox.register("mate", tools.cxTwoPoint)
         self.toolbox.register("select", tools.selTournament, tournsize=3)
         self.toolbox.register("map", map)
-        self.toolbox.register("evaluate", self._evaluate, X= None, y=None)
+        self.toolbox.register("evaluate", self._evaluate, X=None, y=None)
         self.toolbox.register("mutate", tools.mutUniformInt, low=0, up=1,
                               indpb=self.gene_mutation_prob)
-
+        
+        self.parallel = parallel
         if parallel:
             from multiprocessing import Pool
             self.toolbox.register("map", Pool().map)
         else:
             self.toolbox.register("map", map)
-            
+
     def fit(self, X=None, y=None, normalize=False, **arg):
         """ Fit method
 
@@ -118,11 +120,11 @@ class GeneticAlgorithm(_BaseMetaHeuristic):
                 Set parameters
         """
         initial_time = time.clock()
-        
+
         self.set_params(**arg)
-        
-        X,y = self._set_dataset(X=X, y=y, normalize=normalize)
-        
+
+        X, y = self._set_dataset(X=X, y=y, normalize=normalize)
+
         if self.make_logbook:
             self._make_stats()
 
@@ -157,8 +159,10 @@ class GeneticAlgorithm(_BaseMetaHeuristic):
                         del mutant.fitness.values
 
                 # Evaluate the individuals with an invalid fitness ( new individuals)
-                invalid_ind = [ind for ind in offspring if not ind.fitness.valid]
-                fitnesses = self.toolbox.map(self.toolbox.evaluate, invalid_ind)
+                invalid_ind = [
+                    ind for ind in offspring if not ind.fitness.valid]
+                fitnesses = self.toolbox.map(
+                    self.toolbox.evaluate, invalid_ind)
                 for ind, fit in zip(invalid_ind, fitnesses):
                     ind.fitness.values = fit
 
@@ -168,15 +172,15 @@ class GeneticAlgorithm(_BaseMetaHeuristic):
                 # Log statistic
                 hof.update(pop)
                 if self.make_logbook:
-                        self.logbook[i].record(gen=g,
-                                               best_fit=hof[0].fitness.values[0],
-                                               **self.stats.compile(pop))
+                    self.logbook[i].record(gen=g,
+                                           best_fit=hof[0].fitness.values[0],
+                                           **self.stats.compile(pop))
                 if self.verbose:
-                    print("Repetition:", i+1 ,"Generation: ", g + 1, "/", self.number_gen,
+                    print("Repetition:", i+1, "Generation: ", g + 1, "/", self.number_gen,
                           "Elapsed time: ", time.clock() - initial_time, end="\r")
 
             best.update(hof)
-            if self.make_logbook :
+            if self.make_logbook:
                 self.mask_.append(hof[0][:])
                 self.fitnesses_.append(hof[0].fitness.values)
 
@@ -184,19 +188,41 @@ class GeneticAlgorithm(_BaseMetaHeuristic):
         self.best_mask_ = np.asarray(best[0][:], dtype=bool)
         self.fitness_ = best[0].fitness.values
 
-        self.estimator.fit(X= self.transform(X), y=y)
+        self.estimator.fit(X=self.transform(X), y=y)
 
-        return self
-    
-    def set_params(self, **params):
-        super(GeneticAlgorithm, self).set_params(**params)
+        return self 
 
+    def _start_toolbox(self):
+        self.toolbox = base.Toolbox()
+        self.toolbox.register("attribute", self._gen_in)
+        self.toolbox.register("individual", tools.initIterate,
+                              BaseMask, self.toolbox.attribute)
+        self.toolbox.register("population", tools.initRepeat,
+                              list, self.toolbox.individual)
+        self.toolbox.register("mate", tools.cxTwoPoint)
+        self.toolbox.register("select", tools.selTournament, tournsize=3)
+        self.toolbox.register("map", map)
+        self.toolbox.register("evaluate", self._evaluate, X=None, y=None)
         self.toolbox.register("mutate", tools.mutUniformInt, low=0, up=1,
-                                  indpb=self.gene_mutation_prob)
+                              indpb=self.gene_mutation_prob)
+
         if self.parallel:
             from multiprocessing import Pool
             self.toolbox.register("map", Pool().map)
         else:
-            self.toolbox.register("map", map)    
-            
-        return self
+            self.toolbox.register("map", map)
+
+    def set_params(self, **params):
+        super(GeneticAlgorithm, self).set_params(**params)
+
+        self.toolbox.register("mutate", tools.mutUniformInt, low=0, up=1,
+                              indpb=self.gene_mutation_prob)
+        if self.parallel:
+            from multiprocessing import Pool
+            self.toolbox.register("map", Pool().map)
+        else:
+            self.toolbox.register("map", map)
+
+            print("d")
+
+            return self
