@@ -19,7 +19,7 @@ from deap import tools
 from sklearn.preprocessing import StandardScaler
 from sklearn.utils import check_X_y
 
-from deap.itertools import repeat
+
 
 class Fitness(base.Fitness):
 
@@ -170,7 +170,7 @@ class _BaseMetaHeuristic(BaseEstimator, SelectorMixin, ClassifierMixin):
         ones = np.ones([random_number, ], dtype=int)
         return sample(list(np.concatenate((zeros, ones), axis=0)), self.n_features_)
 
-    def _evaluate(self, individual, X, y, cv=3):
+    def _evaluate(self, individual, X, y, cv=5):
         """ Evaluate method
 
         Parameters
@@ -301,6 +301,10 @@ class _BaseMetaHeuristic(BaseEstimator, SelectorMixin, ClassifierMixin):
     def _get_accuracy(ind):
         return ind.fitness.wvalues[0]
 
+    @staticmethod
+    def _get_features(ind):
+        return sum(ind)
+
     def __getstate__(self):
         self_dict = self.__dict__.copy()
 
@@ -318,9 +322,14 @@ class _BaseMetaHeuristic(BaseEstimator, SelectorMixin, ClassifierMixin):
         self.stats.register("std", np.std)
         self.stats.register("min", np.min)
         self.stats.register("max", np.max)
+        self.feature_stats = tools.Statistics(self._get_features)
+        self.feature_stats.register("feat_avg", np.mean)
+        self.feature_stats.register("feat_std", np.std)
+        self.feature_stats.register("feat_min", np.min)
+        self.feature_stats.register("feat_max", np.max)
         self.logbook = [tools.Logbook() for i in range(self.repeat)]
         for i in range(self.repeat):
-            self.logbook[i].header = ["gen"] + self.stats.fields
+            self.logbook[i].header = ["gen"] + self.stats.fields + self.feature_stats.fields
 
     @staticmethod
     def adaptative_binary_mutation(individual, indpb):
@@ -328,10 +337,7 @@ class _BaseMetaHeuristic(BaseEstimator, SelectorMixin, ClassifierMixin):
         Ones = sum(individual)
         prob = Ones / (2*size)
     
-        low = repeat(low, size)
-        up = repeat(up, size)
-
-        for i, xl, xu in zip(xrange(size), low, up):
+        for i  in range(size):
             if random.random() < indpb:
                 if random.random() < prob :
                     individual[i] = 1
