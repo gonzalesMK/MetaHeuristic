@@ -94,7 +94,7 @@ class GeneticAlgorithm(_BaseMetaHeuristic):
         self.toolbox.register("evaluate", self._evaluate, X=None, y=None)
         self.toolbox.register("mutate", tools.mutUniformInt, low=0, up=1,
                               indpb=self.gene_mutation_prob)
-        
+
         self.parallel = parallel
         if parallel:
             from multiprocessing import Pool
@@ -190,7 +190,7 @@ class GeneticAlgorithm(_BaseMetaHeuristic):
 
         self.estimator.fit(X=self.transform(X), y=y)
 
-        return self 
+        return self
 
     def _start_toolbox(self):
         self.toolbox = base.Toolbox()

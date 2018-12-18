@@ -14,11 +14,11 @@ from sklearn.preprocessing import StandardScaler
 from sklearn.utils import check_X_y
 from sklearn.utils import check_random_state
 
-   
-class RandomSearch(_BaseMetaHeuristic):    
+
+class RandomSearch(_BaseMetaHeuristic):
     """Implementation of a Random Search Algorithm for Feature Selection. 
     It is useful as the worst case
-    
+
     Parameters
     ----------
     number_gen : positive integer, (default=5)
@@ -29,55 +29,55 @@ class RandomSearch(_BaseMetaHeuristic):
 
     verbose : boolean, (default=False)
             If true, print information in every generation
-            
+
     repeat : positive int, (default=1)
             Number of times to repeat the fitting process
-            
+
     parallel : boolean, (default=False)
             Set to True if you want to use multiprocessors            
 
     make_logbook: boolean, (default=False)
             If True, a logbook from DEAP will be made
-            
+
     cv_metric_fuction : callable, (default=matthews_corrcoef)            
             A metric score function as stated in the sklearn http://scikit-learn.org/stable/modules/model_evaluation.html#scoring-parameter
-    
+
     features_metric_function : callable, (default=pow(sum(mask)/(len(mask)*5), 2))
             A function that return a float from the binary mask of features
     """
 
-    def __init__(self, classifier=None, number_gen=5, size_pop=40,verbose=0, 
+    def __init__(self, classifier=None, number_gen=5, size_pop=40, verbose=0,
                  repeat=1, parallel=False, make_logbook=False,
                  random_state=None,
                  cv_metric_fuction=None, features_metric_function=None):
 
         super(RandomSearch, self).__init__(
-                name = "RandomSearch",
-                classifier=classifier, 
-                number_gen=number_gen,  
-                verbose=verbose,
-                repeat=repeat,
-                parallel=parallel, 
-                make_logbook=make_logbook,
-                random_state=random_state,
-                cv_metric_fuction=cv_metric_fuction,
-                features_metric_function=features_metric_function)
+            name="RandomSearch",
+            classifier=classifier,
+            number_gen=number_gen,
+            verbose=verbose,
+            repeat=repeat,
+            parallel=parallel,
+            make_logbook=make_logbook,
+            random_state=random_state,
+            cv_metric_fuction=cv_metric_fuction,
+            features_metric_function=features_metric_function)
 
         self.size_pop = size_pop
-                
+
         self.toolbox = base.Toolbox()
         self.toolbox.register("attribute", self._gen_in)
         self.toolbox.register("individual", tools.initIterate,
                               BaseMask, self.toolbox.attribute)
-        self.toolbox.register("population", tools.initRepeat, list, self.toolbox.individual)
+        self.toolbox.register("population", tools.initRepeat,
+                              list, self.toolbox.individual)
         self.toolbox.register("evaluate", self._evaluate)
-        
+
         if parallel:
             from multiprocessing import Pool
             self.toolbox.register("map", Pool().map)
         else:
             self.toolbox.register("map", map)
-
 
     def fit(self, X=None, y=None, normalize=False, **arg):
         """ Fit method
@@ -97,28 +97,28 @@ class RandomSearch(_BaseMetaHeuristic):
                 Set parameters
         """
         initial_time = time.clock()
-        
+
         self.set_params(**arg)
-        X,y = self._set_dataset(X=X, y=y, normalize=normalize)
+        X, y = self._set_dataset(X=X, y=y, normalize=normalize)
 
         if self.make_logbook:
             self._make_stats()
 
         self._random_object = check_random_state(self.random_state)
         random.seed(self.random_state)
-            
+
         best = tools.HallOfFame(1)
         for i in range(self.repeat):
             hof = tools.HallOfFame(1)
 
             for g in range(self.number_gen):
-                pop = self.toolbox.population(n=self.size_pop) 
-        
+                pop = self.toolbox.population(n=self.size_pop)
+
                 # Evaluate the entire population
                 fitnesses = self.toolbox.map(self.toolbox.evaluate, pop)
                 for ind, fit in zip(pop, fitnesses):
                     ind.fitness.values = fit
-        
+
                 # Log statistic
                 hof.update(pop)
                 if self.make_logbook:
@@ -126,7 +126,7 @@ class RandomSearch(_BaseMetaHeuristic):
                                            best_fit=hof[0].fitness.values[0],
                                            **self.stats.compile(pop))
                 if self.verbose:
-                    print("Repetition:", i+1 ,"Generation: ", g + 1, "/", self.number_gen,
+                    print("Repetition:", i+1, "Generation: ", g + 1, "/", self.number_gen,
                           "Elapsed time: ", time.clock() - initial_time, end="\r")
 
             best.update(hof)
@@ -138,7 +138,7 @@ class RandomSearch(_BaseMetaHeuristic):
         self.best_mask_ = np.asarray(best[0][:], dtype=bool)
         self.fitness_ = best[0].fitness.values
 
-        self.estimator.fit(X= self.transform(X), y=y)
+        self.estimator.fit(X=self.transform(X), y=y)
 
         return self
 
@@ -150,5 +150,5 @@ class RandomSearch(_BaseMetaHeuristic):
             self.toolbox.register("map", Pool().map)
         else:
             self.toolbox.register("map", map)
-    
+
         return self
