@@ -91,7 +91,10 @@ class BRKGA(_BaseMetaHeuristic):
         self.non_elite_size = size_pop - elite_size
         self.mutant_size = mutant_size
         self.n_cross_over = size_pop - (elite_size + mutant_size)
+        self.parallel = parallel
         
+    def _make_toolbox(self):
+        self.toolbox = base.Toolbox()
         self.toolbox.register("attribute", self._gen_in)
         self.toolbox.register("individual", tools.initIterate,
                               BaseMask, self.toolbox.attribute)
@@ -103,7 +106,7 @@ class BRKGA(_BaseMetaHeuristic):
         self.toolbox.register("map", map)
         self.toolbox.register("evaluate", self._evaluate, X= None, y=None)
 
-        if parallel:
+        if self.parallel:
             from multiprocessing import Pool
             self.toolbox.register("map", Pool(processes=4).map)
         else:
@@ -127,7 +130,7 @@ class BRKGA(_BaseMetaHeuristic):
                 Set parameters
         """
         initial_time = time.clock()
-        
+        self._make_toolbox()
         self.set_params(**arg)
         
         X,y = self._set_dataset(X=X, y=y, normalize=normalize)

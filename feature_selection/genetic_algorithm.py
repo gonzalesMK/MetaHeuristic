@@ -80,7 +80,7 @@ class GeneticAlgorithm(_BaseMetaHeuristic):
         self.toolbox.register("individual", tools.initIterate,
                               BaseMask, self.toolbox.attribute)
         self.toolbox.register("population", tools.initRepeat, list, self.toolbox.individual)
-        self.toolbox.register("mate", tools.cxTwoPoint)
+        self.toolbox.register("mate", tools.cxUniform)
         self.toolbox.register("select", tools.selTournament, tournsize=3)
         self.toolbox.register("map", map)
         self.toolbox.register("evaluate", self._evaluate, X= None, y=None)

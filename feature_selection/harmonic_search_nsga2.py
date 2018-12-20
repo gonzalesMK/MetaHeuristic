@@ -64,6 +64,12 @@ class HarmonicSearch2(_BaseMetaHeuristicPareto):
         self.estimator = SVC(kernel='linear', verbose=False, max_iter=10000) if classifier is None else clone(classifier)
         self.size_pop = size_pop
         self.skip = skip
+        self.parallel = parallel
+
+        self._make_toolbox()
+
+    def _make_toolbox(self):
+        self.toolbox = base.Toolbox()
         self.toolbox.register("attribute", self._gen_in)
         self.toolbox.register("individual", tools.initIterate,
                               BaseMask, self.toolbox.attribute)
@@ -71,7 +77,7 @@ class HarmonicSearch2(_BaseMetaHeuristicPareto):
         self.toolbox.register("get_worst", tools.selWorst, k=1)
         self.toolbox.register("evaluate", self._evaluate, X=None, y=None)
         
-        if parallel:
+        if self.parallel:
             self.toolbox.register("map", Pool().map)
         else:
             self.toolbox.register("map", map)
@@ -92,12 +98,11 @@ class HarmonicSearch2(_BaseMetaHeuristicPareto):
 
         normalize : boolean, (default=False)
                 If true, StandardScaler will be applied to X
-
-        **arg : parameters
+         **arg : parameters
                 Set parameters
         """
         initial_time = time.clock()
-        
+        self._make_toolbox()
         self.set_params(**arg)
         X,y = self._set_dataset(X=X, y=y, normalize=normalize)
 

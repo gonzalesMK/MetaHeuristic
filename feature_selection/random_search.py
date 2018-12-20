@@ -67,14 +67,18 @@ class RandomSearch(_BaseMetaHeuristic):
                 print_fnc=print_fnc)
 
         self.size_pop = size_pop
+        self.parallel = parallel
+        self._make_toolbox()
 
+    def _make_toolbox(self):
+        self.toolbox = base.Toolbox()
         self.toolbox.register("attribute", self._gen_in)
         self.toolbox.register("individual", tools.initIterate,
                               BaseMask, self.toolbox.attribute)
         self.toolbox.register("population", tools.initRepeat, list, self.toolbox.individual)
         self.toolbox.register("evaluate", self._evaluate)
         
-        if parallel:
+        if self.parallel:
             from multiprocessing import Pool
             self.toolbox.register("map", Pool().map)
         else:
@@ -98,8 +102,9 @@ class RandomSearch(_BaseMetaHeuristic):
         **arg : parameters
                 Set parameters
         """
-        initial_time = time.clock()
         
+        initial_time = time.clock()
+        self._make_toolbox()
         self.set_params(**arg)
         X,y = self._set_dataset(X=X, y=y, normalize=normalize)
 

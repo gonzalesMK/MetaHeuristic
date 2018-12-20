@@ -4,7 +4,6 @@ from itertools import compress
 from random import sample
 import random
 import numpy as np
-import matplotlib.pyplot as plt
 from sklearn.base import BaseEstimator, ClassifierMixin, TransformerMixin, clone
 from sklearn.model_selection import cross_val_score
 from sklearn.metrics import matthews_corrcoef
@@ -64,7 +63,7 @@ class SelectorMixin(six.with_metaclass(ABCMeta, TransformerMixin)):
         """
         mask = np.asarray(mask)
 
-        if np.issubdtype(mask.dtype, np.int) or np.issubdtype(mask.dtype, np.bool):
+        if np.issubdtype(np.dtype(mask.dtype), np.dtype(np.int).type) or np.issubdtype(np.dtype(mask.dtype).type, np.dtype(np.bool).type):
             if x.shape[1] != len(mask):
                 raise ValueError("X columns %d != mask length %d"
                                  % (x.shape[1], len(mask)))
@@ -162,10 +161,10 @@ class _BaseMetaHeuristicPareto(BaseEstimator, SelectorMixin, ClassifierMixin):
         self.print_fnc =  print_fnc               
         self.toolbox = base.Toolbox()
         
-        if print_fnc == None:
-            self.toolbox.register("print", print)
-        else:
-            self.toolbox.register("print", print_fnc)
+        if self.print_fnc == None:
+            self.print_fnc = print
+        
+        self.toolbox.register("print", self.print_fnc)
 
     def _gen_in(self):
         """ Generate a individual, DEAP function
@@ -265,34 +264,6 @@ class _BaseMetaHeuristicPareto(BaseEstimator, SelectorMixin, ClassifierMixin):
 
         return np.asarray(y, dtype=np.float64, order='C')
 
-    def plot_results(self):
-        """ This method plots all the statistics for each repetition
-        in a graph.
-            The curves are minimun, average and maximun accuracy and Area under
-            the curve
-        """
-        if not self.make_logbook:
-            raise ValueError("You need to set make_logbook to true")
-
-        for i in range(self.repeat):
-            gen = self.logbook[i].select("gen")
-            acc_mins = self.logbook[i].select("min")
-            acc_maxs = self.logbook[i].select("max")
-            acc_avgs = self.logbook[i].select("avg")
-
-            _, ax1 = plt.subplots()
-            line1 = ax1.plot(gen, acc_mins, "r-", label="Minimun Acc")
-            line2 = ax1.plot(gen, acc_maxs, "g-", label="Maximun Acc")
-            line3 = ax1.plot(gen, acc_avgs, "b-", label="Average Acc")
-            ax1.set_xlabel("Generation")
-            ax1.set_ylabel("Accuracy")
-
-            lns = line1 + line2 + line3
-            labs = [l.get_label() for l in lns]
-            ax1.legend(lns, labs, loc="center right")
-            ax1.set_title(self._name +" Repetition: " + str(i+1))
-
-
     def fit_transform(self, X, y, normalize = False, **fit_params):
         """Fit to data, then transform it.
 
@@ -320,7 +291,10 @@ class _BaseMetaHeuristicPareto(BaseEstimator, SelectorMixin, ClassifierMixin):
     @staticmethod
     def _get_accuracy(ind):
         return ind.fitness.wvalues[0]
-
+    @staticmethod
+    def _get_features(ind):
+        return sum(ind)
+        
     def __getstate__(self):
         self_dict = self.__dict__.copy()
         if 'toolbox' in self_dict:
@@ -333,8 +307,11 @@ class _BaseMetaHeuristicPareto(BaseEstimator, SelectorMixin, ClassifierMixin):
     def __setstate__(self,state):
         self.__dict__.update(state)
 
+
     def _make_stats(self):
-        self.stats = tools.Statistics(self._get_accuracy)
+        self.a_stats = tools.Statistics(self._get_accuracy)
+        self.b_stats = tools.Statistics(self._get_features)
+        self.stats = tools.MultiStatistics(fitness=self.a_stats,size=self.b_stats)
         self.stats.register("avg", np.mean)
         self.stats.register("std", np.std)
         self.stats.register("min", np.min)

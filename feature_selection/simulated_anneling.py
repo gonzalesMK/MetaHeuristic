@@ -78,6 +78,11 @@ class SimulatedAnneling(_BaseMetaHeuristic):
         self.initial_temp = initial_temp
         self.repetition_schedule = repetition_schedule
         self.skip = skip
+        self.parallel = parallel
+
+    def _make_toolbox(self):
+            
+        self.toolbox = base.Toolbox()
         self.toolbox.register("attribute", self._gen_in)
         self.toolbox.register("individual", tools.initIterate,
                               BaseMask, self.toolbox.attribute)
@@ -85,7 +90,7 @@ class SimulatedAnneling(_BaseMetaHeuristic):
         self.toolbox.register("evaluate", self._evaluate, X= None, y=None)
         self.toolbox.register("mutate", tools.mutUniformInt, low=0, up=1,
                               indpb=self.mutation_prob)
-        if parallel:
+        if self.parallel:
             from multiprocessing import Pool
             self.toolbox.register("map", Pool().map)
         else:
@@ -109,7 +114,7 @@ class SimulatedAnneling(_BaseMetaHeuristic):
                 Set parameters
         """
         initial_time = time.clock()
-
+        self._make_toolbox()
         self.set_params(**arg)
         X,y = self._set_dataset(X=X, y=y, normalize=normalize)
 

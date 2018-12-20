@@ -83,7 +83,10 @@ class SPEA2(_BaseMetaHeuristicPareto):
         self.cxUniform_indpb = cxUniform_indpb    
         self.individual_mut_prob=individual_mut_prob
         self.gene_mutation_prob = gene_mutation_prob
+        self.parallel = parallel
         
+    def _make_toolbox(self):
+        self.toolbox = base.Toolbox()
         self.toolbox.register("attribute", self._gen_in)
         self.toolbox.register("individual", tools.initIterate,
                               BaseMask, self.toolbox.attribute)
@@ -96,7 +99,7 @@ class SPEA2(_BaseMetaHeuristicPareto):
         self.toolbox.register("map", map)
         self.toolbox.register("evaluate", self._evaluate, X= None, y=None)
         
-        if parallel:
+        if self.parallel:
             from multiprocessing import Pool
             self.toolbox.register("map", Pool(processes=4).map)
         else:
@@ -120,7 +123,7 @@ class SPEA2(_BaseMetaHeuristicPareto):
                 Set parameters
         """
         initial_time = time.clock()
-        
+        self._make_toolbox()
         self.set_params(**arg)
         
         X,y = self._set_dataset(X=X, y=y, normalize=normalize)

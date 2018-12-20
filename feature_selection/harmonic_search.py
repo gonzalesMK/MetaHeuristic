@@ -4,9 +4,10 @@ from deap import base
 from deap import tools
 from .base import _BaseMetaHeuristic
 from .base import BaseMask
-from sklearn.svm import  SVC
+from sklearn.svm import SVC
 from sklearn.base import clone
 from multiprocessing import Pool
+
 
 class HarmonicSearch(_BaseMetaHeuristic):
     """Implementation of a Harmonic Search Algorithm for Feature Selection
@@ -41,42 +42,48 @@ class HarmonicSearch(_BaseMetaHeuristic):
             A function that return a float from the binary mask of features
     """
 
-    def __init__(self, classifier=None, HMCR=0.95, 
+    def __init__(self, classifier=None, HMCR=0.95,
                  number_gen=100, size_pop=50, verbose=0, repeat=1,
-                 make_logbook=False, random_state=None, parallel = False,
+                 make_logbook=False, random_state=None, parallel=False,
                  cv_metric_fuction=None, features_metric_function=None,
-                 print_fnc = None, skip=0):
+                 print_fnc=None, skip=0):
 
         super(HarmonicSearch, self).__init__(
-                name = "HarmonicSearch",
-                classifier=classifier,
-                number_gen=number_gen,
-                verbose=verbose,
-                repeat=repeat,
-                parallel=parallel,
-                make_logbook=make_logbook,
-                random_state=random_state,
-                cv_metric_fuction=cv_metric_fuction,
-                features_metric_function=features_metric_function,
-                print_fnc=print_fnc)
+            name="HarmonicSearch",
+            classifier=classifier,
+            number_gen=number_gen,
+            verbose=verbose,
+            repeat=repeat,
+            parallel=parallel,
+            make_logbook=make_logbook,
+            random_state=random_state,
+            cv_metric_fuction=cv_metric_fuction,
+            features_metric_function=features_metric_function,
+            print_fnc=print_fnc)
 
         self.HMCR = HMCR
-        self.estimator = SVC(kernel='linear', verbose=False, max_iter=10000) if classifier is None else clone(classifier)
+        self.estimator = SVC(kernel='linear', verbose=False,
+                             max_iter=10000) if classifier is None else clone(classifier)
         self.size_pop = size_pop
         self.skip = skip
+        self.parallel = parallel
+
+    def _make_toolbox(self):
+        self.toolbox = base.Toolbox()
         self.toolbox.register("attribute", self._gen_in)
         self.toolbox.register("individual", tools.initIterate,
                               BaseMask, self.toolbox.attribute)
-        self.toolbox.register("population", tools.initRepeat, list, self.toolbox.individual)
+        self.toolbox.register("population", tools.initRepeat,
+                              list, self.toolbox.individual)
         self.toolbox.register("get_worst", tools.selWorst, k=1)
         self.toolbox.register("evaluate", self._evaluate, X=None, y=None)
 
-        if parallel:
+        if self.parallel:
             self.toolbox.register("map", Pool().map)
         else:
             self.toolbox.register("map", map)
 
-        self.toolbox.register("mutate", tools.mutUniformInt,low=0, up=1,
+        self.toolbox.register("mutate", tools.mutUniformInt, low=0, up=1,
                               indpb=1-self.HMCR)
 
     def fit(self, X=None, y=None, normalize=False, **arg):
@@ -97,9 +104,9 @@ class HarmonicSearch(_BaseMetaHeuristic):
                 Set parameters
         """
         initial_time = time.clock()
-
+        self._make_toolbox()
         self.set_params(**arg)
-        X,y = self._set_dataset(X=X, y=y, normalize=normalize)
+        X, y = self._set_dataset(X=X, y=y, normalize=normalize)
 
         self._set_fit()
 
@@ -131,20 +138,20 @@ class HarmonicSearch(_BaseMetaHeuristic):
                 # Log statistic
                 hof.update(harmony_mem)
                 pareto_front.update(harmony_mem)
-                
-                if self.skip==0 or g % self.skip == 0 :
+
+                if self.skip == 0 or g % self.skip == 0:
                     if self.make_logbook:
                         self.logbook[i].record(gen=g,
                                                best_fit=hof[0].fitness.values[0],
                                                **self.stats.compile(harmony_mem))
-                        self._make_generation( hof, pareto_front)
-                        
+                        self._make_generation(hof, pareto_front)
+
                     if self.verbose:
                         self._print(g, i, initial_time, time.clock())
 
-            self._make_repetition(hof,pareto_front)
+            self._make_repetition(hof, pareto_front)
 
-        self.estimator.fit(X= self.transform(X), y=y)
+        self.estimator.fit(X=self.transform(X), y=y)
 
         return self
 
@@ -155,13 +162,13 @@ class HarmonicSearch(_BaseMetaHeuristic):
         new_harmony = self.toolbox.individual()
 
         rand_list = self._random_object.randint(low=0, high=len(pop),
-                                               size=len(new_harmony))
+                                                size=len(new_harmony))
 
         for i in range(len(new_harmony)):
             new_harmony[i] = pop[rand_list[i]][i]
-        
+
         self.toolbox.mutate(new_harmony)
-        
+
         return new_harmony
 
     def set_params(self, **params):

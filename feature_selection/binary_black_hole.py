@@ -66,19 +66,9 @@ class BinaryBlackHole(_BaseMetaHeuristic):
                 print_fnc=print_fnc)
 
         self.size_pop = size_pop
-
-        self.toolbox.register("attribute", self._gen_in)
-        self.toolbox.register("star", tools.initIterate, BaseMask, self.toolbox.attribute)
-        self.toolbox.register("galaxy", tools.initRepeat, list, self.toolbox.star)
-        self.toolbox.register("update", self._updateStar)
-        self.toolbox.register("evaluate", self._evaluate)
         self.parallel = parallel
 
-        if parallel:
-            from multiprocessing import Pool
-            self.toolbox.register("map", Pool().map)
-        else:
-            self.toolbox.register("map", map)
+        self._make_toolbox()
 
     def fit(self, X=None, y=None, normalize=False, **arg):
         """ Fit method
@@ -99,7 +89,10 @@ class BinaryBlackHole(_BaseMetaHeuristic):
         """
         initial_time = time.clock()
 
+        self._make_toolbox()
+
         self.set_params(**arg)
+        
         X,y = self._set_dataset(X=X, y=y, normalize=normalize)
 
         self._set_fit()
@@ -129,15 +122,18 @@ class BinaryBlackHole(_BaseMetaHeuristic):
                 hof.update(galaxy)
                 pareto_front.update(galaxy)
                 if self.make_logbook:
+                        record = self.stats.compile(galaxy)
+                        print("Record: {}".format(record))
                         self.logbook[i].record(gen=g,
                                                best_fit=hof[0].fitness.values[0],
-                                               **self.stats.compile(galaxy))
+                                               **record)
                         self._make_generation( hof, pareto_front)
                         
                 if self.verbose:
                     self._print(g, i, initial_time, time.clock())
 
             self._make_repetition(hof,pareto_front)
+            #print(len(self.gen_hof_))
 
         self.estimator.fit(X= self.transform(X), y=y)
 
@@ -164,3 +160,21 @@ class BinaryBlackHole(_BaseMetaHeuristic):
             self.toolbox.register("map", map)
 
         return self
+
+    def _make_toolbox(self):
+        
+        self.toolbox = base.Toolbox()
+        self.toolbox.register("attribute", self._gen_in)
+        self.toolbox.register("star", tools.initIterate, BaseMask, self.toolbox.attribute)
+        self.toolbox.register("galaxy", tools.initRepeat, list, self.toolbox.star)
+        self.toolbox.register("update", self._updateStar)
+        self.toolbox.register("evaluate", self._evaluate)
+        self.toolbox.register("print", self.print_fnc)        
+        
+        if self.parallel:
+            from multiprocessing import Pool
+            self.toolbox.register("map", Pool().map)
+        else:
+            self.toolbox.register("map", map)
+
+ 

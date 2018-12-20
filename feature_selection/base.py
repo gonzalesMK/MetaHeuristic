@@ -4,7 +4,6 @@ from itertools import compress
 from random import sample
 import random
 import numpy as np
-import matplotlib.pyplot as plt
 from sklearn.base import BaseEstimator, ClassifierMixin, TransformerMixin, clone
 from sklearn.model_selection import cross_val_score
 from sklearn.metrics import matthews_corrcoef
@@ -62,7 +61,7 @@ class SelectorMixin(six.with_metaclass(ABCMeta, TransformerMixin)):
         """
         mask = np.asarray(mask)
 
-        if np.issubdtype(mask.dtype, np.int) or np.issubdtype(mask.dtype, np.bool):
+        if np.issubdtype(mask.dtype, np.unsignedinteger) or np.issubdtype(mask.dtype, np.signedinteger) or np.issubdtype(np.dtype(mask.dtype).type, np.dtype(np.bool).type):
             if x.shape[1] != len(mask):
                 raise ValueError("X columns %d != mask length %d"
                                  % (x.shape[1], len(mask)))
@@ -157,13 +156,14 @@ class _BaseMetaHeuristic(BaseEstimator, SelectorMixin, ClassifierMixin):
         self.features_metric_function= features_metric_function
         self._random_object = check_random_state(self.random_state)
         self.print_fnc =  print_fnc               
+
         random.seed(self.random_state)
         
         self.toolbox = base.Toolbox()
-        if print_fnc == None:
-            self.toolbox.register("print", print)
-        else:
-            self.toolbox.register("print", print_fnc)
+        if self.print_fnc == None:
+            self.print_fnc = print
+        
+        self.toolbox.register("print", self.print_fnc)
 
     def _gen_in(self):
         """ Generate a individual, DEAP function
@@ -251,33 +251,6 @@ class _BaseMetaHeuristic(BaseEstimator, SelectorMixin, ClassifierMixin):
 
         return np.asarray(y, dtype=np.float64, order='C')
 
-    def plot_results(self):
-        """ This method plots all the statistics for each repetition
-        in a graph.
-            The curves are minimun, average and maximun accuracy
-        """
-        if not self.make_logbook:
-            raise ValueError("You need to set make_logbook to true")
-
-        for i in range(self.repeat):
-            gen = self.logbook[i].select("gen")
-            acc_mins = self.logbook[i].select("min")
-            acc_maxs = self.logbook[i].select("max")
-            acc_avgs = self.logbook[i].select("avg")
-
-            _, ax1 = plt.subplots()
-            line1 = ax1.plot(gen, acc_mins, "r-", label="Minimun Acc")
-            line2 = ax1.plot(gen, acc_maxs, "g-", label="Maximun Acc")
-            line3 = ax1.plot(gen, acc_avgs, "b-", label="Average Acc")
-            ax1.set_xlabel("Generation")
-            ax1.set_ylabel("Accuracy")
-
-            lns = line1 + line2 + line3
-            labs = [l.get_label() for l in lns]
-            ax1.legend(lns, labs, loc="center right")
-            ax1.set_title(self._name +" Repetition: " + str(i+1))
-
-
     def fit_transform(self, X, y, normalize = False, **fit_params):
         """Fit to data, then transform it.
 
@@ -306,12 +279,15 @@ class _BaseMetaHeuristic(BaseEstimator, SelectorMixin, ClassifierMixin):
     def _get_accuracy(ind):
         return ind.fitness.wvalues[0]
 
+    @staticmethod
+    def _get_features(ind):
+        return sum(ind)
     def __getstate__(self):
         self_dict = self.__dict__.copy()
         if 'toolbox' in self_dict:
 	        del self_dict['toolbox']
-        if 'print_fnc' in self_dict:
-	        del self_dict['print_fnc']
+        #if 'print_fnc' in self_dict:
+	    #    del self_dict['print_fnc']
 
         return self_dict
 
@@ -319,18 +295,26 @@ class _BaseMetaHeuristic(BaseEstimator, SelectorMixin, ClassifierMixin):
         self.__dict__.update(state)
 
     def _make_stats(self):
-        self.stats = tools.Statistics(self._get_accuracy)
+        stats_fit = tools.Statistics(key=lambda ind: ind.fitness.values[0])
+        stats_size = tools.Statistics(key=len)
+        self.stats = tools.MultiStatistics(fitness=stats_fit, size=stats_size)
         self.stats.register("avg", np.mean)
         self.stats.register("std", np.std)
         self.stats.register("min", np.min)
         self.stats.register("max", np.max)
         self.logbook = [tools.Logbook() for i in range(self.repeat)]
+        
         for i in range(self.repeat):
-            self.logbook[i].header = ["gen"] + self.stats.fields
+            self.logbook[i].header = "gen", 'best_fit' , "fitness", "size"
+        #print(self.logbook[0].keys())
+        for i in range(self.repeat):
+            self.logbook[i].chapters["fitness"].header = self.stats.fields
+            self.logbook[i].chapters["size"].header = self.stats.fields
 
     def _set_dataset(self, X, y, normalize):
         if normalize:
             self._sc_X = StandardScaler()
+            X = np.asarray(X, dtype=np.float64)
             X = self._sc_X.fit_transform(X)
         self.normalize_ = normalize
 
