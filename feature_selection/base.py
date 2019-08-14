@@ -18,11 +18,13 @@ from deap import tools
 from sklearn.preprocessing import StandardScaler
 from sklearn.utils import check_X_y
 
+
 class Fitness(base.Fitness):
 
-    def __init__(self, weights=(1,-1), values=(0,0)):
+    def __init__(self, weights=(1, -1), values=(0, 0)):
         self.weights = weights
         super(Fitness, self).__init__(values)
+
 
 class BaseMask(list, object):
 
@@ -30,13 +32,13 @@ class BaseMask(list, object):
         self[:] = mask
         self.fitness = Fitness((1, -1), (0, 0))
 
-#    def __getstate__(self):
-#        self_dict = self.__dict__.copy()
-#        return self_dict
-#
-#    def __setstate__(self,state):
-#        self.__dict__.update(state)
-#
+    # def __getstate__(self):
+        #        self_dict = self.__dict__.copy()
+        #        return self_dict
+        #
+    # def __setstate__(self,state):
+        #        self.__dict__.update(state)
+        #
 
 
 class SelectorMixin(six.with_metaclass(ABCMeta, TransformerMixin)):
@@ -67,12 +69,12 @@ class SelectorMixin(six.with_metaclass(ABCMeta, TransformerMixin)):
                                  % (x.shape[1], len(mask)))
         else:
             raise ValueError("Mask type is {} not allowed".format(mask.dtype))
-            
-    # I don't see utility in here
-#        if hasattr(x, "toarray"):
-#            ind = np.arange(mask.shape[0])
-#            mask = ind[mask]
-#
+
+        # I don't see utility in here
+        #if hasattr(x, "toarray"):
+            #            ind = np.arange(mask.shape[0])
+            #            mask = ind[mask]
+            #
         return mask
 
     def get_support(self, indices=False):
@@ -128,8 +130,8 @@ class SelectorMixin(six.with_metaclass(ABCMeta, TransformerMixin)):
 
         if not mask.any():
             warn("No features were selected: either the data is"
-                 " too noisy or the selection test too strict.",
-                 UserWarning)
+                " too noisy or the selection test too strict.",
+                UserWarning)
             return np.empty(0).reshape((X.shape[0], 0))
 
         if len(mask) != X.shape[1]:
@@ -140,26 +142,26 @@ class SelectorMixin(six.with_metaclass(ABCMeta, TransformerMixin)):
 
 class _BaseMetaHeuristic(BaseEstimator, SelectorMixin, ClassifierMixin):
 
-    def __init__(self, name,estimator=None, number_gen=20,
+    def __init__(self, name, estimator=None, number_gen=20,
                  verbose=0, repeat=1, parallel=False,
                  make_logbook=False, random_state=None,
                  cv_metric_function=make_scorer(matthews_corrcoef),
-                 features_metric_function=None, print_fnc = None):
+                 features_metric_function=None, print_fnc=None):
 
         self.name = name
-        self.estimator =  estimator 
+        self.estimator = estimator
         self.number_gen = number_gen
         self.verbose = verbose
         self.repeat = repeat
         self.parallel = parallel
         self.make_logbook = make_logbook
         self.random_state = random_state
-        self.cv_metric_function= cv_metric_function
-        self.features_metric_function= features_metric_function
-        self.print_fnc =  print_fnc               
-        
+        self.cv_metric_function = cv_metric_function
+        self.features_metric_function = features_metric_function
+        self.print_fnc = print_fnc
+
         random.seed(self.random_state)
-     
+
     def _gen_in(self):
         """ 
             Generate a individual, DEAP function
@@ -198,7 +200,7 @@ class _BaseMetaHeuristic(BaseEstimator, SelectorMixin, ClassifierMixin):
                                      y=y, cv=cv,
                                      scoring=self.cv_metric_function)
 
-        if self.features_metric_function == None :
+        if self.features_metric_function == None:
             feature_score = pow(float(sum(individual))/(len(individual)*5), 2)
         else:
             feature_score = self.features_metric_function(individual)
@@ -214,18 +216,18 @@ class _BaseMetaHeuristic(BaseEstimator, SelectorMixin, ClassifierMixin):
 
         X_ = self.transform(X)
         y_pred = self._estimator.predict(X_)
-        return   self.classes_.take(np.asarray(y_pred, dtype=np.intp))
+        return self.classes_.take(np.asarray(y_pred, dtype=np.intp))
 
-            #        elif self.predict_with == 'all':
-            #
-            #            predict_ = []
-            #
-            #            for mask in self.mask_:
-            #                self.estimator.fit(X=self.transform(self.X_, mask=mask), y=self.y_)
-            #                X_ = self.transform(X, mask=mask)
-            #                y_pred = self.estimator.predict(X_)
-            #                predict_.append(self.classes_.take(np.asarray(y_pred, dtype=np.intp)))
-            #            return np.asarray(predict_)
+        #        elif self.predict_with == 'all':
+        #
+        #            predict_ = []
+        #
+        #            for mask in self.mask_:
+        #                self.estimator.fit(X=self.transform(self.X_, mask=mask), y=self.y_)
+        #                X_ = self.transform(X, mask=mask)
+        #                y_pred = self.estimator.predict(X_)
+        #                predict_.append(self.classes_.take(np.asarray(y_pred, dtype=np.intp)))
+        #            return np.asarray(predict_)
     '''
     @staticmethod # is different, but I don't think that we use it anyway
     def score_func_to_gridsearch(estimator, X_test=None, y_test=None):
@@ -238,12 +240,13 @@ class _BaseMetaHeuristic(BaseEstimator, SelectorMixin, ClassifierMixin):
 
         return sum([ i[0]-i[1] for i in estimator.fitnesses_]) / float(len(estimator.fitnesses_))
     '''
+
     def _validate_targets(self, y):
         y_ = column_or_1d(y, warn=True)
         check_classification_targets(y)
         cls, y = np.unique(y_, return_inverse=True)
         if len(cls) < 1:
-            #print(y)
+            # print(y)
             raise ValueError("The number of classes has to be at least one;"
                              "got %d" % len(cls))
 
@@ -251,7 +254,7 @@ class _BaseMetaHeuristic(BaseEstimator, SelectorMixin, ClassifierMixin):
 
         return np.asarray(y, dtype=np.float64, order='C')
 
-    def fit_transform(self, X, y, normalize = False, **fit_params):
+    def fit_transform(self, X, y, normalize=False, **fit_params):
         """Fit to data, then transform it.
 
         Fits transformer to X and y with optional parameters fit_params
@@ -286,16 +289,15 @@ class _BaseMetaHeuristic(BaseEstimator, SelectorMixin, ClassifierMixin):
     def __getstate__(self):
         self_dict = self.__dict__.copy()
         if '_toolbox' in self_dict:
-	        del self_dict['_toolbox']
+            del self_dict['_toolbox']
         if 'print_fnc' in self_dict:
-	        del self_dict['print_fnc']
+            del self_dict['print_fnc']
 
         return self_dict
 
-    def __setstate__(self,state):
+    def __setstate__(self, state):
         self.__dict__.update(state)
 
-    # Is different
     def _make_stats(self):
         stats_fit = tools.Statistics(key=lambda ind: ind.fitness.values[0])
         stats_size = tools.Statistics(key=len)
@@ -310,10 +312,10 @@ class _BaseMetaHeuristic(BaseEstimator, SelectorMixin, ClassifierMixin):
         self.feature_stats.register("feat_min", np.min)
         self.feature_stats.register("feat_max", np.max)
         self.logbook = [tools.Logbook() for i in range(self.repeat)]
-        
+
         for i in range(self.repeat):
-            self.logbook[i].header = "gen", 'best_fit' , "fitness", "size"
-        #print(self.logbook[0].keys())
+            self.logbook[i].header = "gen", 'best_fit', "fitness", "size"
+        # print(self.logbook[0].keys())
         for i in range(self.repeat):
             self.logbook[i].chapters["fitness"].header = self.stats.fields
             self.logbook[i].chapters["size"].header = self.stats.fields
@@ -356,14 +358,14 @@ class _BaseMetaHeuristic(BaseEstimator, SelectorMixin, ClassifierMixin):
 
         self._toolbox.register("evaluate", self._evaluate, X=X, y=y)
 
-        return X,y
+        return X, y
 
     def _set_fit(self):
         pass
-        
+
     def _make_generation_log(self, hof, pareto_front):
-            self.i_gen_pareto_.append(pareto_front[:])
-            self.i_gen_hof_.append(hof[0])
+        self.i_gen_pareto_.append(pareto_front[:])
+        self.i_gen_hof_.append(hof[0])
 
     def _make_repetition_log(self, hof, pareto_front):
         self.best_.update(hof)
@@ -373,16 +375,16 @@ class _BaseMetaHeuristic(BaseEstimator, SelectorMixin, ClassifierMixin):
             self.hof_.append(hof[0])
             self.gen_pareto_.append(self.i_gen_pareto_)
             self.gen_hof_.append(self.i_gen_hof_)
-            self.i_gen_pareto_=[]
-            self.i_gen_hof_=[]
+            self.i_gen_pareto_ = []
+            self.i_gen_hof_ = []
 
     def _setup(self):
         " Initialize the toolbox and statistical variables"
 
         self._toolbox = base.Toolbox()
-        
+
         if self.print_fnc == None:
-            self._toolbox.register("print", print)   
+            self._toolbox.register("print", print)
         else:
             self._toolbox.register("print", self.print_fnc)
 
@@ -391,7 +393,7 @@ class _BaseMetaHeuristic(BaseEstimator, SelectorMixin, ClassifierMixin):
             self._toolbox.register("map", Pool().map)
         else:
             self._toolbox.register("map", map)
-    
+
         if self.make_logbook:
             self._make_stats()
             self.pareto_front_ = []
@@ -405,13 +407,12 @@ class _BaseMetaHeuristic(BaseEstimator, SelectorMixin, ClassifierMixin):
             self._estimator = SVC(gamma="auto")
         else:
             self._estimator = self.estimator
-        
+
         self._random_object = check_random_state(self.random_state)
         random.seed(self.random_state)
 
         self.best_ = tools.HallOfFame(1)
         self.best_pareto_front_ = tools.ParetoFront()
-
 
     def best_pareto(self):
         return self.best_pareto_front_
@@ -424,14 +425,14 @@ class _BaseMetaHeuristic(BaseEstimator, SelectorMixin, ClassifierMixin):
 
     def all_solutions(self):
         return self.hof_
-    
-    def _print(self,gen, rep, initial_time, final_time):
+
+    def _print(self, gen, rep, initial_time, final_time):
         self._toolbox.print("""Repetition: {:d} \t Generation: {:d}/{:d} 
-                Elapsed time: {:.4f} \r""".format( rep+1,gen + 1,
-                self.number_gen,final_time - initial_time))
+                Elapsed time: {:.4f} \r""".format(rep+1, gen + 1,
+                                                  self.number_gen, final_time - initial_time))
 
     def set_params(self, **params):
 
         super().set_params(**params)
-        
+
         return self
