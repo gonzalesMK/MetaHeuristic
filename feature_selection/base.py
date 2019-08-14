@@ -243,7 +243,7 @@ class _BaseMetaHeuristic(BaseEstimator, SelectorMixin, ClassifierMixin):
         check_classification_targets(y)
         cls, y = np.unique(y_, return_inverse=True)
         if len(cls) < 1:
-            print(y)
+            #print(y)
             raise ValueError("The number of classes has to be at least one;"
                              "got %d" % len(cls))
 
