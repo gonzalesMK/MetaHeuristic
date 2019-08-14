@@ -2,15 +2,18 @@ from __future__ import print_function
 from timeit import time
 from deap import base
 from deap import tools
-from .base_pareto import _BaseMetaHeuristicPareto
-from .base_pareto import BaseMask
-from sklearn.svm import  SVC
+
+from .base import _BaseMetaHeuristic
+from .base import BaseMask
+from .base import *
+from sklearn.svm import SVC
 from sklearn.base import clone
 from multiprocessing import Pool
 
-class HarmonicSearch2(_BaseMetaHeuristicPareto):
+
+class HarmonicSearch2(_BaseMetaHeuristic):
     """Implementation of a Harmonic Search Algorithm for Feature Selection
-    
+
     Parameters
     ----------
     HMCR : float in [0,1], (default=0.95)
@@ -24,65 +27,60 @@ class HarmonicSearch2(_BaseMetaHeuristicPareto):
 
     verbose : boolean, (default=False)
             If true, print information in every generation
-            
+
     repeat : positive int, (default=1)
             Number of times to repeat the fitting process
-            
+
     parallel : boolean, (default=False)
             Set to True if you want to use multiprocessors            
 
     make_logbook : boolean, (default=False)
             If True, a logbook from DEAP will be made
-            
-    cv_metric_fuction : callable, (default=matthews_corrcoef)            
+
+    cv_metric_function : callable, (default=matthews_corrcoef)            
             A metric score function as stated in the sklearn http://scikit-learn.org/stable/modules/model_evaluation.html#scoring-parameter
-    
+
     features_metric_function : callable, (default=pow(sum(mask)/(len(mask)*5), 2))
             A function that return a float from the binary mask of features
     """
 
-    def __init__(self, classifier=None, HMCR=0.95,
+    def __init__(self, estimator=SVC(), HMCR=0.95,
                  number_gen=100, size_pop=50, verbose=0, repeat=1,
-                 make_logbook=False, random_state=None, parallel = False,
-                 cv_metric_fuction=None, features_metric_function="log",
-                 print_fnc = None, skip=0):
+                 make_logbook=False, random_state=None, parallel=False,
+                 cv_metric_function=None, features_metric_function=None,
+                 print_fnc=None, skip=0, name="HarmonicSearch2"):
 
-        super(HarmonicSearch2, self).__init__(
-                name = "HarmonicSearch",
-                classifier=classifier, 
-                number_gen=number_gen,  
-                verbose=verbose,
-                repeat=repeat,
-                parallel=parallel, 
-                make_logbook=make_logbook,
-                random_state=random_state,
-                cv_metric_fuction=cv_metric_fuction,
-                features_metric_function=features_metric_function,
-                print_fnc=print_fnc)
+        self.name = name
+        self.number_gen = number_gen
+        self.verbose = verbose
+        self.repeat = repeat
+        self.parallel = parallel
+        self.make_logbook = make_logbook
+        self.random_state = random_state
+        self.cv_metric_function = cv_metric_function
+        self.features_metric_function = features_metric_function
+        self.print_fnc = print_fnc
 
         self.HMCR = HMCR
-        self.estimator = SVC(kernel='linear', verbose=False, max_iter=10000) if classifier is None else clone(classifier)
+        self.estimator = estimator
         self.size_pop = size_pop
         self.skip = skip
-        self.parallel = parallel
+        random.seed(self.random_state)
+     
 
-        self._make_toolbox()
 
     def _make_toolbox(self):
-        self.toolbox = base.Toolbox()
-        self.toolbox.register("attribute", self._gen_in)
-        self.toolbox.register("individual", tools.initIterate,
-                              BaseMask, self.toolbox.attribute)
-        self.toolbox.register("population", tools.initRepeat, list, self.toolbox.individual)
-        self.toolbox.register("get_worst", tools.selWorst, k=1)
-        self.toolbox.register("evaluate", self._evaluate, X=None, y=None)
-        
-        if self.parallel:
-            self.toolbox.register("map", Pool().map)
-        else:
-            self.toolbox.register("map", map)
-            
-        self.toolbox.register("mutate", tools.mutUniformInt,low=0, up=1,
+        super()._make_toolbox()
+
+        self._toolbox.register("attribute", self._gen_in)
+        self._toolbox.register("individual", tools.initIterate,
+                              BaseMask, self._toolbox.attribute)
+        self._toolbox.register("population", tools.initRepeat,
+                              list, self._toolbox.individual)
+
+        self._toolbox.register("get_worst", tools.selWorst, k=1)
+
+        self._toolbox.register("mutate", tools.mutUniformInt, low=0, up=1,
                               indpb=1-self.HMCR)
 
     def fit(self, X=None, y=None, normalize=False, **arg):
@@ -104,17 +102,17 @@ class HarmonicSearch2(_BaseMetaHeuristicPareto):
         initial_time = time.clock()
         self._make_toolbox()
         self.set_params(**arg)
-        X,y = self._set_dataset(X=X, y=y, normalize=normalize)
+        X, y = self._set_dataset(X=X, y=y, normalize=normalize)
 
         self._set_fit()
-        
+
         for i in range(self.repeat):
-            harmony_mem = self.toolbox.population(n=self.size_pop)
+            harmony_mem = self._toolbox.population(n=self.size_pop)
             hof = tools.HallOfFame(1)
             pareto_front = tools.ParetoFront()
-            
+
             # Evaluate the entire population
-            fitnesses = self.toolbox.map(self.toolbox.evaluate, harmony_mem)
+            fitnesses = self._toolbox.map(self._toolbox.evaluate, harmony_mem)
 
             for ind, fit in zip(harmony_mem, fitnesses):
                 ind.fitness.values = fit
@@ -123,31 +121,31 @@ class HarmonicSearch2(_BaseMetaHeuristicPareto):
 
                 # Improvise a New Harmony
                 new_harmony = self._improvise(harmony_mem)
-                new_harmony.fitness.values = self.toolbox.evaluate(new_harmony)
-                
+                new_harmony.fitness.values = self._toolbox.evaluate(new_harmony)
+
                 harmony_mem.append(new_harmony)
-                
+
                 # Remove the Worst Harmony
-                harmony_mem = tools.selNSGA2( harmony_mem, self.size_pop)
+                harmony_mem = tools.selNSGA2(harmony_mem, self.size_pop)
                 harmony_mem.pop()
 
                 # Log statistic
                 hof.update(harmony_mem)
                 pareto_front.update(harmony_mem)
-                
-                if self.skip==0 or g % self.skip == 0 :
+
+                if self.skip == 0 or g % self.skip == 0:
                     if self.make_logbook:
                         self.logbook[i].record(gen=g,
                                                best_fit=hof[0].fitness.values[0],
                                                **self.stats.compile(harmony_mem))
-                        self._make_generation( hof, pareto_front)
-                        
+                        self._make_generation_log(hof, pareto_front)
+
                     if self.verbose:
                         self._print(g, i, initial_time, time.clock())
 
-            self._make_repetition(hof,pareto_front)
+            self._make_repetition_log(hof, pareto_front)
 
-        self.estimator.fit(X= self.transform(X), y=y)
+        self._estimator.fit(X=self.transform(X), y=y)
 
         return self
 
@@ -155,29 +153,16 @@ class HarmonicSearch2(_BaseMetaHeuristicPareto):
         """ Function that improvise a new harmony"""
         # HMCR = Harmonic Memory Considering Rate
         # pylint: disable=E1101
-        new_harmony = self.toolbox.individual()
+        new_harmony = self._toolbox.individual()
 
         rand_list = self._random_object.randint(low=0, high=len(pop),
-                                               size=len(new_harmony))
+                                                size=len(new_harmony))
 
         for i in range(len(new_harmony)):
             new_harmony[i] = pop[rand_list[i]][i]
-        
-        self.toolbox.mutate(new_harmony)
-        
+
+        self._toolbox.mutate(new_harmony)
+
         return new_harmony
-    
-    def set_params(self, **params):
+
         
-        super(HarmonicSearch2, self).set_params(**params)
-        
-        self.toolbox.register("mutate", tools.mutUniformInt, low=0, up=1,
-                              indpb=1-self.HMCR)
-        
-        if self.parallel:
-            from multiprocessing import Pool
-            self.toolbox.register("map", Pool().map)
-        else:
-            self.toolbox.register("map", map)    
-        
-        return self

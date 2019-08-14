@@ -9,11 +9,11 @@ from sklearn.model_selection import cross_val_score
 from sklearn.metrics import matthews_corrcoef
 from sklearn.metrics import make_scorer
 from sklearn.utils.validation import check_array, check_is_fitted, column_or_1d
-from sklearn.externals import six
+import six
 from sklearn.utils.multiclass import check_classification_targets
 from sklearn.utils import check_random_state
-from sklearn.svm import  SVC
-from deap import  base
+from sklearn.svm import SVC
+from deap import base
 from deap import tools
 from sklearn.preprocessing import StandardScaler
 from sklearn.utils import check_X_y
@@ -21,11 +21,13 @@ from sklearn.metrics import auc
 " Add area under the curve to plot graph"
 " Change the score_func_to_gridsearch(estimator, X_test=None, y_test=None):"
 
+
 class Fitness(base.Fitness):
 
-    def __init__(self, weights=(1,-1), values=(0,0)):
+    def __init__(self, weights=(1, -1), values=(0, 0)):
         self.weights = weights
         super(Fitness, self).__init__(values)
+
 
 class BaseMask(list, object):
 
@@ -40,6 +42,7 @@ class BaseMask(list, object):
 #    def __setstate__(self,state):
 #        self.__dict__.update(state)
 #
+
 
 class SelectorMixin(six.with_metaclass(ABCMeta, TransformerMixin)):
     """
@@ -108,7 +111,6 @@ class SelectorMixin(six.with_metaclass(ABCMeta, TransformerMixin)):
         check_is_fitted(self, 'best_')
         return np.asarray(self.best_[0][:], dtype=bool)
 
-
     def transform(self, X, mask=None):
         """Reduce X to the selected features.
         Parameters
@@ -140,40 +142,40 @@ class SelectorMixin(six.with_metaclass(ABCMeta, TransformerMixin)):
 
 class _BaseMetaHeuristicPareto(BaseEstimator, SelectorMixin, ClassifierMixin):
 
-    def __init__(self, name,classifier=None, number_gen=20,
+    def __init__(self, name, classifier=None, number_gen=20,
                  verbose=0, repeat=1, parallel=False,
                  make_logbook=False, random_state=None,
-                 cv_metric_fuction=make_scorer(matthews_corrcoef),
-                 features_metric_function=None,print_fnc = None):
+                 cv_metric_function=make_scorer(matthews_corrcoef),
+                 features_metric_function=None, print_fnc=None):
 
         self._name = name
-        self.estimator = SVC(kernel='linear', max_iter=10000) if classifier is None else clone(classifier)
+        self.estimator = SVC(
+            kernel='linear', max_iter=10000) if classifier is None else clone(classifier)
         self.number_gen = number_gen
         self.verbose = verbose
         self.repeat = repeat
-        self.parallel=parallel
+        self.parallel = parallel
         self.make_logbook = make_logbook
         self.random_state = random_state
-        self.cv_metric_function= cv_metric_fuction
-        self.features_metric_function= features_metric_function
+        self.cv_metric_function = cv_metric_function
+        self.features_metric_function = features_metric_function
         self._random_object = check_random_state(self.random_state)
         random.seed(self.random_state)
-        self.print_fnc =  print_fnc               
+        self.print_fnc = print_fnc
         self.toolbox = base.Toolbox()
-        
         if self.print_fnc == None:
-            self.print_fnc = print
-        
-        self.toolbox.register("print", self.print_fnc)
+            self.toolbox.register("print", print)
+        else:
+            self.toolbox.register("print", self.print_fnc)
 
     def _gen_in(self):
         """ Generate a individual, DEAP function
 
         """
         random_number = self._random_object.randint(1, self.n_features_ + 1)
-        zeros = (np.zeros([self.n_features_-random_number,], dtype=int))
-        ones = np.ones([random_number,], dtype=int)
-        return   sample(list(np.concatenate((zeros, ones), axis=0)), self.n_features_)
+        zeros = (np.zeros([self.n_features_-random_number, ], dtype=int))
+        ones = np.ones([random_number, ], dtype=int)
+        return sample(list(np.concatenate((zeros, ones), axis=0)), self.n_features_)
 
     def _evaluate(self, individual, X, y, cv=3):
         """ Evaluate method
@@ -193,22 +195,22 @@ class _BaseMetaHeuristicPareto(BaseEstimator, SelectorMixin, ClassifierMixin):
                            [len(features), len(X)]).T
 
         if train.shape[1] == 0:
-            return 0,1,
+            return 0, 1,
 
         # Applying K-Fold Cross Validation
         accuracies = cross_val_score(estimator=clone(self.estimator), X=train,
                                      y=y, cv=cv,
                                      scoring=self.cv_metric_function)
 
-        if self.features_metric_function == "log" :
-            feature_score = np.log10(9*(float(sum(individual))/len(individual))+1)
-        elif self.features_metric_function == "poly" :
+        if self.features_metric_function == "log":
+            feature_score = np.log10(
+                9*(float(sum(individual))/len(individual))+1)
+        elif self.features_metric_function == "poly":
             feature_score = float(sum(individual))/len(individual)
         else:
             raise ValueError('Unknow evaluation')
 
         return accuracies.mean() - accuracies.std(), feature_score
-
 
     def predict(self, X):
         if not hasattr(self, "classes_"):
@@ -219,18 +221,18 @@ class _BaseMetaHeuristicPareto(BaseEstimator, SelectorMixin, ClassifierMixin):
 
         X_ = self.transform(X)
         y_pred = self.estimator.predict(X_)
-        return   self.classes_.take(np.asarray(y_pred, dtype=np.intp))
+        return self.classes_.take(np.asarray(y_pred, dtype=np.intp))
 
-#        elif self.predict_with == 'all':
-#
-#            predict_ = []
-#
-#            for mask in self.mask_:
-#                self.estimator.fit(X=self.transform(self.X_, mask=mask), y=self.y_)
-#                X_ = self.transform(X, mask=mask)
-#                y_pred = self.estimator.predict(X_)
-#                predict_.append(self.classes_.take(np.asarray(y_pred, dtype=np.intp)))
-#            return np.asarray(predict_)
+        #        elif self.predict_with == 'all':
+        #
+        #            predict_ = []
+        #
+        #            for mask in self.mask_:
+        #                self.estimator.fit(X=self.transform(self.X_, mask=mask), y=self.y_)
+        #                X_ = self.transform(X, mask=mask)
+        #                y_pred = self.estimator.predict(X_)
+        #                predict_.append(self.classes_.take(np.asarray(y_pred, dtype=np.intp)))
+        #            return np.asarray(predict_)
 
     @staticmethod
     def score_func_to_gridsearch(estimator, X_test=None, y_test=None):
@@ -241,8 +243,8 @@ class _BaseMetaHeuristicPareto(BaseEstimator, SelectorMixin, ClassifierMixin):
         if not hasattr(estimator, 'fitnesses_'):
             raise ValueError("Fit")
 
-        obj1=[]
-        obj2=[]
+        obj1 = []
+        obj2 = []
         for i in range(len(estimator.best_pareto_front_)):
             obj1.append(estimator.best_pareto_front_[i].fitness.values[0])
             obj2.append(estimator.best_pareto_front_[i].fitness.values[1])
@@ -264,7 +266,7 @@ class _BaseMetaHeuristicPareto(BaseEstimator, SelectorMixin, ClassifierMixin):
 
         return np.asarray(y, dtype=np.float64, order='C')
 
-    def fit_transform(self, X, y, normalize = False, **fit_params):
+    def fit_transform(self, X, y, normalize=False, **fit_params):
         """Fit to data, then transform it.
 
         Fits transformer to X and y with optional parameters fit_params
@@ -291,27 +293,29 @@ class _BaseMetaHeuristicPareto(BaseEstimator, SelectorMixin, ClassifierMixin):
     @staticmethod
     def _get_accuracy(ind):
         return ind.fitness.wvalues[0]
+
     @staticmethod
     def _get_features(ind):
         return sum(ind)
-        
+
     def __getstate__(self):
         self_dict = self.__dict__.copy()
         if 'toolbox' in self_dict:
-	        del self_dict['toolbox']
+            del self_dict['toolbox']
         if 'print_fnc' in self_dict:
-	        del self_dict['print_fnc']
+            del self_dict['print_fnc']
 
         return self_dict
 
-    def __setstate__(self,state):
+    def __setstate__(self, state):
         self.__dict__.update(state)
 
-
+    # Is different
     def _make_stats(self):
         self.a_stats = tools.Statistics(self._get_accuracy)
         self.b_stats = tools.Statistics(self._get_features)
-        self.stats = tools.MultiStatistics(fitness=self.a_stats,size=self.b_stats)
+        self.stats = tools.MultiStatistics(
+            fitness=self.a_stats, size=self.b_stats)
         self.stats.register("avg", np.mean)
         self.stats.register("std", np.std)
         self.stats.register("min", np.min)
@@ -327,13 +331,14 @@ class _BaseMetaHeuristicPareto(BaseEstimator, SelectorMixin, ClassifierMixin):
         self.normalize_ = normalize
 
         y = self._validate_targets(y)
-        X, y = check_X_y(X, y, dtype=np.float64, order='C', accept_sparse='csr')
+        X, y = check_X_y(X, y, dtype=np.float64,
+                         order='C', accept_sparse='csr')
 
         self.n_features_ = X.shape[1]
 
         self.toolbox.register("evaluate", self._evaluate, X=X, y=y)
 
-        return X,y
+        return X, y
 
     def _set_fit(self):
         if self.make_logbook:
@@ -351,11 +356,11 @@ class _BaseMetaHeuristicPareto(BaseEstimator, SelectorMixin, ClassifierMixin):
         self.best_ = tools.HallOfFame(1)
         self.best_pareto_front_ = tools.ParetoFront()
 
-    def _make_generation(self, hof, pareto_front):
-            self.i_gen_pareto_.append(pareto_front[:])
-            self.i_gen_hof_.append(hof[0])
+    def _make_generation_log(self, hof, pareto_front):
+        self.i_gen_pareto_.append(pareto_front[:])
+        self.i_gen_hof_.append(hof[0])
 
-    def _make_repetition(self, hof, pareto_front):
+    def _make_repetition_log(self, hof, pareto_front):
         self.best_.update(hof)
         self.best_pareto_front_.update(pareto_front)
         if self.make_logbook:
@@ -363,22 +368,22 @@ class _BaseMetaHeuristicPareto(BaseEstimator, SelectorMixin, ClassifierMixin):
             self.hof_.append(hof[0])
             self.gen_pareto_.append(self.i_gen_pareto_)
             self.gen_hof_.append(self.i_gen_hof_)
-            self.i_gen_pareto_=[]
-            self.i_gen_hof_=[]
-             
+            self.i_gen_pareto_ = []
+            self.i_gen_hof_ = []
+
     def best_pareto(self):
         return self.best_pareto_front_
-    
+
     def all_paretos(self):
         return self.pareto_front_
 
     def best_solution(self):
         return self.best_[0]
-    
+
     def all_solutions(self):
         return self.hof_
-    
-    def _print(self,gen, rep, initial_time, final_time):
+
+    def _print(self, gen, rep, initial_time, final_time):
         self.toolbox.print("""Repetition: {:d} \t Generation: {:d}/{:d} 
-                Elapsed time: {:.4f} \r""".format( rep+1,gen + 1,
-                self.number_gen,final_time - initial_time))
+                Elapsed time: {:.4f} \r""".format(rep+1, gen + 1,
+                                                  self.number_gen, final_time - initial_time))

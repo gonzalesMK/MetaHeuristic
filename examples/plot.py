@@ -15,7 +15,7 @@ X, y = dataset['data'], dataset['target_names'].take(dataset['target'])
 # Classifier to be used in the metaheuristic
 clf = SVC()
 
-hs = HarmonicSearch(classifier=clf, random_state=0, make_logbook=True,
+hs = HarmonicSearch(estimator=clf, random_state=0, make_logbook=True,
                     repeat=2)
 
 ga = GeneticAlgorithm(classifier=clf, random_state=1, make_logbook=True,
