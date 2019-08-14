@@ -330,25 +330,8 @@ class _BaseMetaHeuristic(BaseEstimator, SelectorMixin, ClassifierMixin):
         return X,y
 
     def _set_fit(self):
-        if self.make_logbook:
-            self._make_stats()
-            self.pareto_front_ = []
-            self.hof_ = []
-            self.gen_hof_ = []
-            self.gen_pareto_ = []
-            self.i_gen_hof_ = []
-            self.i_gen_pareto_ = []
-
-        if self.estimator == None:
-            self._estimator = SVC(gamma="auto")
-        else:
-            self._estimator = self.estimator
-        self._random_object = check_random_state(self.random_state)
-        random.seed(self.random_state)
-
-        self.best_ = tools.HallOfFame(1)
-        self.best_pareto_front_ = tools.ParetoFront()
-
+        pass
+        
     def _make_generation_log(self, hof, pareto_front):
             self.i_gen_pareto_.append(pareto_front[:])
             self.i_gen_hof_.append(hof[0])
@@ -364,8 +347,8 @@ class _BaseMetaHeuristic(BaseEstimator, SelectorMixin, ClassifierMixin):
             self.i_gen_pareto_=[]
             self.i_gen_hof_=[]
 
-    def _make_toolbox(self):
-        " Initialize the toolbox "
+    def _setup(self):
+        " Initialize the toolbox and statistical variables"
 
         self._toolbox = base.Toolbox()
         
@@ -380,6 +363,27 @@ class _BaseMetaHeuristic(BaseEstimator, SelectorMixin, ClassifierMixin):
         else:
             self._toolbox.register("map", map)
     
+        if self.make_logbook:
+            self._make_stats()
+            self.pareto_front_ = []
+            self.hof_ = []
+            self.gen_hof_ = []
+            self.gen_pareto_ = []
+            self.i_gen_hof_ = []
+            self.i_gen_pareto_ = []
+
+        if self.estimator == None:
+            self._estimator = SVC(gamma="auto")
+        else:
+            self._estimator = self.estimator
+        
+        self._random_object = check_random_state(self.random_state)
+        random.seed(self.random_state)
+
+        self.best_ = tools.HallOfFame(1)
+        self.best_pareto_front_ = tools.ParetoFront()
+
+
     def best_pareto(self):
         return self.best_pareto_front_
 

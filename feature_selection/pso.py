@@ -63,7 +63,7 @@ class PSO(_BaseMetaHeuristic):
     parallel : boolean, (default=False)
             Set to True if you want to use multiprocessors
 
-    cv_metric_fuction : callable, (default=matthews_corrcoef)
+    cv_metric_function : callable, (default=matthews_corrcoef)
             A metric score function as stated in the sklearn http://scikit-learn.org/stable/modules/model_evaluation.html#scoring-parameter
 
     features_metric_function : callable, (default=pow(sum(mask)/(len(mask)*5), 2))
@@ -73,7 +73,7 @@ class PSO(_BaseMetaHeuristic):
     def __init__(self, estimator=None, phi1=0.2, phi2=0.2,
                  number_gen=10, size_pop=40, verbose=0, repeat=1, slim=1,
                  make_logbook=False, random_state=None, parallel=False,
-                 cv_metric_fuction=None, features_metric_function=None,
+                 cv_metric_function=None, features_metric_function=None,
                  print_fnc=None, name="PSO"):
 
         self.name = name
@@ -84,7 +84,7 @@ class PSO(_BaseMetaHeuristic):
         self.parallel = parallel
         self.make_logbook = make_logbook
         self.random_state = random_state
-        self.cv_metric_function = cv_metric_fuction
+        self.cv_metric_function = cv_metric_function
         self.features_metric_function = features_metric_function
         self.print_fnc = print_fnc
 
@@ -94,9 +94,9 @@ class PSO(_BaseMetaHeuristic):
         self.slim=slim
         self.parallel = parallel
 
-    def _make_toolbox(self):
+    def _setup(self):
 
-        super()._make_toolbox()
+        super()._setup()
 
         self._toolbox.register("attribute", self._gen_in)
         self._toolbox.register("individual", tools.initIterate,
@@ -166,7 +166,7 @@ class PSO(_BaseMetaHeuristic):
         initial_time=time.clock()
 
         self.set_params(**arg)
-        self._make_toolbox()
+        self._setup()
 
         X, y=self._set_dataset(X = X, y = y, normalize = normalize)
 
@@ -175,7 +175,7 @@ class PSO(_BaseMetaHeuristic):
         else:
             self._sigmoid_coeff=self.inverse_sigmoid(0.9)
 
-        self._set_fit()
+        
         for i in range(self.repeat):
             pop=self._toolbox.population(self.size_pop)
             hof=tools.HallOfFame(1)

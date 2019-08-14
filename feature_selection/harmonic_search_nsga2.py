@@ -44,7 +44,7 @@ class HarmonicSearch2(_BaseMetaHeuristic):
             A function that return a float from the binary mask of features
     """
 
-    def __init__(self, estimator=SVC(), HMCR=0.95,
+    def __init__(self, estimator=None, HMCR=0.95,
                  number_gen=100, size_pop=50, verbose=0, repeat=1,
                  make_logbook=False, random_state=None, parallel=False,
                  cv_metric_function=None, features_metric_function=None,
@@ -69,8 +69,8 @@ class HarmonicSearch2(_BaseMetaHeuristic):
      
 
 
-    def _make_toolbox(self):
-        super()._make_toolbox()
+    def _setup(self):
+        super()._setup()
 
         self._toolbox.register("attribute", self._gen_in)
         self._toolbox.register("individual", tools.initIterate,
@@ -100,11 +100,11 @@ class HarmonicSearch2(_BaseMetaHeuristic):
                 Set parameters
         """
         initial_time = time.clock()
-        self._make_toolbox()
+        self._setup()
         self.set_params(**arg)
         X, y = self._set_dataset(X=X, y=y, normalize=normalize)
 
-        self._set_fit()
+        
 
         for i in range(self.repeat):
             harmony_mem = self._toolbox.population(n=self.size_pop)

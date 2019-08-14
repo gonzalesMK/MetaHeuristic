@@ -90,13 +90,12 @@ class BinaryBlackHole(_BaseMetaHeuristic):
         """
         initial_time = time.clock()
 
-        self._make_toolbox()
+        self._setup()
 
         self.set_params(**arg)
 
         X, y = self._set_dataset(X=X, y=y, normalize=normalize)
-
-        self._set_fit()
+        
 
         for i in range(self.repeat):
             galaxy = self._toolbox.galaxy(n=self.size_pop)
@@ -153,9 +152,9 @@ class BinaryBlackHole(_BaseMetaHeuristic):
                                         (blackhole[x] - star[x]))) > self._random_object.uniform(0, 1) else 0 for x in range(0, self.n_features_)]
 
 
-    def _make_toolbox(self):
+    def _setup(self):
 
-        super(BinaryBlackHole, self)._make_toolbox()
+        super(BinaryBlackHole, self)._setup()
         self._toolbox.register("attribute", self._gen_in)
         self._toolbox.register("star", tools.initIterate,
                               BaseMask, self._toolbox.attribute)

@@ -35,7 +35,7 @@ class HarmonicSearch(_BaseMetaHeuristic):
     make_logbook : boolean, (default=False)
             If True, a logbook from DEAP will be made
 
-    cv_metric_fuction : callable, (default=matthews_corrcoef)
+    cv_metric_function : callable, (default=matthews_corrcoef)
             A metric score function as stated in the sklearn http://scikit-learn.org/stable/modules/model_evaluation.html#scoring-parameter
 
     features_metric_function : callable, (default=pow(sum(mask)/(len(mask)*5), 2))
@@ -65,8 +65,8 @@ class HarmonicSearch(_BaseMetaHeuristic):
         random.seed(self.random_state)
      
 
-    def _make_toolbox(self):
-        super()._make_toolbox()
+    def _setup(self):
+        super()._setup()
 
         self._toolbox.register("attribute", self._gen_in)
         self._toolbox.register("individual", tools.initIterate,
@@ -98,13 +98,13 @@ class HarmonicSearch(_BaseMetaHeuristic):
         """
         initial_time = time.clock()
      
-        self._make_toolbox()
+        self._setup()
      
         self.set_params(**arg)
      
         X, y = self._set_dataset(X=X, y=y, normalize=normalize)
 
-        self._set_fit()
+        
 
         for i in range(self.repeat):
             harmony_mem = self._toolbox.population(n=self.size_pop)

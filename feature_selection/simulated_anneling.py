@@ -84,9 +84,9 @@ class SimulatedAnneling(_BaseMetaHeuristic):
         self.parallel = parallel
 
         
-    def _make_toolbox(self):
+    def _setup(self):
 
-        super()._make_toolbox()
+        super()._setup()
         self._toolbox.register("attribute", self._gen_in)
         self._toolbox.register("individual", tools.initIterate,
                               BaseMask, self._toolbox.attribute)
@@ -114,11 +114,11 @@ class SimulatedAnneling(_BaseMetaHeuristic):
                 Set parameters
         """
         initial_time = time.clock()
-        self._make_toolbox()
+        self._setup()
         self.set_params(**arg)
         X, y = self._set_dataset(X=X, y=y, normalize=normalize)
 
-        self._set_fit()
+        
 
         for i in range(self.repeat):
             solution = self._toolbox.individual()

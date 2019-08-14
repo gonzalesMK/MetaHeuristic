@@ -66,7 +66,7 @@ class BRKGA2(_BaseMetaHeuristic):
                  cv_metric_function=None, features_metric_function=None,
                  print_fnc=None, name="BRKGA2"):
 
-        self.name = estimator
+        self.name = name
         self.estimator = estimator
         self.number_gen = number_gen
         self.verbose = verbose
@@ -87,7 +87,7 @@ class BRKGA2(_BaseMetaHeuristic):
         random.seed(self.random_state)
      
 
-    def _make_toolbox(self):
+    def _setup(self):
 
         if(self.elite_size + self.mutant_size > self.size_pop):
             raise ValueError(" Elite size({}) + Mutant_size({}) is bigger than population"
@@ -96,7 +96,7 @@ class BRKGA2(_BaseMetaHeuristic):
         self._n_cross_over = self.size_pop - (self.elite_size + self.mutant_size)
         self._non_elite_size = self.size_pop - self.elite_size
 
-        super()._make_toolbox()
+        super()._setup()
         self._toolbox.register("attribute", self._gen_in)
         self._toolbox.register("individual", tools.initIterate,
                               BaseMask, self._toolbox.attribute)
@@ -124,12 +124,12 @@ class BRKGA2(_BaseMetaHeuristic):
                 Set parameters
         """
         initial_time = time.clock()
-        self._make_toolbox()
+        self._setup()
         self.set_params(**arg)
 
         X, y = self._set_dataset(X=X, y=y, normalize=normalize)
 
-        self._set_fit()
+        
 
         for i in range(self.repeat):
             # Generate Population

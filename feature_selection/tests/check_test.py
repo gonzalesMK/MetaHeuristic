@@ -16,8 +16,9 @@ from sklearn.utils.testing import assert_warns
 
 # Those are nose tests: to run it, write: python -m nose
 
-METACLASSES = [HarmonicSearch, GeneticAlgorithm, RandomSearch,
-               BinaryBlackHole, SimulatedAnneling, BRKGA, BRKGA2, 
+METACLASSES = [
+        HarmonicSearch, GeneticAlgorithm, RandomSearch,
+        BinaryBlackHole, SimulatedAnneling, BRKGA, BRKGA2, 
                HarmonicSearch2, SPEA2, PSO]
 
 NSGA2 = [BRKGA2, HarmonicSearch2, SPEA2]
@@ -26,6 +27,7 @@ def test_check_estimator():
     for metaclass in METACLASSES:
         print("check_estimator: ", metaclass(estimator=SVC()).name)
         check_estimator(metaclass)        
+    
     
 def test_overall():
     dataset = load_breast_cancer()
@@ -86,27 +88,7 @@ def test_parallel():
     
         # Check Function
         assert_array_equal(X_1, X_2)
-"""
-def test_score_grid_func():
-    dataset = load_breast_cancer()
-    X, y = dataset['data'], dataset['target_names'].take(dataset['target'])
-    
-    # Classifier to be used in the metaheuristic
-    clf = SVC()
-
-    for metaclass in METACLASSES:
-        meta = metaclass(classifier=clf, random_state=0, verbose=True,
-                        make_logbook=True, repeat=1, number_gen=3,
-                        size_pop=2)
-        
-        print("Checking Grid: ", meta.name)
-    
-        # Fit the classifier
-        meta.fit(X, y, normalize=True)
-    
-        # See score 
-        meta.score_func_to_gridsearch(meta)
-"""    
+  
 def test_unusual_errors():
     dataset = load_breast_cancer()
     X, y = dataset['data'], dataset['target_names'].take(dataset['target'])
@@ -142,3 +124,27 @@ def test_predict():
     sa = SimulatedAnneling(size_pop=2, number_gen=2)
     sa.fit(X,y, normalize=True)
     sa.predict(X)
+
+
+
+"""
+def test_score_grid_func():
+    dataset = load_breast_cancer()
+    X, y = dataset['data'], dataset['target_names'].take(dataset['target'])
+    
+    # Classifier to be used in the metaheuristic
+    clf = SVC()
+
+    for metaclass in METACLASSES:
+        meta = metaclass(classifier=clf, random_state=0, verbose=True,
+                        make_logbook=True, repeat=1, number_gen=3,
+                        size_pop=2)
+        
+        print("Checking Grid: ", meta.name)
+    
+        # Fit the classifier
+        meta.fit(X, y, normalize=True)
+    
+        # See score 
+        meta.score_func_to_gridsearch(meta)
+""" 

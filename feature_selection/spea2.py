@@ -52,7 +52,7 @@ class SPEA2(_BaseMetaHeuristic):
     parallel : boolean, (default=False)
             Set to True if you want to use multiprocessors
 
-    cv_metric_fuction : callable, (default=matthews_corrcoef)
+    cv_metric_function : callable, (default=matthews_corrcoef)
             A metric score function as stated in the sklearn http://scikit-learn.org/stable/modules/model_evaluation.html#scoring-parameter
 
     features_metric_function : { "log", "poly" }
@@ -64,7 +64,7 @@ class SPEA2(_BaseMetaHeuristic):
                  number_gen=10, size_pop=3, verbose=0, repeat=1,
                  individual_mut_prob=0.5, gene_mutation_prob=0.01,
                  make_logbook=False, random_state=None, parallel=False,
-                 cv_metric_fuction=None, features_metric_function=None,
+                 cv_metric_function=None, features_metric_function=None,
                  print_fnc=None, name="SPEA2"):
 
         self.name = name
@@ -75,7 +75,7 @@ class SPEA2(_BaseMetaHeuristic):
         self.parallel = parallel
         self.make_logbook = make_logbook
         self.random_state = random_state
-        self.cv_metric_function = cv_metric_fuction
+        self.cv_metric_function = cv_metric_function
         self.features_metric_function = features_metric_function
         self.print_fnc = print_fnc
 
@@ -88,8 +88,8 @@ class SPEA2(_BaseMetaHeuristic):
 
         random.seed(self.random_state)
 
-    def _make_toolbox(self):
-        super()._make_toolbox()
+    def _setup(self):
+        super()._setup()
         self._toolbox.register("attribute", self._gen_in)
         self._toolbox.register("individual", tools.initIterate,
                               BaseMask, self._toolbox.attribute)
@@ -119,12 +119,12 @@ class SPEA2(_BaseMetaHeuristic):
                 Set parameters
         """
         initial_time = time.clock()
-        self._make_toolbox()
+        self._setup()
         self.set_params(**arg)
 
         X, y = self._set_dataset(X=X, y=y, normalize=normalize)
 
-        self._set_fit()
+        
 
         for i in range(self.repeat):
             # Generate Population

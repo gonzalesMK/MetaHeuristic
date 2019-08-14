@@ -9,6 +9,7 @@ from .base import _BaseMetaHeuristic
 from .base import BaseMask
 from .base import *
 
+
 class GeneticAlgorithm(_BaseMetaHeuristic):
     """Implementation of a Genetic Algorithm for Feature Selection
 
@@ -59,7 +60,7 @@ class GeneticAlgorithm(_BaseMetaHeuristic):
                  cv_metric_function=None, features_metric_function=None,
                  print_fnc=None, name="GeneticAlgorithm"):
 
-        self.name=name
+        self.name = name
         self.estimator = estimator
         self.number_gen = number_gen
         self.verbose = verbose
@@ -78,21 +79,20 @@ class GeneticAlgorithm(_BaseMetaHeuristic):
         self.cxUniform_indpb = cxUniform_indpb
         self.parallel = parallel
 
-        
-    def _make_toolbox(self):
-        super()._make_toolbox()
+    def _setup(self):
+        super()._setup()
 
         self._toolbox.register("attribute", self._gen_in)
         self._toolbox.register("individual", tools.initIterate,
-                              BaseMask, self._toolbox.attribute)
+                               BaseMask, self._toolbox.attribute)
         self._toolbox.register("population", tools.initRepeat,
-                              list, self._toolbox.individual)
+                               list, self._toolbox.individual)
         self._toolbox.register("mate", tools.cxUniform,
-                              indpb=self.cxUniform_indpb)
+                               indpb=self.cxUniform_indpb)
         self._toolbox.register("select", tools.selTournament, tournsize=3)
 
         self._toolbox.register("mutate", tools.mutUniformInt, low=0, up=1,
-                              indpb=self.gene_mutation_prob)
+                               indpb=self.gene_mutation_prob)
 
     def fit(self, X=None, y=None, normalize=False, **arg):
         """ Fit method
@@ -116,11 +116,9 @@ class GeneticAlgorithm(_BaseMetaHeuristic):
 
         self.set_params(**arg)
 
-        self._make_toolbox()
+        self._setup()
 
         X, y = self._set_dataset(X=X, y=y, normalize=normalize)
-
-        self._set_fit()
 
         # This is to repeat the trainning N times
         for i in range(self.repeat):
