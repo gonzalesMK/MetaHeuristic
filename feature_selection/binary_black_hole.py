@@ -29,7 +29,7 @@ class BinaryBlackHole(_BaseMetaHeuristic):
             Number of generations
 
     size_pop : positive integer, (default=40)
-            Number of individuals (choromosome ) in the population
+            Number of individuals in the population
 
     verbose : boolean, (default=False)
             If true, print information in every generation

@@ -57,6 +57,7 @@ class GeneticAlgorithm(_BaseMetaHeuristic):
                  individual_mut_prob=0.05, gene_mutation_prob=0.05,
                  number_gen=10, size_pop=40, verbose=0, repeat=1,
                  make_logbook=False, random_state=None, parallel=False,
+            
                  cv_metric_function=None, features_metric_function=None,
                  print_fnc=None, name="GeneticAlgorithm"):
 

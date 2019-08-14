@@ -9,6 +9,7 @@ import random
 from sklearn.base import clone
 from multiprocessing import Pool
 
+
 class HarmonicSearch(_BaseMetaHeuristic):
     """Implementation of a Harmonic Search Algorithm for Feature Selection
 

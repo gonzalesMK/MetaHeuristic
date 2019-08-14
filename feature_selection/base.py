@@ -12,8 +12,8 @@ from sklearn.utils.validation import check_array, check_is_fitted, column_or_1d
 import six
 from sklearn.utils.multiclass import check_classification_targets
 from sklearn.utils import check_random_state
-from sklearn.svm import  SVC
-from deap import  base
+from sklearn.svm import SVC
+from deap import base
 from deap import tools
 from sklearn.preprocessing import StandardScaler
 from sklearn.utils import check_X_y
@@ -94,7 +94,8 @@ class SelectorMixin(six.with_metaclass(ABCMeta, TransformerMixin)):
             values are indices into the input feature vector.
         """
         mask = self._get_best_mask()
-        return mask if not indices else np.where(mask)[0]
+        mask = mask if not indices else np.where(mask)[0]
+        return np.asarray(mask, dtype=np.bool)
 
     def _get_best_mask(self):
         """
@@ -107,7 +108,6 @@ class SelectorMixin(six.with_metaclass(ABCMeta, TransformerMixin)):
         """
         check_is_fitted(self, 'best_')
         return np.asarray(self.best_[0][:], dtype=bool)
-
 
     def transform(self, X, mask=None):
         """Reduce X to the selected features.
@@ -151,7 +151,7 @@ class _BaseMetaHeuristic(BaseEstimator, SelectorMixin, ClassifierMixin):
         self.number_gen = number_gen
         self.verbose = verbose
         self.repeat = repeat
-        self.parallel=parallel
+        self.parallel = parallel
         self.make_logbook = make_logbook
         self.random_state = random_state
         self.cv_metric_function= cv_metric_function
@@ -165,9 +165,9 @@ class _BaseMetaHeuristic(BaseEstimator, SelectorMixin, ClassifierMixin):
             Generate a individual, DEAP function
         """
         random_number = self._random_object.randint(1, self.n_features_ + 1)
-        zeros = (np.zeros([self.n_features_-random_number,], dtype=int))
-        ones = np.ones([random_number,], dtype=int)
-        return   sample(list(np.concatenate((zeros, ones), axis=0)), self.n_features_)
+        zeros = (np.zeros([self.n_features_-random_number, ], dtype=int))
+        ones = np.ones([random_number, ], dtype=int)
+        return sample(list(np.concatenate((zeros, ones), axis=0)), self.n_features_)
 
     def _evaluate(self, individual, X, y, cv=3):
         """ 
@@ -191,7 +191,7 @@ class _BaseMetaHeuristic(BaseEstimator, SelectorMixin, ClassifierMixin):
                            [len(features), len(X)]).T
 
         if train.shape[1] == 0:
-            return 0,1,
+            return 0, 1,
 
         # Applying K-Fold Cross Validation
         accuracies = cross_val_score(estimator=clone(self._estimator), X=train,
@@ -304,6 +304,11 @@ class _BaseMetaHeuristic(BaseEstimator, SelectorMixin, ClassifierMixin):
         self.stats.register("std", np.std)
         self.stats.register("min", np.min)
         self.stats.register("max", np.max)
+        self.feature_stats = tools.Statistics(self._get_features)
+        self.feature_stats.register("feat_avg", np.mean)
+        self.feature_stats.register("feat_std", np.std)
+        self.feature_stats.register("feat_min", np.min)
+        self.feature_stats.register("feat_max", np.max)
         self.logbook = [tools.Logbook() for i in range(self.repeat)]
         
         for i in range(self.repeat):
@@ -314,14 +319,38 @@ class _BaseMetaHeuristic(BaseEstimator, SelectorMixin, ClassifierMixin):
             self.logbook[i].chapters["size"].header = self.stats.fields
 
     def _set_dataset(self, X, y, normalize):
+        """  Standard datset pre-process:
+        Using standardScaler()
+        Validating/setting the correct size of X and y
+        Validating the number of classes of y
+
+        Parameters
+        ----------
+        X : numpy array of shape [n_samples, n_features]
+            Training set.
+
+        y : numpy array of shape [n_samples]
+            Target values.
+
+        Returns
+        -------
+        X : numpy array of shape [n_samples, n_features_new]
+            Training set pre-processed
+
+        y : numpy array of shape [n_samples]
+            Training set pre-processed
+        """
+
         if normalize:
+            X = X.astype(np.float64, copy=False)
             self._sc_X = StandardScaler()
             X = np.asarray(X, dtype=np.float64)
             X = self._sc_X.fit_transform(X)
         self.normalize_ = normalize
 
         y = self._validate_targets(y)
-        X, y = check_X_y(X, y, dtype=np.float64, order='C', accept_sparse='csr')
+        X, y = check_X_y(X, y, dtype=np.float64,
+                         order='C', accept_sparse='csr')
 
         self.n_features_ = X.shape[1]
 
