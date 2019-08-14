@@ -1,35 +1,41 @@
+# -*- coding: utf-8 -*-
 from __future__ import print_function
-import random
 from timeit import time
+
+import numpy as np
 
 from deap import base
 from deap import tools
+
 
 from .base import _BaseMetaHeuristic
 from .base import BaseMask
 from .base import *
 
+class BRKGA2(_BaseMetaHeuristic):
+    """Implementation of a Biased Random Key Genetic Algorithm as the papers:
 
-class GeneticAlgorithm(_BaseMetaHeuristic):
-    """Implementation of a Genetic Algorithm for Feature Selection
+    Biased random-key genetic algorithms for combinatorial optimization
+
+    Introdução aos algoritmos genéticos de chaves aleatórias viciadas
 
     Parameters
     ----------
-    classifier : sklearn classifier , (default=SVM)
-            Any classifier that adheres to the scikit-learn API
+    estimator : sklearn estimator , (default=SVM)
+            Any estimator that adheres to the scikit-learn API
 
-    cross_over_prob :  float in [0,1], (default=0.5)
-            Probability of happening a cross-over in a individual (chromosome)
+    elite_size : positive integer, (default=10)
+            Number of individuals in the Elite population
 
-    individual_mutation_probability : float in [0,1], (default=0.05)
-            Probability of happening mutation in a individual ( chromosome )
-
-    gene_mutation_prob : float in [0,1], (default=0.05)
-            For each gene in the individual (chromosome) chosen for mutation,
-            is the probability of it being mutate
+    mutant_size : positive integer, (default=10)
+            Number of new individuals in each iteration
 
     number_gen : positive integer, (default=10)
             Number of generations
+
+    cxUniform_indpb : float in [0,1], (default=0.2)
+             A uniform crossover modify in place the two sequence individuals.
+             Inherits from the allele of the elite chromossome with indpb.
 
     size_pop : positive integer, (default=40)
             Number of individuals (choromosome ) in the population
@@ -46,20 +52,19 @@ class GeneticAlgorithm(_BaseMetaHeuristic):
     parallel : boolean, (default=False)
             Set to True if you want to use multiprocessors
 
-    cv_metric_function : callable, (default=matthews_corrcoef)            
+    cv_metric_function : callable, (default=matthews_corrcoef)
             A metric score function as stated in the sklearn http://scikit-learn.org/stable/modules/model_evaluation.html#scoring-parameter
 
-    features_metric_function : callable, (default=pow(sum(mask)/(len(mask)*5), 2))
+    features_metric_function :
             A function that return a float from the binary mask of features
     """
 
-    def __init__(self, estimator=None, cross_over_prob=0.5, cxUniform_indpb=0.9,
-                 individual_mut_prob=0.05, gene_mutation_prob=0.05,
-                 number_gen=10, size_pop=40, verbose=0, repeat=1,
+    def __init__(self, estimator=None,
+                 elite_size=1, mutant_size=1, cxUniform_indpb=0.2,
+                 number_gen=10, size_pop=3, verbose=0, repeat=1,
                  make_logbook=False, random_state=None, parallel=False,
-            
                  cv_metric_function=None, features_metric_function=None,
-                 print_fnc=None, name="GeneticAlgorithm"):
+                 print_fnc=None, name="BRKGA2"):
 
         self.name = name
         self.estimator = estimator
@@ -73,27 +78,33 @@ class GeneticAlgorithm(_BaseMetaHeuristic):
         self.features_metric_function = features_metric_function
         self.print_fnc = print_fnc
 
-        self.individual_mut_prob = individual_mut_prob
-        self.gene_mutation_prob = gene_mutation_prob
-        self.cross_over_prob = cross_over_prob
         self.size_pop = size_pop
+
         self.cxUniform_indpb = cxUniform_indpb
-        self.parallel = parallel
+        self.elite_size = elite_size
+        self.mutant_size = mutant_size
+        
+        random.seed(self.random_state)
+     
 
     def _setup(self):
-        super()._setup()
 
+        if(self.elite_size + self.mutant_size > self.size_pop):
+            raise ValueError(" Elite size({}) + Mutant_size({}) is bigger than population"
+                             " size({})\n The algorithm may not work properly".format(
+                                 self.elite_size, self.mutant_size, self.size_pop))
+        self._n_cross_over = self.size_pop - (self.elite_size + self.mutant_size)
+        self._non_elite_size = self.size_pop - self.elite_size
+
+        super()._setup()
         self._toolbox.register("attribute", self._gen_in)
         self._toolbox.register("individual", tools.initIterate,
-                               BaseMask, self._toolbox.attribute)
+                              BaseMask, self._toolbox.attribute)
         self._toolbox.register("population", tools.initRepeat,
-                               list, self._toolbox.individual)
+                              list, self._toolbox.individual)
         self._toolbox.register("mate", tools.cxUniform,
-                               indpb=self.cxUniform_indpb)
+                              indpb=self.cxUniform_indpb)
         self._toolbox.register("select", tools.selTournament, tournsize=3)
-
-        self._toolbox.register("mutate", tools.mutUniformInt, low=0, up=1,
-                               indpb=self.gene_mutation_prob)
 
     def fit(self, X=None, y=None, normalize=False, **arg):
         """ Fit method
@@ -112,57 +123,66 @@ class GeneticAlgorithm(_BaseMetaHeuristic):
         **arg : parameters
                 Set parameters
         """
-
         initial_time = time.clock()
-
-        self.set_params(**arg)
-
         self._setup()
+        self.set_params(**arg)
 
         X, y = self._set_dataset(X=X, y=y, normalize=normalize)
 
-        # This is to repeat the trainning N times
+        
+
         for i in range(self.repeat):
+            # Generate Population
             pop = self._toolbox.population(self.size_pop)
             hof = tools.HallOfFame(1)
             pareto_front = tools.ParetoFront()
 
-            # Evaluate the entire population the first time
+            # Evaluate the entire population
             fitnesses = self._toolbox.map(self._toolbox.evaluate, pop)
             for ind, fit in zip(pop, fitnesses):
                 ind.fitness.values = fit
+            del fit, ind
 
-            # Iterate over generations
+            pareto_front.update(pop)
+            hof.update(pop)
             for g in range(self.number_gen):
-                # Select the next generation individuals
-                offspring = self._toolbox.select(pop, len(pop))
-                # Clone the selected individuals
-                offspring = list(map(self._toolbox.clone, offspring))
 
-                # Apply crossover and mutation on the offspring
-                for child1, child2 in zip(offspring[::2], offspring[1::2]):
-                    if random.random() < self.cross_over_prob:
-                        self._toolbox.mate(child1, child2)
-                        del child1.fitness.values
-                        del child2.fitness.values
+                ordered = tools.selNSGA2(pop, self.size_pop)  # Ordering
+                # Partitioning
+                elite = ordered[0:self.elite_size]
+                non_elite = ordered[self.elite_size:self._non_elite_size+self.elite_size]
 
-                for mutant in offspring:
-                    if random.random() < self.individual_mut_prob:
-                        self._toolbox.mutate(mutant)
-                        del mutant.fitness.values
+                # Cross_over between Elite and Non Elite
+                father_ind = np.random.randint(
+                    0, self.elite_size, self._n_cross_over)
+                mother_ind = np.random.permutation(np.arange(0, self._non_elite_size))[
+                    0:self._n_cross_over]
+
+                child1 = self._toolbox.clone([elite[ind] for ind in father_ind])
+                child2 = [non_elite[ind] for ind in mother_ind]
+
+                for ind in range(0, len(child1)):
+                    child1[ind], child2[ind] = self._toolbox.mate(
+                        child1[ind], child2[ind])
+
+                for ind1 in child1:
+                    del ind1.fitness.values
 
                 # Evaluate the individuals with an invalid fitness ( new individuals)
-                invalid_ind = [
-                    ind for ind in offspring if not ind.fitness.valid]
-                fitnesses = self._toolbox.map(
-                    self._toolbox.evaluate, invalid_ind)
-                for ind, fit in zip(invalid_ind, fitnesses):
+                fitnesses = self._toolbox.map(self._toolbox.evaluate, child1)
+                for ind, fit in zip(child1, fitnesses):
+                    ind.fitness.values = fit
+
+                # The botton is replaced by mutant individuals
+                mutant = self._toolbox.population(self.mutant_size)
+                fitnesses = self._toolbox.map(self._toolbox.evaluate, mutant)
+                for ind, fit in zip(mutant, fitnesses):
                     ind.fitness.values = fit
 
                 # The population is entirely replaced by the offspring
-                pop[:] = offspring
+                pop[:] = elite + child1 + mutant
 
-                # Log statistic
+                # Log Statistics
                 hof.update(pop)
                 pareto_front.update(pop)
                 if self.make_logbook:
@@ -179,3 +199,4 @@ class GeneticAlgorithm(_BaseMetaHeuristic):
         self._estimator.fit(X=self.transform(X), y=y)
 
         return self
+

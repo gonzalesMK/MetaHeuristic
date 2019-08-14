@@ -30,7 +30,7 @@ param_grid= {
     "pitch":[0.05, 0.5, 1],
     "repeat":[3]
      }
-hs = HarmonicSearch(classifier=clf, make_logbook=True)
+hs = HarmonicSearch(estimator=clf, make_logbook=True)
 grid_search = GridSearchCV(hs, param_grid=param_grid, scoring=hs.score_func_to_gridsearch, cv=4,
                            verbose=2)
 grid_search.fit(X,y)
