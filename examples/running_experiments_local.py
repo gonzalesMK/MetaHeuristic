@@ -47,7 +47,7 @@ def setup(string):
     return X, Y
 
 # This is the Experiment
-def Experiment(meta,ind, name):
+def Experiment(meta,ind, name, params):
     import os
     from sklearn.model_selection import cross_validate
     from sklearn.base import clone
@@ -56,8 +56,9 @@ def Experiment(meta,ind, name):
     
     X, Y = setup(name)
     
-    meta_with_params = meta(size_pop=60, number_gen=30, repeat=1,
-                            make_logbook=True, verbose= True)
+    meta_with_params = meta()
+    meta_with_params.set_params(**params)
+
     param = {'normalize': True}
 
     result = cross_validate(estimator=meta_with_params, X=X, fit_params=param, pre_dispatch=5,
@@ -83,14 +84,25 @@ def Experiment(meta,ind, name):
     
     # Save the results
     home = "/media/gonzales/DATA/TCC_Andre/datasets/results/"
-    filename =  home + name +'/' + meta_with_params.name + '.{:d}.lzma'.format(ind)
     
-    try:
-        file = lzma.open( filename, 'wb')
-    except FileNotFoundError:
-        os.mkdir(home+name)
-        file = lzma.open(filename, 'wb')
     
+    # Do not override any older file with this new one :
+    while( True):
+        filename =  home + name +'/' + meta_with_params.name + '.{:d}.lzma'.format(ind)
+        
+        if( os.path.exists(filename) ):
+            ind = ind + 1 
+            continue
+
+        try:
+            file = lzma.open( filename, 'wb')
+            
+        except FileNotFoundError:
+            os.mkdir(home+name)
+            file = lzma.open(filename, 'wb')
+        
+        break
+        
     cPickle.dump(log_result, file, protocol=cPickle.HIGHEST_PROTOCOL)
 
     file.close()
@@ -101,41 +113,69 @@ if __name__ == "__main__":
 
     import numpy as np
     from six.moves import cPickle
-    from feature_selection import BinaryBlackHole
+    from feature_selection import BinaryBlackHole, RandomSearch, HarmonicSearch, HarmonicSearch2
     from multiprocessing import Process,Manager
     import time
     np.warnings.filterwarnings('ignore')
 
   
     # Number of times to repeat the experiment
-    n_repetition = 2
+    n_repetition = 5
     
     # Number of experiments to run in parallel
     n_possible_jobs = 1
 
     # Dataset list
-    names =     [   
+    dataset_names =     [   
         "eucalyptus",
     ]
 
+    # Metaheuristic list and its parameters
+    metaheuristics = [
+        (HarmonicSearch2,
+          {'size_pop': 60,
+           'HMCR': 0.95,
+           'number_gen': 60*29,
+           'repeat':1,
+           'skip': 100,
+           'make_logbook':True,
+           'verbose':True
+          }),
+          (RandomSearch,
+          {'size_pop':60,
+           'number_gen':30,
+           'repeat':1,
+           'make_logbook':True,
+           'verbose':True
+          }),
+          (HarmonicSearch,
+          {'size_pop':60,
+            'HMCR': 0.95,
+            'skip': 100,
+           'number_gen':60*29,
+           'repeat':1,
+           'make_logbook':True,
+           'verbose':True
+          }),          
+          ]
     clusters_jobs=[]
     clusters=[]
     jobs=[]
     manager=Manager()
 
     # Create Jobs
-    for j, name in enumerate(names):
-        print(name)
-        
-        # Submit Jobs
-        results = manager.dict()
-        for k in np.arange(n_repetition):
-            i = k + j * n_repetition
-            job = Process(target=Experiment, args=(BinaryBlackHole,k,name), name= 'Process: ' +str(i))
-            job.id = i
-            jobs.append(job)
-            time.sleep(0.05)
-    del i
+    id = -1
+    for name in dataset_names:
+        for meta, params in metaheuristics: 
+            # Submit Jobs
+            results = manager.dict()
+            for k in np.arange(n_repetition):
+                id = id + 1
+                job = Process(target=Experiment, args=(meta,k,name, params), name= 'Process: ' +str(id))
+                job.id = id
+                jobs.append(job)
+                time.sleep(0.05)
+
     started = 0        
     finished = 0
     active_jobs = 0
