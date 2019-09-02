@@ -109,9 +109,11 @@ class BinaryBlackHole(_BaseMetaHeuristic):
                 for ind, fit in zip(galaxy, fitnesses):
                     ind.fitness.values = fit
 
-                # Update Global Information
+                # Log statistic
                 hof.update(galaxy)
                 pareto_front.update(galaxy)
+
+                # Update Global Information
                 hof[0].radius = sum(hof[0].fitness.wvalues) / \
                     sum([sum(i.fitness.wvalues) for i in galaxy])
 
@@ -119,22 +121,19 @@ class BinaryBlackHole(_BaseMetaHeuristic):
                 for part in galaxy:
                     self._toolbox.update(part, hof[0])
 
-                # Log statistic
-                hof.update(galaxy)
-                pareto_front.update(galaxy)
                 if self.make_logbook:
                     record = self.stats.compile(galaxy)
-                    print("Record: {}".format(record))
+                    if self.verbose:
+                        self._toolbox.print("Record: {}".format(record), end=' ')
                     self.logbook[i].record(gen=g,
                                            best_fit=hof[0].fitness.values[0],
                                            **record)
                     self._make_generation_log(hof, pareto_front)
 
                 if self.verbose:
-                    self._print(g, i, initial_time, time.clock())
+                    self._toolbox.print("Generation: ", g, " Repetition: ", i, " Ti: ", initial_time, " Clock:", time.clock())
 
             self._make_repetition_log(hof, pareto_front)
-            # print(len(self.gen_hof_))
 
         self._estimator.fit(X=self.transform(X), y=y)
 

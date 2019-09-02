@@ -21,7 +21,7 @@ from sklearn.utils import check_X_y
 
 class Fitness(base.Fitness):
 
-    def __init__(self, weights=(1, -1), values=(0, 0)):
+    def __init__(self, weights=(1, -1e-5), values=(0, 0)):
         self.weights = weights
         super(Fitness, self).__init__(values)
 
@@ -30,7 +30,7 @@ class BaseMask(list, object):
 
     def __init__(self, mask):
         self[:] = mask
-        self.fitness = Fitness((1, -1), (0, 0))
+        self.fitness = Fitness( (1, -1e-5) , (0, 0))
 
     # def __getstate__(self):
         #        self_dict = self.__dict__.copy()
@@ -200,12 +200,15 @@ class _BaseMetaHeuristic(BaseEstimator, SelectorMixin, ClassifierMixin):
                                      y=y, cv=cv,
                                      scoring=self.cv_metric_function)
 
-        if self.features_metric_function == None:
-            feature_score = pow(float(sum(individual))/(len(individual)*5), 2)
+        if hasattr(self, 'features_metric_function'):
+            if self.features_metric_function == None:
+                feature_score = sum(individual) / len(individual)
+            else:
+                feature_score = self.features_metric_function(individual)
         else:
-            feature_score = self.features_metric_function(individual)
+            feature_score = sum(individual) / len(individual)
 
-        return accuracies.mean() - accuracies.std(), feature_score
+        return accuracies.mean(), feature_score
 
     def predict(self, X):
         if not hasattr(self, "classes_"):
@@ -300,17 +303,12 @@ class _BaseMetaHeuristic(BaseEstimator, SelectorMixin, ClassifierMixin):
 
     def _make_stats(self):
         stats_fit = tools.Statistics(key=lambda ind: ind.fitness.values[0])
-        stats_size = tools.Statistics(key=len)
+        stats_size = tools.Statistics(key=sum)
         self.stats = tools.MultiStatistics(fitness=stats_fit, size=stats_size)
         self.stats.register("avg", np.mean)
         self.stats.register("std", np.std)
         self.stats.register("min", np.min)
         self.stats.register("max", np.max)
-        self.feature_stats = tools.Statistics(self._get_features)
-        self.feature_stats.register("feat_avg", np.mean)
-        self.feature_stats.register("feat_std", np.std)
-        self.feature_stats.register("feat_min", np.min)
-        self.feature_stats.register("feat_max", np.max)
         self.logbook = [tools.Logbook() for i in range(self.repeat)]
 
         for i in range(self.repeat):
@@ -383,10 +381,13 @@ class _BaseMetaHeuristic(BaseEstimator, SelectorMixin, ClassifierMixin):
 
         self._toolbox = base.Toolbox()
 
-        if self.print_fnc == None:
-            self._toolbox.register("print", print)
+        if hasattr(self, "print_fnc"):
+            if (self.print_fnc == None):
+                self._toolbox.register("print", print)
+            else:
+                self._toolbox.register("print", self.print_fnc)
         else:
-            self._toolbox.register("print", self.print_fnc)
+            self._toolbox.register("print", print)
 
         if self.parallel:
             from multiprocessing import Pool

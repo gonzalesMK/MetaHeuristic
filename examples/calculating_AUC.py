@@ -20,8 +20,7 @@ sc_X = StandardScaler()
 X = sc_X.fit_transform(X)
  
 ga = BRKGA2(number_gen=10, size_pop=20, elite_size=10, mutant_size=2,
-            make_logbook=True, repeat=2, random_state=1,
-            features_metric_function='poly')
+            make_logbook=True, repeat=2, random_state=1)
 
 # Fit the classifier
 ga.fit(X, y, normalize=True)
@@ -51,4 +50,4 @@ plt.title(" Pareto front and Area under Curve")
 plt.xlabel("#SelectedFeatures/#TotalFeatures")
 plt.ylabel("Accuracy - Variation")
 plt.legend()
-
+plt.show()
