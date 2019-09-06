@@ -46,7 +46,7 @@ Print:
 
 """
 
-home = "/media/gonzales/DATA/TCC_Andre/datasets/results/"
+home = "/media/gonzales/DATA/TCC_Andre/datasets/experimen/"
 
 # Get the name of all datasets in the Experiment Folder
 dataset_names = os.listdir(home)

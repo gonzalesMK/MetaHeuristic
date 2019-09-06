@@ -3,7 +3,6 @@ To install and uninstall de package:
 	pip install -e . 
 	python setup.py develop --uninstall
 
-
 Create a Souce Distribution
 	python setup.py sdist
 

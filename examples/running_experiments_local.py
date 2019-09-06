@@ -5,6 +5,9 @@
 import warnings
 warnings.simplefilter(action='ignore', category=FutureWarning)
 
+"""
+    The goal of this code is to choose N algorithms and M datasets and perfom Feature Selection 
+"""
 # Number of CPU to use in the cluster
 n_cpus = 8
 
@@ -180,7 +183,7 @@ if __name__ == "__main__":
     finished = 0
     active_jobs = 0
     
-    # Manage jobs and delete then after finished
+    # Manage jobs and delete then when finished
     while jobs != []:
         
         active_jobs = started - finished

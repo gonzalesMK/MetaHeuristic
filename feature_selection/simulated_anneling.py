@@ -82,7 +82,6 @@ class SimulatedAnneling(_BaseMetaHeuristic):
         self.skip = skip
         self.parallel = parallel
         self.parallel = parallel
-
         
     def _setup(self):
 

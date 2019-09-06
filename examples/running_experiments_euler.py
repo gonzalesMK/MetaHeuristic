@@ -31,11 +31,6 @@ def setup(string):
     labelencoder_y = LabelEncoder()
     Y = labelencoder_y.fit_transform(y) 
     
-    # Feature Scaling in X - you shouldn't scale the entire dataset
-    #sc_X = StandardScaler()
-    #X = sc_X.fit_transform(X)
-    
-    
     X = np.asarray(X, dtype= np.float64)
     
     # Cleaning variabels
