@@ -283,18 +283,22 @@ class _BaseMetaHeuristic(BaseEstimator, SelectorMixin, ClassifierMixin):
 
     @staticmethod
     def _get_accuracy(ind):
-        return ind.fitness.wvalues[0]
+        return ind.fitness.values[0]
 
     @staticmethod
     def _get_features(ind):
         return sum(ind)
 
     def __getstate__(self):
+        
         self_dict = self.__dict__.copy()
+        
         if '_toolbox' in self_dict:
             del self_dict['_toolbox']
+        
         if 'print_fnc' in self_dict:
             del self_dict['print_fnc']
+
 
         return self_dict
 
@@ -302,7 +306,7 @@ class _BaseMetaHeuristic(BaseEstimator, SelectorMixin, ClassifierMixin):
         self.__dict__.update(state)
 
     def _make_stats(self):
-        stats_fit = tools.Statistics(key=lambda ind: ind.fitness.values[0])
+        stats_fit = tools.Statistics(key=self._get_accuracy)
         stats_size = tools.Statistics(key=sum)
         self.stats = tools.MultiStatistics(fitness=stats_fit, size=stats_size)
         self.stats.register("avg", np.mean)
