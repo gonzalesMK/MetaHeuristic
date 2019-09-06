@@ -154,6 +154,7 @@ class BRKGA(_BaseMetaHeuristic):
 
             pareto_front.update(pop)
             hof.update(pop)
+            
             for g in range(self.number_gen):
 
                 # Ordering

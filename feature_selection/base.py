@@ -313,11 +313,12 @@ class _BaseMetaHeuristic(BaseEstimator, SelectorMixin, ClassifierMixin):
         self.stats.register("std", np.std)
         self.stats.register("min", np.min)
         self.stats.register("max", np.max)
+        self.stats.register("median", np.median)
         self.logbook = [tools.Logbook() for i in range(self.repeat)]
 
         for i in range(self.repeat):
-            self.logbook[i].header = "gen", 'best_fit', "fitness", "size"
-        # print(self.logbook[0].keys())
+            self.logbook[i].header = "gen", 'hallOfFame', "paretoFront", "time", "fitness", "size"
+
         for i in range(self.repeat):
             self.logbook[i].chapters["fitness"].header = self.stats.fields
             self.logbook[i].chapters["size"].header = self.stats.fields
