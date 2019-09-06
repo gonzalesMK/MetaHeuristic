@@ -17,7 +17,7 @@ from deap import base
 from deap import tools
 from sklearn.preprocessing import StandardScaler
 from sklearn.utils import check_X_y
-
+import copy
 
 class Fitness(base.Fitness):
 
@@ -354,6 +354,9 @@ class _BaseMetaHeuristic(BaseEstimator, SelectorMixin, ClassifierMixin):
 
         self.n_features_ = X.shape[1]
 
+        if( not hasattr(self, "_toolbox")):
+            self._toolbox = base.Toolbox()
+            
         self._toolbox.register("evaluate", self._evaluate, X=X, y=y)
 
         return X, y
@@ -379,7 +382,8 @@ class _BaseMetaHeuristic(BaseEstimator, SelectorMixin, ClassifierMixin):
     def _setup(self):
         " Initialize the toolbox and statistical variables"
 
-        self._toolbox = base.Toolbox()
+        if( not hasattr(self, "_toolbox")):
+            self._toolbox = base.Toolbox()
 
         if hasattr(self, "print_fnc"):
             if (self.print_fnc == None):
@@ -405,7 +409,7 @@ class _BaseMetaHeuristic(BaseEstimator, SelectorMixin, ClassifierMixin):
             self.i_gen_pareto_ = []
 
         if self.estimator == None:
-            self._estimator = SVC(gamma="auto")
+            self._estimator = SVC(kernel='linear', gamma="auto")
         else:
             self._estimator = self.estimator
 
@@ -414,6 +418,8 @@ class _BaseMetaHeuristic(BaseEstimator, SelectorMixin, ClassifierMixin):
 
         self.best_ = tools.HallOfFame(1)
         self.best_pareto_front_ = tools.ParetoFront()
+
+        self._toolbox.register('clone', copy.deepcopy)
 
     def best_pareto(self):
         return self.best_pareto_front_

@@ -84,6 +84,7 @@ class GeneticAlgorithm(_BaseMetaHeuristic):
         super()._setup()
 
         self._toolbox.register("attribute", self._gen_in)
+        
         self._toolbox.register("individual", tools.initIterate,
                                BaseMask, self._toolbox.attribute)
         self._toolbox.register("population", tools.initRepeat,
@@ -134,28 +135,27 @@ class GeneticAlgorithm(_BaseMetaHeuristic):
 
             # Iterate over generations
             for g in range(self.number_gen):
-                # Select the next generation individuals
+                
+                # Select the next generation individuals through tournament
                 offspring = self._toolbox.select(pop, len(pop))
-                # Clone the selected individuals
                 offspring = list(map(self._toolbox.clone, offspring))
 
-                # Apply crossover and mutation on the offspring
+                # Apply crossover 
                 for child1, child2 in zip(offspring[::2], offspring[1::2]):
                     if random.random() < self.cross_over_prob:
                         self._toolbox.mate(child1, child2)
                         del child1.fitness.values
                         del child2.fitness.values
-
+                
+                # Apply Mutation
                 for mutant in offspring:
                     if random.random() < self.individual_mut_prob:
                         self._toolbox.mutate(mutant)
                         del mutant.fitness.values
 
                 # Evaluate the individuals with an invalid fitness ( new individuals)
-                invalid_ind = [
-                    ind for ind in offspring if not ind.fitness.valid]
-                fitnesses = self._toolbox.map(
-                    self._toolbox.evaluate, invalid_ind)
+                invalid_ind = [ ind for ind in offspring if not ind.fitness.valid]
+                fitnesses = self._toolbox.map( self._toolbox.evaluate, invalid_ind)
                 for ind, fit in zip(invalid_ind, fitnesses):
                     ind.fitness.values = fit
 

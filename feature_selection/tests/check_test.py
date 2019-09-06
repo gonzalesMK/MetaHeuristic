@@ -3,25 +3,25 @@ from sklearn.utils.estimator_checks import check_estimator
 from sklearn.utils.testing import assert_array_equal
 from sklearn.datasets import load_breast_cancer
 from sklearn.svm import SVC
-from feature_selection import HarmonicSearch, HarmonicSearch2
+from feature_selection import HarmonicSearch
 from feature_selection import GeneticAlgorithm
 from feature_selection import RandomSearch
 from feature_selection import BinaryBlackHole
 from feature_selection import SimulatedAnneling
-from feature_selection import BRKGA, BRKGA2
+from feature_selection import BRKGA
 from feature_selection import SPEA2
 from feature_selection import PSO
 from sklearn.utils.testing import assert_raises
 from sklearn.utils.testing import assert_warns
-
+import nose.plugins.multiprocess 
 # Those are nose tests: to run it, write: python -m nose
+
+_multiprocess_can_split_ = True
 
 METACLASSES = [
         HarmonicSearch, GeneticAlgorithm, RandomSearch,
-        BinaryBlackHole, SimulatedAnneling, BRKGA, BRKGA2, 
-               HarmonicSearch2, SPEA2, PSO]
-
-NSGA2 = [BRKGA2, HarmonicSearch2, SPEA2]
+        BinaryBlackHole, SimulatedAnneling, BRKGA,
+        SPEA2, PSO]
 
 def test_check_estimator():
     for metaclass in METACLASSES:
@@ -110,7 +110,7 @@ def test_unusual_errors():
     
     #assert_raises(ValueError, meta.score_func_to_gridsearch, meta)
     
-    for metaclass in [BRKGA, BRKGA2]:
+    for metaclass in [BRKGA]:
         meta = metaclass(estimator=clf, random_state=0, verbose=0,
                         make_logbook=True, repeat=1, number_gen=2, size_pop=2,
                         elite_size=5)

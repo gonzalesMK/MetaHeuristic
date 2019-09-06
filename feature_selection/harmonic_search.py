@@ -42,43 +42,55 @@ class HarmonicSearch(_BaseMetaHeuristic):
     features_metric_function : callable, (default=pow(sum(mask)/(len(mask)*5), 2))
             A function that return a float from the binary mask of features
     """
-
-    def __init__(self, estimator=None, HMCR=0.95,
+    def __init__(self, estimator=None, HMCR=0.95, sorting_method='simple',
                  number_gen=100, size_pop=50, verbose=0, repeat=1,
                  make_logbook=False, random_state=None, parallel=False,
                  cv_metric_function=None, features_metric_function=None,
                  print_fnc=None, skip=0, name="HarmonicSearch"):
 
-        self.name=name
-        self.estimator=estimator
-        self.number_gen=number_gen
-        self.verbose=verbose
-        self.repeat=repeat
-        self.parallel=parallel
-        self.make_logbook=make_logbook
-        self.random_state=random_state
-        self.cv_metric_function=cv_metric_function
-        self.features_metric_function=features_metric_function
-        self.print_fnc=print_fnc
+        self.name = name
+        self.estimator = estimator
+        self.number_gen = number_gen
+        self.verbose = verbose
+        self.repeat = repeat
+        self.parallel = parallel
+        self.make_logbook = make_logbook
+        self.random_state = random_state
+        self.cv_metric_function = cv_metric_function
+        self.features_metric_function = features_metric_function
+        self.print_fnc = print_fnc
         self.HMCR = HMCR
         self.size_pop = size_pop
         self.skip = skip
+        self.sorting_method = sorting_method
         random.seed(self.random_state)
-     
 
     def _setup(self):
         super()._setup()
 
         self._toolbox.register("attribute", self._gen_in)
+
         self._toolbox.register("individual", tools.initIterate,
-                              BaseMask, self._toolbox.attribute)
+                               BaseMask, self._toolbox.attribute)
+
         self._toolbox.register("population", tools.initRepeat,
-                              list, self._toolbox.individual)
-        self._toolbox.register("get_worst", tools.selWorst, k=1)
+                               list, self._toolbox.individual)
+
+        if(self.sorting_method == 'simple'):
+            self._toolbox.register( "sort", sorted, key=lambda ind: ind.fitness.values[0])
+        elif(self.sorting_method == 'NSGA2'):
+            self._toolbox.register( "sort", tools.selNSGA2, k=self.size_pop+1)
+        elif(self.sorting_method == 'NSGA3'):
+            self._toolbox.register( "sort", tools.selNSGA3, k=self.size_pop+1)
+        else:
+            raise ValueError("The {} sorting method is not valid".format(self.sorting_method))
+
         self._toolbox.register("evaluate", self._evaluate, X=None, y=None)
 
-        self._toolbox.register("mutate", tools.mutUniformInt, low=0, up=1,
-                              indpb=1-self.HMCR)
+        if( self.HMCR < 0 or self.HMCR > 1):
+            raise ValueError("The HMCR param is {}, but should be in the interval [0,1]".format(self.HMCR))
+        
+        self._toolbox.register("mutate", tools.mutFlipBit, indpb=1-self.HMCR)
 
     def fit(self, X=None, y=None, normalize=False, **arg):
         """ Fit method
@@ -98,14 +110,12 @@ class HarmonicSearch(_BaseMetaHeuristic):
                 Set parameters
         """
         initial_time = time.clock()
-     
-        self._setup()
-     
-        self.set_params(**arg)
-     
-        X, y = self._set_dataset(X=X, y=y, normalize=normalize)
 
-        
+        self._setup()
+
+        self.set_params(**arg)
+
+        X, y = self._set_dataset(X=X, y=y, normalize=normalize)
 
         for i in range(self.repeat):
             harmony_mem = self._toolbox.population(n=self.size_pop)
@@ -123,14 +133,11 @@ class HarmonicSearch(_BaseMetaHeuristic):
                 # Improvise a New Harmony
                 new_harmony = self._improvise(harmony_mem)
                 new_harmony.fitness.values = self._toolbox.evaluate(new_harmony)
+                harmony_mem.append(new_harmony)
 
-                # Select the Worst Harmony
-                worst = self._toolbox.get_worst(harmony_mem)[0]
-
-                # Check and Update Harmony Memory
-                if worst.fitness < new_harmony.fitness:
-                    worst[:] = new_harmony[:]
-                    worst.fitness.values = new_harmony.fitness.values
+                # Remove the Worst Harmony
+                harmony_mem = self._toolbox.sort(harmony_mem)
+                harmony_mem.pop()
 
                 # Log statistic
                 hof.update(harmony_mem)
