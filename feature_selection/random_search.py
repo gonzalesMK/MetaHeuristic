@@ -80,57 +80,16 @@ class RandomSearch(_BaseMetaHeuristic):
                               list, self._toolbox.individual)
         self._toolbox.register("evaluate", self._evaluate)
 
-    def fit(self, X=None, y=None, normalize=False, **arg):
-        """ Fit method
+    def _do_generation(self, pop, hof, paretoFront):
+        pop = self._toolbox.population(n=self.size_pop)
 
-        Parameters
-        ----------
-        X : array of shape [n_samples, n_features]
-                The input samples
+        # Evaluate the entire population
+        fitnesses = self._toolbox.map(self._toolbox.evaluate, pop)
+        for ind, fit in zip(pop, fitnesses):
+            ind.fitness.values = fit
 
-        y : array of shape [n_samples, 1]
-                The input of labels
+        # Log statistic
+        hof.update(pop)
+        paretoFront.update(pop)
 
-        normalize : boolean, (default=False)
-                If true, StandardScaler will be applied to X
-
-        **arg : parameters
-                Set parameters
-        """
-
-        initial_time = time.clock()
-        self._setup()
-        self.set_params(**arg)
-        X, y = self._set_dataset(X=X, y=y, normalize=normalize)
-
-        
-
-        for i in range(self.repeat):
-            hof = tools.HallOfFame(1)
-            pareto_front = tools.ParetoFront()
-
-            for g in range(self.number_gen):
-                pop = self._toolbox.population(n=self.size_pop)
-
-                # Evaluate the entire population
-                fitnesses = self._toolbox.map(self._toolbox.evaluate, pop)
-                for ind, fit in zip(pop, fitnesses):
-                    ind.fitness.values = fit
-
-                # Log statistic
-                hof.update(pop)
-                pareto_front.update(pop)
-                if self.make_logbook:
-                    self.logbook[i].record(gen=g,
-                                           best_fit=hof[0].fitness.values[0],
-                                           **self.stats.compile(pop))
-                    self._make_generation_log(hof, pareto_front)
-
-                if self.verbose:
-                    self._print(g, i, initial_time, time.clock())
-
-            self._make_repetition_log(hof, pareto_front)
-
-        self._estimator.fit(X=self.transform(X), y=y)
-
-        return self
+        return pop, hof, paretoFront
