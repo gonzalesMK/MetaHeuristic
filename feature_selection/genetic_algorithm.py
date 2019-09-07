@@ -96,86 +96,36 @@ class GeneticAlgorithm(_BaseMetaHeuristic):
         self._toolbox.register("mutate", tools.mutUniformInt, low=0, up=1,
                                indpb=self.gene_mutation_prob)
 
-    def fit(self, X=None, y=None, normalize=False, **arg):
-        """ Fit method
+    def _do_generation(self, pop, hof, paretoFront):
 
-        Parameters
-        ----------
-        X : array of shape [n_samples, n_features]
-                The input samples
+        # Select the next generation individuals through tournament
+        offspring = self._toolbox.select(pop, len(pop))
+        offspring = list(map(self._toolbox.clone, offspring))
 
-        y : array of shape [n_samples, 1]
-                The input of labels
+        # Apply crossover 
+        for child1, child2 in zip(offspring[::2], offspring[1::2]):
+            if random.random() < self.cross_over_prob:
+                self._toolbox.mate(child1, child2)
+                del child1.fitness.values
+                del child2.fitness.values
+        
+        # Apply Mutation
+        for mutant in offspring:
+            if random.random() < self.individual_mut_prob:
+                self._toolbox.mutate(mutant)
+                del mutant.fitness.values
 
-        normalize : boolean, (default=False)
-                If true, StandardScaler will be applied to X
+        # Evaluate the individuals with an invalid fitness ( new individuals)
+        invalid_ind = [ ind for ind in offspring if not ind.fitness.valid]
+        fitnesses = self._toolbox.map( self._toolbox.evaluate, invalid_ind)
+        for ind, fit in zip(invalid_ind, fitnesses):
+            ind.fitness.values = fit
 
-        **arg : parameters
-                Set parameters
-        """
+        # The population is entirely replaced by the offspring
+        pop[:] = offspring
 
-        initial_time = time.clock()
+        # Log statistic
+        hof.update(pop)
+        paretoFront.update(pop)
 
-        self.set_params(**arg)
-
-        self._setup()
-
-        X, y = self._set_dataset(X=X, y=y, normalize=normalize)
-
-        # This is to repeat the trainning N times
-        for i in range(self.repeat):
-            pop = self._toolbox.population(self.size_pop)
-            hof = tools.HallOfFame(1)
-            pareto_front = tools.ParetoFront()
-
-            # Evaluate the entire population the first time
-            fitnesses = self._toolbox.map(self._toolbox.evaluate, pop)
-            for ind, fit in zip(pop, fitnesses):
-                ind.fitness.values = fit
-
-            # Iterate over generations
-            for g in range(self.number_gen):
-                
-                # Select the next generation individuals through tournament
-                offspring = self._toolbox.select(pop, len(pop))
-                offspring = list(map(self._toolbox.clone, offspring))
-
-                # Apply crossover 
-                for child1, child2 in zip(offspring[::2], offspring[1::2]):
-                    if random.random() < self.cross_over_prob:
-                        self._toolbox.mate(child1, child2)
-                        del child1.fitness.values
-                        del child2.fitness.values
-                
-                # Apply Mutation
-                for mutant in offspring:
-                    if random.random() < self.individual_mut_prob:
-                        self._toolbox.mutate(mutant)
-                        del mutant.fitness.values
-
-                # Evaluate the individuals with an invalid fitness ( new individuals)
-                invalid_ind = [ ind for ind in offspring if not ind.fitness.valid]
-                fitnesses = self._toolbox.map( self._toolbox.evaluate, invalid_ind)
-                for ind, fit in zip(invalid_ind, fitnesses):
-                    ind.fitness.values = fit
-
-                # The population is entirely replaced by the offspring
-                pop[:] = offspring
-
-                # Log statistic
-                hof.update(pop)
-                pareto_front.update(pop)
-                if self.make_logbook:
-                    self.logbook[i].record(gen=g,
-                                           best_fit=hof[0].fitness.values[0],
-                                           **self.stats.compile(pop))
-                    self._make_generation_log(hof, pareto_front)
-
-                if self.verbose:
-                    self._print(g, i, initial_time, time.clock())
-
-            self._make_repetition_log(hof, pareto_front)
-
-        self._estimator.fit(X=self.transform(X), y=y)
-
-        return self
+        return pop, hof, paretoFront

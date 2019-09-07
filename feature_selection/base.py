@@ -18,6 +18,8 @@ from deap import tools
 from sklearn.preprocessing import StandardScaler
 from sklearn.utils import check_X_y
 import copy
+from timeit import time
+
 
 class Fitness(base.Fitness):
 
@@ -30,7 +32,7 @@ class BaseMask(list, object):
 
     def __init__(self, mask):
         self[:] = mask
-        self.fitness = Fitness( (1, -1e-5) , (0, 0))
+        self.fitness = Fitness((1, -1e-5), (0, 0))
 
     # def __getstate__(self):
         #        self_dict = self.__dict__.copy()
@@ -71,7 +73,7 @@ class SelectorMixin(six.with_metaclass(ABCMeta, TransformerMixin)):
             raise ValueError("Mask type is {} not allowed".format(mask.dtype))
 
         # I don't see utility in here
-        #if hasattr(x, "toarray"):
+        # if hasattr(x, "toarray"):
             #            ind = np.arange(mask.shape[0])
             #            mask = ind[mask]
             #
@@ -130,8 +132,8 @@ class SelectorMixin(six.with_metaclass(ABCMeta, TransformerMixin)):
 
         if not mask.any():
             warn("No features were selected: either the data is"
-                " too noisy or the selection test too strict.",
-                UserWarning)
+                 " too noisy or the selection test too strict.",
+                 UserWarning)
             return np.empty(0).reshape((X.shape[0], 0))
 
         if len(mask) != X.shape[1]:
@@ -290,15 +292,14 @@ class _BaseMetaHeuristic(BaseEstimator, SelectorMixin, ClassifierMixin):
         return sum(ind)
 
     def __getstate__(self):
-        
+
         self_dict = self.__dict__.copy()
-        
+
         if '_toolbox' in self_dict:
             del self_dict['_toolbox']
-        
+
         if 'print_fnc' in self_dict:
             del self_dict['print_fnc']
-
 
         return self_dict
 
@@ -313,7 +314,9 @@ class _BaseMetaHeuristic(BaseEstimator, SelectorMixin, ClassifierMixin):
         self.stats.register("std", np.std)
         self.stats.register("min", np.min)
         self.stats.register("max", np.max)
-        self.stats.register("median", np.median)
+        self.stats.register("25_percentile", np.percentile, q=25, interpolation='higher')
+        self.stats.register("50_percentile", np.percentile, q=50, interpolation='higher')
+        self.stats.register("75_percentile", np.percentile, q=75, interpolation='higher')
         self.logbook = [tools.Logbook() for i in range(self.repeat)]
 
         for i in range(self.repeat):
@@ -359,9 +362,9 @@ class _BaseMetaHeuristic(BaseEstimator, SelectorMixin, ClassifierMixin):
 
         self.n_features_ = X.shape[1]
 
-        if( not hasattr(self, "_toolbox")):
+        if(not hasattr(self, "_toolbox")):
             self._toolbox = base.Toolbox()
-            
+
         self._toolbox.register("evaluate", self._evaluate, X=X, y=y)
 
         return X, y
@@ -369,9 +372,28 @@ class _BaseMetaHeuristic(BaseEstimator, SelectorMixin, ClassifierMixin):
     def _set_fit(self):
         pass
 
-    def _make_generation_log(self, hof, pareto_front):
+    def _make_generation_log(self, gen, repetition, pop, hof, pareto_front):
         self.i_gen_pareto_.append(pareto_front[:])
         self.i_gen_hof_.append(hof[0])
+
+        record = self.stats.compile(pop)
+
+        self.logbook[repetition].record(gen=gen, hallOfFame=hof, paretoFront=pareto_front, time=time.clock(), **record)
+
+        if self.verbose:
+            self._toolbox.print("*********    Report {}       ************* ".format(self.name), end='\n\n')
+            self._toolbox.print("\tmin\t25%\t50%\t75%\tmax")
+            self._toolbox.print("Score:\t{:.3f}\t{:.3f}\t{:.3f}\t{:.3f}\t{:.3f}".format( record['fitness']['min'], record['fitness']['25_percentile'],record['fitness']['50_percentile'],record['fitness']['75_percentile'], record['fitness']['max']))
+            self._toolbox.print("Size:\t{:d}\t{:d}\t{:d}\t{:d}\t{:d}".format( record['size']['min'], record['size']['25_percentile'],record['size']['50_percentile'],record['size']['75_percentile'], record['size']['max']), end='\n\n')
+
+            if( hasattr(self, "number_gen") and gen != 0 ):
+                eta = time.clock()  * self.number_gen / gen
+                minutes = np.floor( eta/60 )
+                seconds = eta % 60
+                self._toolbox.print("Gen: {}/{} Time Elapsed: {:.4} Estimated Time: {} min {} s".format(gen, self.number_gen, time.clock(), minutes, seconds))
+
+                
+            self._toolbox.print()
 
     def _make_repetition_log(self, hof, pareto_front):
         self.best_.update(hof)
@@ -387,7 +409,7 @@ class _BaseMetaHeuristic(BaseEstimator, SelectorMixin, ClassifierMixin):
     def _setup(self):
         " Initialize the toolbox and statistical variables"
 
-        if( not hasattr(self, "_toolbox")):
+        if(not hasattr(self, "_toolbox")):
             self._toolbox = base.Toolbox()
 
         if hasattr(self, "print_fnc"):
@@ -426,6 +448,11 @@ class _BaseMetaHeuristic(BaseEstimator, SelectorMixin, ClassifierMixin):
 
         self._toolbox.register('clone', copy.deepcopy)
 
+        if hasattr(self, 'skip'):
+            self._skip = self.skip
+        else:
+            self._skip = 0
+
     def best_pareto(self):
         return self.best_pareto_front_
 
@@ -438,13 +465,59 @@ class _BaseMetaHeuristic(BaseEstimator, SelectorMixin, ClassifierMixin):
     def all_solutions(self):
         return self.hof_
 
-    def _print(self, gen, rep, initial_time, final_time):
-        self._toolbox.print("""Repetition: {:d} \t Generation: {:d}/{:d} 
-                Elapsed time: {:.4f} \r""".format(rep+1, gen + 1,
-                                                  self.number_gen, final_time - initial_time))
-
     def set_params(self, **params):
 
         super().set_params(**params)
+
+        return self
+
+    def _do_generation(self, pop, hof, paretoFront):
+        pass
+
+    def fit(self, X=None, y=None, normalize=False, **arg):
+        """ Fit method
+
+        Parameters
+        ----------
+        X : array of shape [n_samples, n_features]
+                The input samples
+
+        y : array of shape [n_samples, 1]
+                The input of labels
+
+        normalize : boolean, (default=False)
+                If true, StandardScaler will be applied to X
+
+        **arg : parameters
+                Set parameters
+        """
+        initial_time = time.clock()
+
+        self._setup()
+
+        self.set_params(**arg)
+
+        X, y = self._set_dataset(X=X, y=y, normalize=normalize)
+
+        for i in range(self.repeat):
+
+            pop = self._toolbox.population(n=self.size_pop)
+            hof = tools.HallOfFame(1)
+            pareto_front = tools.ParetoFront()
+
+            for g in range(self.number_gen):
+
+                pop, hof, pareto_front = self._do_generation( pop, hof, pareto_front)
+
+                if self._skip == 0 or g % self._skip == 0:
+                    if self.make_logbook:
+                        self._make_generation_log(g, i, pop, hof, pareto_front)
+
+                if self.verbose and not self.make_logbook:
+                    self._toolbox.print( "Generation: ", g, " Repetition: ", i, " Clock:", time.clock())
+
+            self._make_repetition_log(hof, pareto_front)
+
+        self._estimator.fit(X=self.transform(X), y=y)
 
         return self

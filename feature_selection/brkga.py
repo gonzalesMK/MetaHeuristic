@@ -107,7 +107,7 @@ class BRKGA(_BaseMetaHeuristic):
         self._toolbox.register("select", tools.selTournament, tournsize=3)
         
         if(self.sorting_method == 'simple'):
-            self._toolbox.register( "sort", sorted, key=lambda ind: ind.fitness.values[0])
+            self._toolbox.register( "sort", sorted, key=lambda ind: ind.fitness.values[0], reverse=True)
         elif(self.sorting_method == 'NSGA2'):
             self._toolbox.register( "sort", tools.selNSGA2, k=self.size_pop)
         elif(self.sorting_method == 'NSGA3'):
@@ -115,94 +115,40 @@ class BRKGA(_BaseMetaHeuristic):
         else:
             raise ValueError("The {} sorting method is not valid".format(self.sorting_method))
 
-    def fit(self, X=None, y=None, normalize=False, **arg):
-        """ Fit method
+    def _do_generation(self, pop, hof, paretoFront):
 
-        Parameters
-        ----------
-        X : array of shape [n_samples, n_features]
-                The input samples
-
-        y : array of shape [n_samples, 1]
-                The input of labels
-
-        normalize : boolean, (default=False)
-                If true, StandardScaler will be applied to X
-
-        **arg : parameters
-                Set parameters
-        """
-        initial_time = time.clock()
-        self._setup()
-        self.set_params(**arg)
-
-        X, y = self._set_dataset(X=X, y=y, normalize=normalize)
-
+        # Ordering
+        ordered = self._toolbox.sort(pop)  
         
+        # Partition Elite and Non Elite -> We can repeat elites index, but no repeating non-elite!
+        father_indexes = np.random.randint( 0, self.elite_size, self._n_cross_over)
+        mother_indexes = np.random.permutation(np.arange(self.elite_size, self.elite_size + self._non_elite_size))[0:self._n_cross_over]
 
-        for i in range(self.repeat):
-            # Generate Population
-            pop = self._toolbox.population(self.size_pop)
-            hof = tools.HallOfFame(1)
-            pareto_front = tools.ParetoFront()
+        children = [self._toolbox.clone(ordered[ind]) for ind in father_indexes ]
 
-            # Evaluate the entire population
-            fitnesses = self._toolbox.map(self._toolbox.evaluate, pop)
-            for ind, fit in zip(pop, fitnesses):
-                ind.fitness.values = fit
-            del fit, ind
+        # Cross-Over
+        for ind in range(0, len(children)):
+            mother_index = mother_indexes[ind]
+            self._toolbox.mate( children[ind], ordered[mother_index])
+            del children[ind].fitness.values
 
-            pareto_front.update(pop)
-            hof.update(pop)
-            
-            for g in range(self.number_gen):
+        # Evaluate the individuals with an invalid fitness ( new individuals)
+        fitnesses = self._toolbox.map(self._toolbox.evaluate, children)
+        for ind, fit in zip(children, fitnesses): 
+            ind.fitness.values = fit
 
-                # Ordering
-                ordered = self._toolbox.sort(pop)  
-                
-                # Cross_over between Elite and Non Elite
-                    # We can repeat elites index, but no repeating non-elite!
-                father_indexes = np.random.randint( 0, self.elite_size, self._n_cross_over)
-                mother_indexes = np.random.permutation(np.arange(self.elite_size, self.elite_size + self._non_elite_size))[0:self._n_cross_over]
+        # The botton is replaced by mutant individuals
+        mutant = self._toolbox.population(self.mutant_size)
+        fitnesses = self._toolbox.map(self._toolbox.evaluate, mutant)
+        
+        for ind, fit in zip(mutant, fitnesses):
+            ind.fitness.values = fit
 
-                children = [self._toolbox.clone(ordered[ind]) for ind in father_indexes ]
+        # The population is entirely replaced by the offspring
+        pop[:] = ordered[0:self.elite_size] + children + mutant
 
-                # Cross-Over
-                for ind in range(0, len(children)):
-                    mother_index = mother_indexes[ind]
-                    self._toolbox.mate( children[ind], ordered[mother_index])
-                    del children[ind].fitness.values
+        # Log Statistics
+        hof.update(pop)
+        paretoFront.update(pop)
 
-                # Evaluate the individuals with an invalid fitness ( new individuals)
-                fitnesses = self._toolbox.map(self._toolbox.evaluate, children)
-                for ind, fit in zip(children, fitnesses): 
-                    ind.fitness.values = fit
-
-                # The botton is replaced by mutant individuals
-                mutant = self._toolbox.population(self.mutant_size)
-                fitnesses = self._toolbox.map(self._toolbox.evaluate, mutant)
-                
-                for ind, fit in zip(mutant, fitnesses):
-                    ind.fitness.values = fit
-
-                # The population is entirely replaced by the offspring
-                pop[:] = ordered[0:self.elite_size] + children + mutant
-
-                # Log Statistics
-                hof.update(pop)
-                pareto_front.update(pop)
-                if self.make_logbook:
-                    self.logbook[i].record(gen=g,
-                                           best_fit=hof[0].fitness.values[0],
-                                           **self.stats.compile(pop))
-                    self._make_generation_log(hof, pareto_front)
-
-                if self.verbose:
-                    self._print(g, i, initial_time, time.clock())
-
-            self._make_repetition_log(hof, pareto_front)
-
-        self._estimator.fit(X=self.transform(X), y=y)
-
-        return self
-
+        return pop, hof, paretoFront

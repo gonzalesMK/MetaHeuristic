@@ -71,73 +71,26 @@ class BinaryBlackHole(_BaseMetaHeuristic):
 
         random.seed(self.random_state)
 
-    def fit(self, X=None, y=None, normalize=False, **arg):
-        """ Fit method
+    def _do_generation(self, galaxy, hof, paretoFront):
 
-        Parameters
-        ----------
-        X : array of shape [n_samples, n_features]
-                The input samples
+        # Evaluate the entire population
+        fitnesses = self._toolbox.map(self._toolbox.evaluate, galaxy)
+        for ind, fit in zip(galaxy, fitnesses):
+                ind.fitness.values = fit
 
-        y : array of shape [n_samples, 1]
-                The input of labels
+        # Log statistic
+        hof.update(galaxy)
+        paretoFront.update(galaxy)
 
-        normalize : boolean, (default=False)
-                If true, StandardScaler will be applied to X
+        # Update Global Information
+        hof[0].radius = sum(hof[0].fitness.wvalues) / \
+                sum([sum(i.fitness.wvalues) for i in galaxy])
 
-        **arg : parameters
-                Set parameters
-        """
-        initial_time = time.clock()
+        # Update particles
+        for part in galaxy:
+                self._toolbox.update(part, hof[0])
 
-        self._setup()
-
-        self.set_params(**arg)
-
-        X, y = self._set_dataset(X=X, y=y, normalize=normalize)
-        
-
-        for i in range(self.repeat):
-            galaxy = self._toolbox.galaxy(n=self.size_pop)
-            hof = tools.HallOfFame(1)
-            pareto_front = tools.ParetoFront()
-
-            for g in range(self.number_gen):
-
-                # Evaluate the entire population
-                fitnesses = self._toolbox.map(self._toolbox.evaluate, galaxy)
-                for ind, fit in zip(galaxy, fitnesses):
-                    ind.fitness.values = fit
-
-                # Log statistic
-                hof.update(galaxy)
-                pareto_front.update(galaxy)
-
-                # Update Global Information
-                hof[0].radius = sum(hof[0].fitness.wvalues) / \
-                    sum([sum(i.fitness.wvalues) for i in galaxy])
-
-                # Update particles
-                for part in galaxy:
-                    self._toolbox.update(part, hof[0])
-
-                if self.make_logbook:
-                    record = self.stats.compile(galaxy)
-                    if self.verbose:
-                        self._toolbox.print("Record: {}".format(record), end=' ')
-                    self.logbook[i].record(gen=g,
-                                           best_fit=hof[0].fitness.values[0],
-                                           **record)
-                    self._make_generation_log(hof, pareto_front)
-
-                if self.verbose:
-                    self._toolbox.print("Generation: ", g, " Repetition: ", i, " Ti: ", initial_time, " Clock:", time.clock())
-
-            self._make_repetition_log(hof, pareto_front)
-
-        self._estimator.fit(X=self.transform(X), y=y)
-
-        return self
+        return galaxy, hof, paretoFront
 
     @staticmethod
     def _dist(star, blackhole):
@@ -145,7 +98,7 @@ class BinaryBlackHole(_BaseMetaHeuristic):
 
     def _updateStar(self, star, blackhole):
         if self._dist(star, blackhole) < blackhole.radius:
-            star[:] = self._toolbox.galaxy(n=1)[0]
+            star[:] = self._toolbox.population(n=1)[0]
         else:
             star[:] = [1 if abs(np.tanh(star[x] + self._random_object.uniform(0, 1) *
                                         (blackhole[x] - star[x]))) > self._random_object.uniform(0, 1) else 0 for x in range(0, self.n_features_)]
@@ -157,7 +110,7 @@ class BinaryBlackHole(_BaseMetaHeuristic):
         self._toolbox.register("attribute", self._gen_in)
         self._toolbox.register("star", tools.initIterate,
                               BaseMask, self._toolbox.attribute)
-        self._toolbox.register("galaxy", tools.initRepeat,
+        self._toolbox.register("population", tools.initRepeat,
                               list, self._toolbox.star)
         self._toolbox.register("update", self._updateStar)
         self._toolbox.register("evaluate", self._evaluate)

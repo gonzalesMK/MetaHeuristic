@@ -101,83 +101,32 @@ class SPEA2(_BaseMetaHeuristic):
         self._toolbox.register("mutate", tools.mutUniformInt, low=0, up=1,
                               indpb=self.gene_mutation_prob)
 
-    def fit(self, X=None, y=None, normalize=False, **arg):
-        """ Fit method
+    def _do_generation(self, archive, hof, paretoFront):
 
-        Parameters
-        ----------
-        X : array of shape [n_samples, n_features]
-                The input samples
+        # Mating Selection
+        pop = self._toolbox.select(archive, self.size_pop)
 
-        y : array of shape [n_samples, 1]
-                The input of labels
+        # Clone the selected individuals
+        pop = list(map(self._toolbox.clone, pop))
 
-        normalize : boolean, (default=False)
-                If true, StandardScaler will be applied to X
+        # Apply variation
+        pop = self._variation(pop)
 
-        **arg : parameters
-                Set parameters
-        """
-        initial_time = time.clock()
-        self._setup()
-        self.set_params(**arg)
+        # Evaluate the individuals with an invalid fitness
+        invalid_ind = [ind for ind in pop if not ind.fitness.valid]
+        fitnesses = self._toolbox.map(
+            self._toolbox.evaluate, invalid_ind)
+        for ind, fit in zip(invalid_ind, fitnesses):
+            ind.fitness.values = fit
 
-        X, y = self._set_dataset(X=X, y=y, normalize=normalize)
+        # Environmental Selection
+        archive = tools.selSPEA2(archive + pop, self.archive_size)
 
-        
+        # Log Statistics
+        hof.update(archive)
+        paretoFront.update(archive)
 
-        for i in range(self.repeat):
-            # Generate Population
-            pop = self._toolbox.population(self.size_pop)
-            hof = tools.HallOfFame(1)
-            pareto_front = tools.ParetoFront()
-
-            # Evaluate the entire population
-            fitnesses = self._toolbox.map(self._toolbox.evaluate, pop)
-            for ind, fit in zip(pop, fitnesses):
-                ind.fitness.values = fit
-
-            pareto_front.update(pop)
-            archive = tools.selSPEA2(pop, self.archive_size)
-
-            for g in range(self.number_gen):
-
-                # Mating Selection
-                pop = self._toolbox.select(archive, self.size_pop)
-
-                # Clone the selected individuals
-                pop = list(map(self._toolbox.clone, pop))
-
-                # Apply variation
-                pop = self._variation(pop)
-
-                # Evaluate the individuals with an invalid fitness
-                invalid_ind = [ind for ind in pop if not ind.fitness.valid]
-                fitnesses = self._toolbox.map(
-                    self._toolbox.evaluate, invalid_ind)
-                for ind, fit in zip(invalid_ind, fitnesses):
-                    ind.fitness.values = fit
-
-                # Environmental Selection
-                archive = tools.selSPEA2(archive + pop, self.archive_size)
-
-                # Log Statistics
-                hof.update(archive)
-                pareto_front.update(archive)
-                if self.make_logbook:
-                    self.logbook[i].record(gen=g,
-                                           best_fit=hof[0].fitness.values[0],
-                                           **self.stats.compile(archive))
-                    self._make_generation_log(hof, pareto_front)
-
-                if self.verbose:
-                    self._print(g, i, initial_time, time.clock())
-
-            self._make_repetition_log(hof, pareto_front)
-
-        self._estimator.fit(X=self.transform(X), y=y)
-
-        return self
+        return archive, hof, paretoFront
 
     def _variation(self, offspring):
         # Apply crossover and mutation on the offspring

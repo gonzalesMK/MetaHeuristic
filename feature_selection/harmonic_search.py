@@ -77,7 +77,7 @@ class HarmonicSearch(_BaseMetaHeuristic):
                                list, self._toolbox.individual)
 
         if(self.sorting_method == 'simple'):
-            self._toolbox.register( "sort", sorted, key=lambda ind: ind.fitness.values[0])
+            self._toolbox.register( "sort", sorted, key=lambda ind: ind.fitness.values[0], reverse=True)
         elif(self.sorting_method == 'NSGA2'):
             self._toolbox.register( "sort", tools.selNSGA2, k=self.size_pop+1)
         elif(self.sorting_method == 'NSGA3'):
@@ -92,72 +92,22 @@ class HarmonicSearch(_BaseMetaHeuristic):
         
         self._toolbox.register("mutate", tools.mutFlipBit, indpb=1-self.HMCR)
 
-    def fit(self, X=None, y=None, normalize=False, **arg):
-        """ Fit method
+    def _do_generation(self, harmony_mem, hof, paretoFront):
+                
+        # Improvise a New Harmony
+        new_harmony = self._improvise(harmony_mem)
+        new_harmony.fitness.values = self._toolbox.evaluate(new_harmony)
+        harmony_mem.append(new_harmony)
 
-        Parameters
-        ----------
-        X : array of shape [n_samples, n_features]
-                The input samples
+        # Remove the Worst Harmony
+        harmony_mem = self._toolbox.sort(harmony_mem)
+        harmony_mem.pop()
 
-        y : array of shape [n_samples, 1]
-                The input of labels
+        # Log statistic
+        hof.update(harmony_mem)
+        paretoFront.update(harmony_mem)
 
-        normalize : boolean, (default=False)
-                If true, StandardScaler will be applied to X
-
-        **arg : parameters
-                Set parameters
-        """
-        initial_time = time.clock()
-
-        self._setup()
-
-        self.set_params(**arg)
-
-        X, y = self._set_dataset(X=X, y=y, normalize=normalize)
-
-        for i in range(self.repeat):
-            harmony_mem = self._toolbox.population(n=self.size_pop)
-            hof = tools.HallOfFame(1)
-            pareto_front = tools.ParetoFront()
-
-            # Evaluate the entire population
-            fitnesses = self._toolbox.map(self._toolbox.evaluate, harmony_mem)
-
-            for ind, fit in zip(harmony_mem, fitnesses):
-                ind.fitness.values = fit
-
-            for g in range(self.number_gen):
-
-                # Improvise a New Harmony
-                new_harmony = self._improvise(harmony_mem)
-                new_harmony.fitness.values = self._toolbox.evaluate(new_harmony)
-                harmony_mem.append(new_harmony)
-
-                # Remove the Worst Harmony
-                harmony_mem = self._toolbox.sort(harmony_mem)
-                harmony_mem.pop()
-
-                # Log statistic
-                hof.update(harmony_mem)
-                pareto_front.update(harmony_mem)
-
-                if self.skip == 0 or g % self.skip == 0:
-                    if self.make_logbook:
-                        self.logbook[i].record(gen=g,
-                                               best_fit=hof[0].fitness.values[0],
-                                               **self.stats.compile(harmony_mem))
-                        self._make_generation_log(hof, pareto_front)
-
-                    if self.verbose:
-                        self._print(g, i, initial_time, time.clock())
-
-            self._make_repetition_log(hof, pareto_front)
-
-        self._estimator.fit(X=self.transform(X), y=y)
-
-        return self
+        return harmony_mem, hof, paretoFront
 
     def _improvise(self, pop):
         """ Function that improvise a new harmony"""
