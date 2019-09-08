@@ -104,13 +104,14 @@ class BinaryBlackHole(_BaseMetaHeuristic):
                                         (blackhole[x] - star[x]))) > self._random_object.uniform(0, 1) else 0 for x in range(0, self.n_features_)]
 
 
-    def _setup(self):
+    def _setup(self, X, y, normalize):
 
-        super(BinaryBlackHole, self)._setup()
+        X, y = super()._setup(X,y,normalize)
         self._toolbox.register("attribute", self._gen_in)
         self._toolbox.register("star", tools.initIterate,
                               BaseMask, self._toolbox.attribute)
         self._toolbox.register("population", tools.initRepeat,
                               list, self._toolbox.star)
         self._toolbox.register("update", self._updateStar)
-        self._toolbox.register("evaluate", self._evaluate)
+        
+        return X, y

@@ -80,8 +80,8 @@ class GeneticAlgorithm(_BaseMetaHeuristic):
         self.cxUniform_indpb = cxUniform_indpb
         self.parallel = parallel
 
-    def _setup(self):
-        super()._setup()
+    def _setup(self, X, y, normalize):
+        X, y = super()._setup(X,y,normalize)
 
         self._toolbox.register("attribute", self._gen_in)
         
@@ -95,6 +95,8 @@ class GeneticAlgorithm(_BaseMetaHeuristic):
 
         self._toolbox.register("mutate", tools.mutUniformInt, low=0, up=1,
                                indpb=self.gene_mutation_prob)
+
+        return X, y
 
     def _do_generation(self, pop, hof, paretoFront):
 

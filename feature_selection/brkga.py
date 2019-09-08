@@ -87,7 +87,7 @@ class BRKGA(_BaseMetaHeuristic):
         random.seed(self.random_state)
      
 
-    def _setup(self):
+    def _setup(self, X, y, normalize):
 
         if(self.elite_size + self.mutant_size > self.size_pop):
             raise ValueError(" Elite size({}) + Mutant_size({}) is bigger than population"
@@ -96,7 +96,7 @@ class BRKGA(_BaseMetaHeuristic):
         self._n_cross_over = self.size_pop - (self.elite_size + self.mutant_size)
         self._non_elite_size = self.size_pop - self.elite_size
 
-        super()._setup()
+        X, y= super()._setup(X,y,normalize)
         self._toolbox.register("attribute", self._gen_in)
         self._toolbox.register("individual", tools.initIterate,
                               BaseMask, self._toolbox.attribute)
@@ -114,6 +114,8 @@ class BRKGA(_BaseMetaHeuristic):
             self._toolbox.register( "sort", tools.selNSGA3, k=self.size_pop)
         else:
             raise ValueError("The {} sorting method is not valid".format(self.sorting_method))
+
+        return X, y
 
     def _do_generation(self, pop, hof, paretoFront):
 

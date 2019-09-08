@@ -69,17 +69,19 @@ class RandomSearch(_BaseMetaHeuristic):
         self.size_pop = size_pop
         self.parallel = parallel
 
-    def _setup(self):
+    def _setup(self, X, y, normalize):
 
-        super()._setup()
+        X, y= super()._setup(X,y,normalize)
 
         self._toolbox.register("attribute", self._gen_in)
         self._toolbox.register("individual", tools.initIterate,
                               BaseMask, self._toolbox.attribute)
         self._toolbox.register("population", tools.initRepeat,
                               list, self._toolbox.individual)
-        self._toolbox.register("evaluate", self._evaluate)
+        
+        return X, y
 
+        
     def _do_generation(self, pop, hof, paretoFront):
         pop = self._toolbox.population(n=self.size_pop)
 

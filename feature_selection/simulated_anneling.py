@@ -83,18 +83,20 @@ class SimulatedAnneling(_BaseMetaHeuristic):
         self.parallel = parallel
         self.parallel = parallel
         
-    def _setup(self):
+    def _setup(self, X, y, normalize):
 
-        super()._setup()
+        X, y = super()._setup(X,y,normalize)
         self._toolbox.register("attribute", self._gen_in)
         self._toolbox.register("individual", tools.initIterate,
                               BaseMask, self._toolbox.attribute)
         self._toolbox.register("population", tools.initRepeat,
                               list, self._toolbox.individual)
-        self._toolbox.register("evaluate", self._evaluate, X=None, y=None)
+        
         self._toolbox.register("mutate", tools.mutUniformInt, low=0, up=1,
                               indpb=self.mutation_prob)
 
+        return X, y
+        
     def fit(self, X=None, y=None, normalize=False, **arg):
         """ Fit method
 
@@ -113,9 +115,10 @@ class SimulatedAnneling(_BaseMetaHeuristic):
                 Set parameters
         """
         initial_time = time.clock()
-        self._setup()
+        X, y = self._setup(X, y, normalize)
+        
         self.set_params(**arg)
-        X, y = self._set_dataset(X=X, y=y, normalize=normalize)
+        
 
         for i in range(self.repeat):
             solution = self._toolbox.individual()

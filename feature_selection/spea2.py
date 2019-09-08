@@ -88,8 +88,8 @@ class SPEA2(_BaseMetaHeuristic):
 
         random.seed(self.random_state)
 
-    def _setup(self):
-        super()._setup()
+    def _setup(self, X, y, normalize):
+        X, y = super()._setup(X,y,normalize)
         self._toolbox.register("attribute", self._gen_in)
         self._toolbox.register("individual", tools.initIterate,
                               BaseMask, self._toolbox.attribute)
@@ -101,6 +101,7 @@ class SPEA2(_BaseMetaHeuristic):
         self._toolbox.register("mutate", tools.mutUniformInt, low=0, up=1,
                               indpb=self.gene_mutation_prob)
 
+        return X, y
     def _do_generation(self, archive, hof, paretoFront):
 
         # Mating Selection

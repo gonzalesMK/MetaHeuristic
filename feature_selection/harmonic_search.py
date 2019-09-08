@@ -65,8 +65,8 @@ class HarmonicSearch(_BaseMetaHeuristic):
         self.sorting_method = sorting_method
         random.seed(self.random_state)
 
-    def _setup(self):
-        super()._setup()
+    def _setup(self, X, y, normalize):
+        X, y = super()._setup(X,y,normalize)
 
         self._toolbox.register("attribute", self._gen_in)
 
@@ -85,13 +85,14 @@ class HarmonicSearch(_BaseMetaHeuristic):
         else:
             raise ValueError("The {} sorting method is not valid".format(self.sorting_method))
 
-        self._toolbox.register("evaluate", self._evaluate, X=None, y=None)
+        
 
         if( self.HMCR < 0 or self.HMCR > 1):
             raise ValueError("The HMCR param is {}, but should be in the interval [0,1]".format(self.HMCR))
         
         self._toolbox.register("mutate", tools.mutFlipBit, indpb=1-self.HMCR)
 
+        return X, y
     def _do_generation(self, harmony_mem, hof, paretoFront):
                 
         # Improvise a New Harmony

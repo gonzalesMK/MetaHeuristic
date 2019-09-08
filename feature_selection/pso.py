@@ -94,17 +94,24 @@ class PSO(_BaseMetaHeuristic):
         self.slim=slim
         self.parallel = parallel
 
-    def _setup(self):
+    def _setup(self, X, y, normalize):
 
-        super()._setup()
+        X,y = super()._setup(X,y,normalize)
 
         self._toolbox.register("attribute", self._gen_in)
         self._toolbox.register("individual", tools.initIterate,
                               PSOBaseMask, self._toolbox.attribute)
         self._toolbox.register("population", tools.initRepeat,
                               list, self._toolbox.individual)
-        self._toolbox.register("evaluate", self._evaluate, X = None, y = None)
+        
 
+        if hasattr(self, 'n_features_') :
+            if( self.n_features_ > 4 ):
+                self._sigmoid_coeff=self.inverse_sigmoid(1-2/self.n_features_)
+            else: 
+                self._sigmoid_coeff=self.inverse_sigmoid(0.9)
+        
+        return X, y
 
     def _gen_in(self):
         ind=super(PSO, self)._gen_in()
@@ -146,76 +153,21 @@ class PSO(_BaseMetaHeuristic):
         # Delete Fitness
         del part.fitness.values
 
-    def fit(self, X = None, y = None, normalize = False, **arg):
-        """ Fit method
+    def _do_generation(self, pop, hof, paretoFront):
+        # Update Particles
+        for part in pop:
+            self.updateParticle(part, hof[0], self.phi1, self.phi2)
 
-        Parameters
-        ----------
-        X : array of shape [n_samples, n_features]
-                The input samples
+        # Evaluate the entire population
+        fitnesses=self._toolbox.map( self._toolbox.evaluate, pop)
+        for ind, fit in zip(pop, fitnesses):
+            ind.fitness.values=fit
 
-        y : array of shape [n_samples, 1]
-                The input of labels
+        # Log statistic
+        hof.update(pop)
+        paretoFront.update(pop)
 
-        normalize : boolean, (default=False)
-                If true, StandardScaler will be applied to X
-
-        **arg : parameters
-                Set parameters
-        """
-        initial_time=time.clock()
-
-        self.set_params(**arg)
-        self._setup()
-
-        X, y=self._set_dataset(X = X, y = y, normalize = normalize)
-
-        if self.n_features_ > 4:
-            self._sigmoid_coeff=self.inverse_sigmoid(1-2/self.n_features_)
-        else:
-            self._sigmoid_coeff=self.inverse_sigmoid(0.9)
-
-        
-        for i in range(self.repeat):
-            pop=self._toolbox.population(self.size_pop)
-            hof=tools.HallOfFame(1)
-            pareto_front=tools.ParetoFront()
-
-            # Evaluate the entire population
-            fitnesses=self._toolbox.map(self._toolbox.evaluate, pop)
-            for ind, fit in zip(pop, fitnesses):
-                ind.fitness.values=fit
-
-            hof.update(pop)
-            pareto_front.update(pop)
-            for g in range(self.number_gen):
-                # Update Particles
-                for part in pop:
-                    self.updateParticle(part, hof[0], self.phi1, self.phi2)
-
-                # Evaluate the entire population
-                fitnesses=self._toolbox.map(self._toolbox.evaluate, pop)
-                for ind, fit in zip(pop, fitnesses):
-                    ind.fitness.values=fit
-
-                # Log statistic
-                hof.update(pop)
-                pareto_front.update(pop)
-                if self.make_logbook:
-                        self.logbook[i].record(gen = g,
-                                               best_fit = hof[0].fitness.values[0],
-                                               **self.stats.compile(pop))
-                        self._make_generation_log(hof, pareto_front)
-
-                if self.verbose:
-                    self._print(g, i, initial_time, time.clock())
-
-            self._make_repetition_log(hof, pareto_front)
-
-        self._estimator.fit(X = self.transform(X), y = y)
-
-        return self
-
+        return pop, hof, paretoFront
 
     @staticmethod
     def inverse_sigmoid(x):

@@ -406,7 +406,7 @@ class _BaseMetaHeuristic(BaseEstimator, SelectorMixin, ClassifierMixin):
             self.i_gen_pareto_ = []
             self.i_gen_hof_ = []
 
-    def _setup(self):
+    def _setup(self, X, y, normalize):
         " Initialize the toolbox and statistical variables"
 
         if(not hasattr(self, "_toolbox")):
@@ -453,6 +453,10 @@ class _BaseMetaHeuristic(BaseEstimator, SelectorMixin, ClassifierMixin):
         else:
             self._skip = 0
 
+        X, y = self._set_dataset(X=X, y=y, normalize=normalize)
+        
+        return X, y
+
     def best_pareto(self):
         return self.best_pareto_front_
 
@@ -474,7 +478,7 @@ class _BaseMetaHeuristic(BaseEstimator, SelectorMixin, ClassifierMixin):
     def _do_generation(self, pop, hof, paretoFront):
         pass
 
-    def fit(self, X=None, y=None, normalize=False, **arg):
+    def fit(self, X, y, normalize=False, **arg):
         """ Fit method
 
         Parameters
@@ -493,17 +497,22 @@ class _BaseMetaHeuristic(BaseEstimator, SelectorMixin, ClassifierMixin):
         """
         initial_time = time.clock()
 
-        self._setup()
+        X,y = self._setup(X, y, normalize)
 
         self.set_params(**arg)
-
-        X, y = self._set_dataset(X=X, y=y, normalize=normalize)
 
         for i in range(self.repeat):
 
             pop = self._toolbox.population(n=self.size_pop)
+            
+            fitnesses = self._toolbox.map(self._toolbox.evaluate, pop)
+            for ind, fit in zip(pop, fitnesses): 
+                ind.fitness.values = fit            
+            
             hof = tools.HallOfFame(1)
+            hof.update(pop)
             pareto_front = tools.ParetoFront()
+            pareto_front.update(pop)
 
             for g in range(self.number_gen):
 
