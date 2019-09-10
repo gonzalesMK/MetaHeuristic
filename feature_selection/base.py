@@ -496,7 +496,7 @@ class _BaseMetaHeuristic(BaseEstimator, SelectorMixin, MetaEstimatorMixin):
     def _do_generation(self, pop, hof, paretoFront):
         pass
 
-    def fit(self, X, y, normalize=False, **arg):
+    def fit(self, X, y, maxTime = None, normalize=False, **arg):
         """ Fit method
 
         Parameters
@@ -544,6 +544,9 @@ class _BaseMetaHeuristic(BaseEstimator, SelectorMixin, MetaEstimatorMixin):
                 if self.verbose and not self.make_logbook:
                     self._toolbox.print( "Generation: ", g, " Repetition: ", i, " Clock:", time.clock() - self._initial_time)
 
+                if maxTime != None and time.clock() - self._initial_time > maxTime:
+                    break
+                
             self._make_repetition_log(hof, pareto_front)
 
         self._estimator.fit(X=self.transform(X), y=y)
