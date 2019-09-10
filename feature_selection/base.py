@@ -4,7 +4,7 @@ from itertools import compress
 from random import sample
 import random
 import numpy as np
-from sklearn.base import BaseEstimator, ClassifierMixin, TransformerMixin, clone
+from sklearn.base import BaseEstimator, MetaEstimatorMixin, TransformerMixin, clone
 from sklearn.model_selection import cross_val_score
 from sklearn.metrics import matthews_corrcoef
 from sklearn.metrics import make_scorer
@@ -20,7 +20,7 @@ from sklearn.utils import check_X_y
 import copy
 from timeit import time
 
-
+from collections import Counter
 class Fitness(base.Fitness):
 
     def __init__(self, weights=(1, -1e-5), values=(0, 0)):
@@ -142,7 +142,7 @@ class SelectorMixin(six.with_metaclass(ABCMeta, TransformerMixin)):
         return X[:, self.safe_mask(X, mask)]
 
 
-class _BaseMetaHeuristic(BaseEstimator, SelectorMixin, ClassifierMixin):
+class _BaseMetaHeuristic(BaseEstimator, SelectorMixin, MetaEstimatorMixin):
 
     def __init__(self, name, estimator=None, number_gen=20,
                  verbose=0, repeat=1, parallel=False,
@@ -173,7 +173,7 @@ class _BaseMetaHeuristic(BaseEstimator, SelectorMixin, ClassifierMixin):
         ones = np.ones([random_number, ], dtype=int)
         return sample(list(np.concatenate((zeros, ones), axis=0)), self.n_features_)
 
-    def _evaluate(self, individual, X, y, cv=3):
+    def _evaluate(self, individual, X, y, cv=2):
         """ 
             Evaluate method. Each individual is a mask of features.
 
@@ -197,6 +197,12 @@ class _BaseMetaHeuristic(BaseEstimator, SelectorMixin, ClassifierMixin):
         if train.shape[1] == 0:
             return 0, 1,
 
+        try:
+            index = self._all_solutions['individuals'].index(individual[:])
+            return self._all_solutions['results'][index]
+        except ValueError:
+            pass
+
         # Applying K-Fold Cross Validation
         accuracies = cross_val_score(estimator=clone(self._estimator), X=train,
                                      y=y, cv=cv,
@@ -209,6 +215,9 @@ class _BaseMetaHeuristic(BaseEstimator, SelectorMixin, ClassifierMixin):
                 feature_score = self.features_metric_function(individual)
         else:
             feature_score = sum(individual) / len(individual)
+
+        self._all_solutions['individuals'].append(individual[:])
+        self._all_solutions['results'].append( (accuracies.mean(), feature_score )  )
 
         return accuracies.mean(), feature_score
 
@@ -362,10 +371,7 @@ class _BaseMetaHeuristic(BaseEstimator, SelectorMixin, ClassifierMixin):
 
         self.n_features_ = X.shape[1]
 
-        if(not hasattr(self, "_toolbox")):
-            self._toolbox = base.Toolbox()
-
-        self._toolbox.register("evaluate", self._evaluate, X=X, y=y)
+               
 
         return X, y
 
@@ -387,10 +393,10 @@ class _BaseMetaHeuristic(BaseEstimator, SelectorMixin, ClassifierMixin):
             self._toolbox.print("Size:\t{:d}\t{:d}\t{:d}\t{:d}\t{:d}".format( record['size']['min'], record['size']['25_percentile'],record['size']['50_percentile'],record['size']['75_percentile'], record['size']['max']), end='\n\n')
 
             if( hasattr(self, "number_gen") and gen != 0 ):
-                eta = time.clock()  * self.number_gen / gen
-                minutes = np.floor( eta/60 )
-                seconds = eta % 60
-                self._toolbox.print("Gen: {}/{} Time Elapsed: {:.4} Estimated Time: {} min {} s".format(gen, self.number_gen, time.clock(), minutes, seconds))
+                eta = (time.clock() - self._initial_time) * self.number_gen / (gen+1)
+                self._toolbox.print("Gen: {}/{} Time Elapsed: {}min {}sec Estimated Time: {} min {} s".format(gen, self.number_gen, 
+                    np.floor((time.clock()-self._initial_time)/60),(time.clock()-self._initial_time)%60, 
+                    np.floor(eta/60), eta%60))
 
                 
             self._toolbox.print()
@@ -408,6 +414,10 @@ class _BaseMetaHeuristic(BaseEstimator, SelectorMixin, ClassifierMixin):
 
     def _setup(self, X, y, normalize):
         " Initialize the toolbox and statistical variables"
+
+        if(hasattr(self, '_all_solutions')):
+            del self._all_solutions
+        self._all_solutions = {'results':[], 'individuals':[]}
 
         if(not hasattr(self, "_toolbox")):
             self._toolbox = base.Toolbox()
@@ -454,6 +464,14 @@ class _BaseMetaHeuristic(BaseEstimator, SelectorMixin, ClassifierMixin):
             self._skip = 0
 
         X, y = self._set_dataset(X=X, y=y, normalize=normalize)
+
+                # Check the number of members in each class:
+        min_n_classes =  min( Counter(y).values() )
+        if( min_n_classes >= 5  ):
+            
+            self._toolbox.register("evaluate", self._evaluate, X=X, y=y, cv=5)
+        else :
+            self._toolbox.register("evaluate", self._evaluate, X=X, y=y, cv=2)
         
         return X, y
 
@@ -495,12 +513,13 @@ class _BaseMetaHeuristic(BaseEstimator, SelectorMixin, ClassifierMixin):
         **arg : parameters
                 Set parameters
         """
-        initial_time = time.clock()
+        
 
         X,y = self._setup(X, y, normalize)
 
         self.set_params(**arg)
-
+        
+        self._initial_time = time.clock()
         for i in range(self.repeat):
 
             pop = self._toolbox.population(n=self.size_pop)
@@ -523,7 +542,7 @@ class _BaseMetaHeuristic(BaseEstimator, SelectorMixin, ClassifierMixin):
                         self._make_generation_log(g, i, pop, hof, pareto_front)
 
                 if self.verbose and not self.make_logbook:
-                    self._toolbox.print( "Generation: ", g, " Repetition: ", i, " Clock:", time.clock())
+                    self._toolbox.print( "Generation: ", g, " Repetition: ", i, " Clock:", time.clock() - self._initial_time)
 
             self._make_repetition_log(hof, pareto_front)
 

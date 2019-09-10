@@ -97,12 +97,11 @@ class BinaryBlackHole(_BaseMetaHeuristic):
         return np.linalg.norm([blackhole[i] - star[i] for i in range(0, len(star))])
 
     def _updateStar(self, star, blackhole):
+        star[:] = [1 if abs(np.tanh(star[x] + self._random_object.uniform(0, 1) *
+                                        (blackhole[x] - star[x]) )) > self._random_object.uniform(0, 1) else 0 for x in range(0, self.n_features_)]
+
         if self._dist(star, blackhole) < blackhole.radius:
             star[:] = self._toolbox.population(n=1)[0]
-        else:
-            star[:] = [1 if abs(np.tanh(star[x] + self._random_object.uniform(0, 1) *
-                                        (blackhole[x] - star[x]))) > self._random_object.uniform(0, 1) else 0 for x in range(0, self.n_features_)]
-
 
     def _setup(self, X, y, normalize):
 

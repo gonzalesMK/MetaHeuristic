@@ -58,7 +58,7 @@ class SimulatedAnneling(_BaseMetaHeuristic):
             It is needed to
     """
 
-    def __init__(self, estimator=None, mutation_prob=0.05, initial_temp=10,
+    def __init__(self, estimator=None, mutation_prob=0.05, initial_temp=1,
                  repetition_schedule=10, number_gen=10, repeat=1, verbose=0,
                  parallel=False, make_logbook=False, random_state=None,
                  cv_metric_function=None, features_metric_function=None,
@@ -114,9 +114,9 @@ class SimulatedAnneling(_BaseMetaHeuristic):
         **arg : parameters
                 Set parameters
         """
-        initial_time = time.clock()
-        X, y = self._setup(X, y, normalize)
         
+        X, y = self._setup(X, y, normalize)
+        self._initial_time = time.clock()
         self.set_params(**arg)
         
 
@@ -150,10 +150,10 @@ class SimulatedAnneling(_BaseMetaHeuristic):
 
                     if self.skip == 0 or g % self.skip == 0:
                         if self.make_logbook:
-                            self._make_generation_log(g, i, pop, hof, pareto_front)
+                            self._make_generation_log(g, i, [solution], hof, pareto_front)
 
-                        if self.verbose:
-                            self._print(temp, _, i, initial_time, time.clock())
+                        if self.verbose and not self.make_logbook:
+                            self._print(temp, _, i, self._initial_time, time.clock())
 
             self._make_repetition_log(hof, pareto_front)
 
