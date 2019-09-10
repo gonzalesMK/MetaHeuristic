@@ -150,10 +150,7 @@ class SimulatedAnneling(_BaseMetaHeuristic):
 
                     if self.skip == 0 or g % self.skip == 0:
                         if self.make_logbook:
-                            self.logbook[i].record(gen=temp,
-                                                   best_fit=hof[0].fitness.values[0],
-                                                   **self.stats.compile([solution]))
-                            self._make_generation_log(g, i, [solution], hof, pareto_front)
+                            self._make_generation_log(g, i, pop, hof, pareto_front)
 
                         if self.verbose:
                             self._print(temp, _, i, initial_time, time.clock())
