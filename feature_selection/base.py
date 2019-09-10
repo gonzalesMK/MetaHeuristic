@@ -373,12 +373,12 @@ class _BaseMetaHeuristic(BaseEstimator, SelectorMixin, ClassifierMixin):
         pass
 
     def _make_generation_log(self, gen, repetition, pop, hof, pareto_front):
-        self.i_gen_pareto_.append(pareto_front[:])
-        self.i_gen_hof_.append(hof[0])
+        self.i_gen_pareto_.append(copy.deepcopy(pareto_front))
+        self.i_gen_hof_.append(copy.deepcopy(hof))
 
         record = self.stats.compile(pop)
 
-        self.logbook[repetition].record(gen=gen, hallOfFame=hof, paretoFront=pareto_front, time=time.clock(), **record)
+        self.logbook[repetition].record(gen=gen, hallOfFame=copy.deepcopy(hof), paretoFront=copy.deepcopy(pareto_front), time=time.clock(), **record)
 
         if self.verbose:
             self._toolbox.print("*********    Report {}       ************* ".format(self.name), end='\n\n')
@@ -399,8 +399,8 @@ class _BaseMetaHeuristic(BaseEstimator, SelectorMixin, ClassifierMixin):
         self.best_.update(hof)
         self.best_pareto_front_.update(pareto_front)
         if self.make_logbook:
-            self.pareto_front_.append(pareto_front[:])
-            self.hof_.append(hof[0])
+            self.pareto_front_.append( copy.deepcopy(pareto_front))
+            self.hof_.append(copy.deepcopy(hof))
             self.gen_pareto_.append(self.i_gen_pareto_)
             self.gen_hof_.append(self.i_gen_hof_)
             self.i_gen_pareto_ = []
