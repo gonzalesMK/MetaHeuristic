@@ -97,7 +97,7 @@ class SimulatedAnneling(_BaseMetaHeuristic):
 
         return X, y
         
-        def fit(self, X, y, maxTime = None, normalize=False, **arg):
+    def fit(self, X, y, time_limit = None, normalize=False, **arg):
         """ Fit method
 
         Parameters
@@ -113,6 +113,7 @@ class SimulatedAnneling(_BaseMetaHeuristic):
 
         **arg : parameters
                 Set parameters
+
         """
         
         X, y = self._setup(X, y, normalize)
@@ -155,7 +156,7 @@ class SimulatedAnneling(_BaseMetaHeuristic):
                         if self.verbose and not self.make_logbook:
                             self._print(temp, _, i, self._initial_time, time.clock())
                 
-                    if maxTime != None and time.clock() - self._initial_time > maxTime:
+                    if time_limit is not None and time.clock() - self._initial_time > time_limit:
                         break
 
             self._make_repetition_log(hof, pareto_front)
