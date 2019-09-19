@@ -2,8 +2,8 @@ from __future__ import print_function
 from timeit import time
 from deap import base
 from deap import tools
-from .base import *
-from .base import _BaseMetaHeuristic
+from .meta_base import *
+from .meta_base import _BaseMetaHeuristic
 from sklearn.svm import SVC
 import random
 from sklearn.base import clone

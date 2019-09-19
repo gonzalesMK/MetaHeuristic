@@ -10,8 +10,9 @@ import io
     
 """
 COLUNAS = ["experiment_id","algorithm","dataset","gen","accumulativeTime",
-"size_max","size_min","size_avg","size_std","size_25_percentile","size_50_percentile","size_75_percentile",
-"fitness_max","fitness_min","fitness_avg","fitness_std","fitness_25_percentile","fitness_50_percentile","fitness_75_percentile"]
+"fitness_max","fitness_min","fitness_avg","fitness_std","fitness_25_percentile","fitness_50_percentile","fitness_75_percentile",
+"size_max","size_min","size_avg","size_std","size_25_percentile","size_50_percentile","size_75_percentile"]
+
 # Funções para armazenar numpy array no sqlite3
 def adapt_array(arr):
     """
@@ -112,16 +113,14 @@ for name in meta_names:
         for k in range( len(results['estimator'])):
             result = results['estimator'][k]
             logbook = result.logbook[0]
-            
-            hof_results.append( [ log['hallOfFame'][0].fitness.values[0] for log in logbook[-10:-1]])
-            features_results.append( [ sum(log['hallOfFame'][0]) for log in logbook[-10:-1]])
+            hof_results.append(logbook[-1]['hallOfFame'][0].fitness.values[0])
+            features_results.append(sum(logbook[-1]['hallOfFame'][0]))
         
         # 3) Adicionar a descrição do experimento na tabela de descrição
         keys = []
         values=[]
         keys.append("filepath")
         values.append( home + name + "/" + filename + ' [' + str(k) +']')
-
         keys.append("test_score")
         values.append(np.mean(results['test_score']))
         
@@ -179,43 +178,42 @@ for name in meta_names:
         # 4) Add Experiment Results in the Database
         
         # 4.a) Organize all attributes values in one list
-        gen_n_individuals = np.reshape( [log['gen'] for log in logbook[-10:-1]], (-1,1))
-        gen_time = np.reshape( [ np.round((i['time']-logbook[0]['time'])/60) for i in logbook[-10:-1]], (-1,1))
-        gen_25_matthews = np.reshape(np.percentile(hof_results ,q=25, interpolation='higher', axis=0), (-1,1))
-        gen_50_matthews = np.reshape(np.percentile(hof_results ,q=50, interpolation='higher', axis=0), (-1,1))
-        gen_75_matthews = np.reshape(np.percentile(hof_results ,q=75, interpolation='higher', axis=0), (-1,1))
-        gen_min_matthews= np.reshape(np.min(hof_results, axis=0), (-1,1))
-        gen_avg_matthews= np.reshape(np.min(hof_results, axis=0), (-1,1))
-        gen_max_matthews= np.reshape(np.max(hof_results, axis=0), (-1,1))
-        gen_25_feature  = np.reshape(np.percentile(features_results ,q=25, interpolation='higher', axis=0), (-1,1))
-        gen_50_feature  = np.reshape(np.percentile(features_results ,q=50, interpolation='higher', axis=0), (-1,1))
-        gen_75_feature  = np.reshape(np.percentile(features_results ,q=75, interpolation='higher', axis=0), (-1,1))
-        gen_min_feature = np.reshape(np.min(features_results, axis=0), (-1,1))
-        gen_avg_feature = np.reshape(np.min(features_results, axis=0), (-1,1))
-        gen_max_feature = np.reshape(np.max(features_results, axis=0), (-1,1))
-
-        gen_std_feature = np.reshape(np.max(features_results, axis=0), (-1,1))
-        gen_std_matthews= np.reshape(np.max(features_results, axis=0), (-1,1))
+        gen_n_individuals = logbook[-1]['gen']
+        gen_time = np.round((logbook[-1]['time']-logbook[0]['time'])/60)
+        gen_25_matthews = [np.percentile(hof_results ,q=25, interpolation='higher', axis=0)]
+        gen_50_matthews = [np.percentile(hof_results ,q=50, interpolation='higher', axis=0)]
+        gen_75_matthews = [np.percentile(hof_results ,q=75, interpolation='higher', axis=0)]
+        gen_min_matthews= [np.min(hof_results, axis=0)]
+        gen_avg_matthews= [np.min(hof_results, axis=0)]
+        gen_max_matthews= [np.max(hof_results, axis=0)]
+        gen_25_feature  = [np.percentile(features_results ,q=25, interpolation='higher', axis=0)]
+        gen_50_feature  = [np.percentile(features_results ,q=50, interpolation='higher', axis=0)]
+        gen_75_feature  = [np.percentile(features_results ,q=75, interpolation='higher', axis=0)]
+        gen_min_feature = [np.min(features_results, axis=0)]
+        gen_avg_feature = [np.min(features_results, axis=0)]
+        gen_max_feature = [np.max(features_results, axis=0)]
+        gen_std_feature = [np.max(features_results, axis=0)]
+        gen_std_matthews= [np.max(features_results, axis=0)]
         
         # 4.b) Get experiment_id from the description
         cursor.execute("SELECT last_insert_rowid()")
         experiment_id = cursor.fetchall()[0][0]
 
         attrList = np.concatenate((
-            np.reshape([experiment_id]*len(gen_n_individuals), (-1,1)),
-            np.reshape([name]*len(gen_n_individuals), (-1, 1)) ,
-            np.reshape([filename.split('.')[0]]*len(gen_n_individuals), (-1,1)),
-            gen_n_individuals,
-            gen_time,
+            [experiment_id],
+            [name],
+            [filename.split('.')[0]],
+            [gen_n_individuals],
+            [gen_time],
             gen_max_matthews, gen_min_matthews, gen_avg_matthews, gen_std_matthews, gen_25_matthews, gen_50_matthews, gen_75_matthews,
-            gen_max_feature,   gen_min_feature, gen_avg_feature, gen_std_feature, gen_25_feature, gen_50_feature, gen_75_feature, ), axis=1)
+            gen_max_feature,   gen_min_feature, gen_avg_feature, gen_std_feature, gen_25_feature, gen_50_feature, gen_75_feature, ), axis=0)
 
         attrList = attrList.tolist()
             
         colunas_str = ', '.join("`" + str(x).replace('/', '_') + "`" for x in COLUNAS)
         values_str = ' '.join(", " + "?" + "" for x in COLUNAS)[1:]
         command = "INSERT INTO "+db_name +"(" + colunas_str +")\nVALUES (" + values_str + ")\n"
-        cursor.executemany(command, attrList)
+        cursor.execute(command, attrList)
         conn.commit()
 
         

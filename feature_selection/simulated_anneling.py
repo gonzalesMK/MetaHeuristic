@@ -9,9 +9,9 @@ from deap import tools
 
 import copy
 
-from .base import _BaseMetaHeuristic
-from .base import BaseMask
-from .base import *
+from .meta_base import _BaseMetaHeuristic
+from .meta_base import BaseMask
+from .meta_base import *
 from sklearn.utils import check_random_state
 
 

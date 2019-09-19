@@ -8,9 +8,9 @@ from deap import base
 from deap import tools
 
 
-from .base import _BaseMetaHeuristic
-from .base import BaseMask
-from .base import *
+from .meta_base import _BaseMetaHeuristic
+from .meta_base import BaseMask
+from .meta_base import *
 
 class BRKGA(_BaseMetaHeuristic):
     """Implementation of a Biased Random Key Genetic Algorithm as the papers:
