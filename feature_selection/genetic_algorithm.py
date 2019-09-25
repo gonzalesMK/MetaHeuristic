@@ -162,11 +162,11 @@ class GeneticAlgorithm(_BaseMetaHeuristic):
         elif self.selection_method == 'roullete':
             self._toolbox.register("select", tools.selRoulette)
         elif self.selection_method == 'NSGA2':
-            self._toolbox.register("select", tools.selNSGA2):
+            self._toolbox.register("select", tools.selNSGA2)
         elif self.selection_method == 'SPEA2':
-            self._toolbox.register("select", tools.selSPEA2):
+            self._toolbox.register("select", tools.selSPEA2)
         elif self.selection_method == 'best':
-            self._toolbox.register("select", tools.selBest):
+            self._toolbox.register("select", tools.selBest)
         else:
             raise ValueError("Unkown selection_method: {}".format(self.selection_method))
 
