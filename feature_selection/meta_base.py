@@ -34,15 +34,6 @@ class BaseMask(list, object):
         self[:] = mask
         self.fitness = Fitness((1, -1e-5), (0, 0))
 
-    # def __getstate__(self):
-        #        self_dict = self.__dict__.copy()
-        #        return self_dict
-        #
-    # def __setstate__(self,state):
-        #        self.__dict__.update(state)
-        #
-
-
 class SelectorMixin(six.with_metaclass(ABCMeta, TransformerMixin)):
     """
     Transformer mixin that performs feature selection given a support mask
@@ -72,16 +63,12 @@ class SelectorMixin(six.with_metaclass(ABCMeta, TransformerMixin)):
         else:
             raise ValueError("Mask type is {} not allowed".format(mask.dtype))
 
-        # I don't see utility in here
-        # if hasattr(x, "toarray"):
-            #            ind = np.arange(mask.shape[0])
-            #            mask = ind[mask]
-            #
         return mask
 
     def get_support(self, indices=False):
         """
         Get a mask, or integer index, of the features selected
+        
         Parameters
         ----------
         indices : boolean (default False)
@@ -148,7 +135,7 @@ class _BaseMetaHeuristic(BaseEstimator, SelectorMixin, MetaEstimatorMixin):
                  verbose=0, repeat=1, parallel=False,
                  make_logbook=False, random_state=None,
                  cv_metric_function=make_scorer(matthews_corrcoef),
-                 features_metric_function=None, print_fnc=None):
+                 ):
 
         self.name = name
         self.estimator = estimator
@@ -159,10 +146,8 @@ class _BaseMetaHeuristic(BaseEstimator, SelectorMixin, MetaEstimatorMixin):
         self.make_logbook = make_logbook
         self.random_state = random_state
         self.cv_metric_function = cv_metric_function
-        self.features_metric_function = features_metric_function
-        self.print_fnc = print_fnc
 
-        random.seed(self.random_state)
+        np.random.seed(self.random_state)
 
     def _gen_in(self):
         """ 
@@ -455,7 +440,7 @@ class _BaseMetaHeuristic(BaseEstimator, SelectorMixin, MetaEstimatorMixin):
             self._estimator = self.estimator
 
         self._random_object = check_random_state(self.random_state)
-        random.seed(self.random_state)
+        np.random.seed(self.random_state)
 
         self.best_ = tools.HallOfFame(1)
         self.best_pareto_front_ = tools.ParetoFront()
@@ -472,7 +457,6 @@ class _BaseMetaHeuristic(BaseEstimator, SelectorMixin, MetaEstimatorMixin):
                 # Check the number of members in each class:
         min_n_classes =  min( Counter(y).values() )
         if( min_n_classes >= 5  ):
-            
             self._toolbox.register("evaluate", self._evaluate, X=X, y=y, cv=5)
         else :
             self._toolbox.register("evaluate", self._evaluate, X=X, y=y, cv=2)

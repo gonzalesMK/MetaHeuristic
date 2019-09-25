@@ -13,16 +13,18 @@ from .meta_base import BaseMask
 from .meta_base import *
 
 class BRKGA(_BaseMetaHeuristic):
-    """Implementation of a Biased Random Key Genetic Algorithm as the papers:
+    """
+    Biased random-key genetic algorithms for feature selection.
 
-    Biased random-key genetic algorithms for combinatorial optimization
-
-    Introdução aos algoritmos genéticos de chaves aleatórias viciadas
+    The number of evaluated solutions per interation is: ``size_pop - elite_size``      
 
     Parameters
     ----------
     estimator : sklearn estimator , (default=SVM)
             Any estimator that adheres to the scikit-learn API
+
+    size_pop : positive integer, (default=40)
+            Number of individuals (choromosome) in the population. 
 
     elite_size : positive integer, (default=10)
             Number of individuals in the Elite population
@@ -35,19 +37,22 @@ class BRKGA(_BaseMetaHeuristic):
 
     cxUniform_indpb : float in [0,1], (default=0.2)
              A uniform crossover modify in place the two sequence individuals.
-             Inherits from the allele of the elite chromossome with indpb.
+             Inherits from the allele of the elite chromossome with ``indpb`` chance.
 
-    size_pop : positive integer, (default=40)
-            Number of individuals (choromosome ) in the population
+    sorting_method: one of {'simple', 'NSGA2'}, (default='NSGA2')
+             How to sort the population in order to choose the Elite solutions
 
-    verbose : boolean, (default=False)
-            If true, print information in every generation
+             - If 'simple', then sort by the score parameter only
+             - If 'NSGA2', use the NSGA2 sorting mechanism, which takes into consideration the number of selected features
 
     repeat : positive int, (default=1)
             Number of times to repeat the fitting process
+    
+    verbose : boolean, (default=False)
+            If true, print information in every generation
 
     make_logbook : boolean, (default=False)
-            If True, a logbook from DEAP will be made
+            If True, a logbook from DEAP will be made. If True, a logbook from DEAP will be made. Check the implementation of ``_make_stats`` for more info
 
     parallel : boolean, (default=False)
             Set to True if you want to use multiprocessors
@@ -55,36 +60,44 @@ class BRKGA(_BaseMetaHeuristic):
     cv_metric_function : callable, (default=matthews_corrcoef)
             A metric score function as stated in the sklearn http://scikit-learn.org/stable/modules/model_evaluation.html#scoring-parameter
 
-    features_metric_function :
-            A function that return a float from the binary mask of features
+        
+    References
+    ----------
+    .. [1] Biased random-key genetic algorithms for combinatorial optimization. Resende, Mauricio. (2010).
+    
+
     """
 
-    def __init__(self, estimator=None, sorting_method='simple',
-                 elite_size=1, mutant_size=1, cxUniform_indpb=0.2,
-                 number_gen=10, size_pop=3, verbose=0, repeat=1,
-                 make_logbook=False, random_state=None, parallel=False,
-                 cv_metric_function=None, features_metric_function=None,
-                 print_fnc=None, name="BRKGA2"):
+    def __init__(self, 
+                 estimator=None, 
+                 size_pop=3,
+                 elite_size=1, 
+                 mutant_size=1,
+                 number_gen=10,
+                 cxUniform_indpb=0.2,
+                 sorting_method='NSGA2',
+                 repeat=1,
+                 verbose=False,
+                 make_logbook=False,
+                 random_state=None,
+                 parallel=False,
+                 cv_metric_function=None):
 
-        self.name = name
         self.estimator = estimator
-        self.number_gen = number_gen
-        self.verbose = verbose
-        self.repeat = repeat
-        self.parallel = parallel
-        self.make_logbook = make_logbook
-        self.random_state = random_state
-        self.cv_metric_function = cv_metric_function
-        self.features_metric_function = features_metric_function
-        self.print_fnc = print_fnc
-        self.sorting_method = sorting_method
         self.size_pop = size_pop
-
-        self.cxUniform_indpb = cxUniform_indpb
         self.elite_size = elite_size
         self.mutant_size = mutant_size
+        self.number_gen = number_gen
+        self.cxUniform_indpb = cxUniform_indpb
+        self.sorting_method = sorting_method
+        self.repeat = repeat
+        self.verbose = verbose
+        self.make_logbook = make_logbook
+        self.random_state = random_state
+        self.parallel = parallel
+        self.cv_metric_function=cv_metric_function
         
-        random.seed(self.random_state)
+        np.random.seed(self.random_state)
      
 
     def _setup(self, X, y, normalize):

@@ -15,14 +15,31 @@ class HarmonicSearch(_BaseMetaHeuristic):
 
     Parameters
     ----------
-    HMCR : float in [0,1], (default=0.95)
-            Is the Harmonic Memory Considering Rate
+    estimator : sklearn estimator , (default=SVM)
+            Any estimator that adheres to the scikit-learn API
 
     number_gen : positive integer, (default=100)
             Number of generations
+ 
+    HMCR : float in [0,1], (default=0.95)
+            Is the Harmonic Memory Considering Rate
 
     size_pop : positive integer, (default=50)
-            Size of the Harmonic Memory
+            Size of the Harmonic Memory 
+    
+    sorting_method: one of {'best', 'NSGA2', 'SPEA2'}, (default='NSGA2')
+             How to sort the population in order to choose the Elite solutions
+
+             - If 'best', then sort by the score parameter only
+             - If 'NSGA2', use the NSGA2 sorting mechanism [2]
+             - If 'SPEA2', use the SPEA2 sorting mechanism [3]
+
+    skip: positive integer, (default=10)
+            This parameter is important when ``make_logbook`` is True. Usually, a lot
+            of generations are needed by HS to achieve convergence, given that 
+            one solution is evaluated at a time. Consequently, the amount of data 
+            saved by the ``logbook`` can be bigger than necessary. So, one can
+            choose to log data only every ``skip``iteration
 
     verbose : boolean, (default=False)
             If true, print information in every generation
@@ -41,29 +58,46 @@ class HarmonicSearch(_BaseMetaHeuristic):
 
     features_metric_function : callable, (default=pow(sum(mask)/(len(mask)*5), 2))
             A function that return a float from the binary mask of features
-    """
-    def __init__(self, estimator=None, HMCR=0.95, sorting_method='simple',
-                 number_gen=100, size_pop=50, verbose=0, repeat=1,
-                 make_logbook=False, random_state=None, parallel=False,
-                 cv_metric_function=None, features_metric_function=None,
-                 print_fnc=None, skip=0, name="HarmonicSearch"):
+    
+    
+    References
+    ----------
+    .. [1] X. Z. Gao, V. Govindasamy, H. Xu, X. Wang, and K. Zenger, 
+            “Harmony Search Method: Theory and Applications",
+            Computational Intelligence and Neuroscience, vol. 2015,
+    
+    .. [2] Deb, Pratab, Agarwal, and Meyarivan, “A fast elitist non-dominated sorting 
+	       genetic algorithm for multi-objective optimization: NSGA-II”, 2002.
 
-        self.name = name
+	.. [3] Zitzler, Laumanns and Thiele, “SPEA 2: Improving the strength Pareto evolutionary algorithm”, 2001.
+    """
+    def __init__(self, 
+                 estimator=None, 
+                 HMCR=0.95,
+                 number_gen=100, 
+                 size_pop=50, 
+                 sorting_method='NSGA2',
+                 skip=10,
+                 verbose=0, 
+                 repeat=1,
+                 make_logbook=False, 
+                 random_state=None, 
+                 parallel=False,
+                 cv_metric_function=None):
+
         self.estimator = estimator
         self.number_gen = number_gen
+        self.HMCR = HMCR
+        self.size_pop = size_pop
+        self.sorting_method = sorting_method
+        self.skip = skip
         self.verbose = verbose
         self.repeat = repeat
         self.parallel = parallel
         self.make_logbook = make_logbook
         self.random_state = random_state
         self.cv_metric_function = cv_metric_function
-        self.features_metric_function = features_metric_function
-        self.print_fnc = print_fnc
-        self.HMCR = HMCR
-        self.size_pop = size_pop
-        self.skip = skip
-        self.sorting_method = sorting_method
-        random.seed(self.random_state)
+        np.random.seed(self.random_state)
 
     def _setup(self, X, y, normalize):
         X, y = super()._setup(X,y,normalize)
@@ -76,12 +110,12 @@ class HarmonicSearch(_BaseMetaHeuristic):
         self._toolbox.register("population", tools.initRepeat,
                                list, self._toolbox.individual)
 
-        if(self.sorting_method == 'simple'):
+        if(self.sorting_method == 'best'):
             self._toolbox.register( "sort", sorted, key=lambda ind: ind.fitness.values[0], reverse=True)
         elif(self.sorting_method == 'NSGA2'):
             self._toolbox.register( "sort", tools.selNSGA2, k=self.size_pop+1)
-        elif(self.sorting_method == 'NSGA3'):
-            self._toolbox.register( "sort", tools.selNSGA3, k=self.size_pop+1)
+        elif(self.sorting_method == 'SPEA2'):
+            self._toolbox.register( "sort", tools.selSPEA2, k=self.size_pop+1)
         else:
             raise ValueError("The {} sorting method is not valid".format(self.sorting_method))
 

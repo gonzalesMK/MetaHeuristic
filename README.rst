@@ -15,7 +15,7 @@
 .. _Pypi: https://badge.fury.io/py/metaheuristic
 MetaHeuristic
 =============
-A repository with some simple implementation of Meta Heuristics (ie: ga, pso) , using sklearn and other common libraries
+A repository with Meta Heuristics (ie: ga, pso) implementations for feature selection.
 
 Important Links
 ---------------

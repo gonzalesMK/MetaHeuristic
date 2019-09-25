@@ -19,7 +19,10 @@ from sklearn.utils import check_random_state
 
 class RandomSearch(_BaseMetaHeuristic):
     """Implementation of a Random Search Algorithm for Feature Selection.
-    It is useful as the worst case
+    
+    Each generation ``size_pop`` new random solutions are evaluated.
+
+    It is useful as a base line for other algorithms. 
 
     Parameters
     ----------
@@ -48,7 +51,8 @@ class RandomSearch(_BaseMetaHeuristic):
             A function that return a float from the binary mask of features
     """
 
-    def __init__(self, estimator=None, number_gen=5, size_pop=40, verbose=0,
+    def __init__(self, estimator=None,
+                 number_gen=5, size_pop=40, verbose=0,
                  repeat=1,
                  parallel=False, make_logbook=False, random_state=None,
                  cv_metric_function=None, features_metric_function=None,
@@ -64,7 +68,6 @@ class RandomSearch(_BaseMetaHeuristic):
         self.random_state = random_state
         self.cv_metric_function = cv_metric_function
         self.features_metric_function = features_metric_function
-        self.print_fnc = print_fnc
 
         self.size_pop = size_pop
         self.parallel = parallel

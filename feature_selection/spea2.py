@@ -17,18 +17,13 @@ import random
 class SPEA2(_BaseMetaHeuristic):
     """Implementation of Strenght Pareto Front Envolutionary Algorithm 2
 
-    https://pdfs.semanticscholar.org/6672/8d01f9ebd0446ab346a855a44d2b138fd82d.pdf
-
     Parameters
     ----------
     estimator : sklearn estimator , (default=SVM)
             Any estimator that adheres to the scikit-learn API
 
-    elite_size : positive integer, (default=10)
+    archive : positive integer, (default=10)
             Number of individuals in the Elite population
-
-    mutant_size : positive integer, (default=10)
-            Number of new individuals in each iteration
 
     number_gen : positive integer, (default=10)
             Number of generations
@@ -36,6 +31,12 @@ class SPEA2(_BaseMetaHeuristic):
     cxUniform_indpb : float in [0,1], (default=0.2)
              A uniform crossover modify in place the two sequence individuals.
              Inherits from the allele of the elite chromossome with indpb.
+
+    individual_mut_prob : float in [0,1], (default=0.2)
+             The chances of selecting a solution for mutation
+
+    gene_mutation_prob : float in [0,1], (default=0.2)
+             The chances of mutation of each gene ( intensity of the mutation itself )
 
     size_pop : positive integer, (default=40)
             Number of individuals (choromosome ) in the population
@@ -55,17 +56,27 @@ class SPEA2(_BaseMetaHeuristic):
     cv_metric_function : callable, (default=matthews_corrcoef)
             A metric score function as stated in the sklearn http://scikit-learn.org/stable/modules/model_evaluation.html#scoring-parameter
 
-    features_metric_function : { "log", "poly" }
-            A function that return a float from the binary mask of features
+    References
+    ----------
+    .. [1]  "Spea2: Improving the strength pareto evolutionary algorithm". ITZLER M. LAUMANNS. 
+            Eidgenössische Technische Hochschule Zürich (ETH),Institut für Technische Informatik 
+            und Kommunikationsnetze (TIK), 2001.  
+          
     """
 
     def __init__(self, estimator=None,
-                 archive_size=1, cxUniform_indpb=0.2,
-                 number_gen=10, size_pop=3, verbose=0, repeat=1,
-                 individual_mut_prob=0.5, gene_mutation_prob=0.01,
-                 make_logbook=False, random_state=None, parallel=False,
-                 cv_metric_function=None, features_metric_function=None,
-                 print_fnc=None, name="SPEA2"):
+                 archive_size=1, 
+                 cxUniform_indpb=0.2,
+                 number_gen=10, 
+                 size_pop=3, 
+                 verbose=0, 
+                 repeat=1,
+                 individual_mut_prob=0.5, 
+                 gene_mutation_prob=0.01,
+                 make_logbook=False, 
+                 random_state=None, 
+                 parallel=False,
+                 cv_metric_function=None):
 
         self.name = name
         self.estimator = estimator
@@ -86,7 +97,7 @@ class SPEA2(_BaseMetaHeuristic):
         self.gene_mutation_prob = gene_mutation_prob
         self.parallel = parallel
 
-        random.seed(self.random_state)
+        np.random.seed(self.random_state)
 
     def _setup(self, X, y, normalize):
         X, y = super()._setup(X,y,normalize)
