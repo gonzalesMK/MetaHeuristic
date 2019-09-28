@@ -131,13 +131,12 @@ class SelectorMixin(six.with_metaclass(ABCMeta, TransformerMixin)):
 
 class _BaseMetaHeuristic(BaseEstimator, SelectorMixin, MetaEstimatorMixin):
 
-    def __init__(self, name, estimator=None, number_gen=20,
+    def __init__(self, estimator=None, number_gen=20,
                  verbose=0, repeat=1, parallel=False,
                  make_logbook=False, random_state=None,
                  cv_metric_function=make_scorer(matthews_corrcoef),
                  ):
 
-        self.name = name
         self.estimator = estimator
         self.number_gen = number_gen
         self.verbose = verbose
@@ -376,7 +375,7 @@ class _BaseMetaHeuristic(BaseEstimator, SelectorMixin, MetaEstimatorMixin):
         self.logbook[repetition].record(gen=gen, hallOfFame=copy.deepcopy(hof), paretoFront=copy.deepcopy(pareto_front), time=time.clock(), **record)
 
         if self.verbose:
-            self._toolbox.print("*********    Report {}       ************* ".format(self.name), end='\n\n')
+            self._toolbox.print("*********    Report {}       ************* ".format(type(self).__name__), end='\n\n')
             self._toolbox.print("\tmin\t25%\t50%\t75%\tmax")
             self._toolbox.print("Score:\t{:.3f}\t{:.3f}\t{:.3f}\t{:.3f}\t{:.3f}".format( record['fitness']['min'], record['fitness']['25_percentile'],record['fitness']['50_percentile'],record['fitness']['75_percentile'], record['fitness']['max']))
             self._toolbox.print("Size:\t{:d}\t{:d}\t{:d}\t{:d}\t{:d}".format( record['size']['min'], record['size']['25_percentile'],record['size']['50_percentile'],record['size']['75_percentile'], record['size']['max']), end='\n\n')
