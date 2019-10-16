@@ -19,9 +19,9 @@ import nose.plugins.multiprocess
 _multiprocess_can_split_ = True
 
 METACLASSES = [
-        HarmonicSearch, GeneticAlgorithm, RandomSearch,
-        BinaryBlackHole, SimulatedAnneling, BRKGA,
-        SPEA2, PSO]
+        SimulatedAnneling, PSO, HarmonicSearch, GeneticAlgorithm, RandomSearch,
+        BinaryBlackHole,  BRKGA,
+        SPEA2]
 
 def test_check_estimator():
     for metaclass in METACLASSES:

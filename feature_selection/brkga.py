@@ -8,21 +8,23 @@ from deap import base
 from deap import tools
 
 
-from .base import _BaseMetaHeuristic
-from .base import BaseMask
-from .base import *
+from .meta_base import _BaseMetaHeuristic
+from .meta_base import BaseMask
+from .meta_base import *
 
 class BRKGA(_BaseMetaHeuristic):
-    """Implementation of a Biased Random Key Genetic Algorithm as the papers:
+    """
+    Biased random-key genetic algorithms for feature selection.
 
-    Biased random-key genetic algorithms for combinatorial optimization
-
-    Introdução aos algoritmos genéticos de chaves aleatórias viciadas
+    The number of evaluated solutions per interation is: ``size_pop - elite_size``      
 
     Parameters
     ----------
     estimator : sklearn estimator , (default=SVM)
             Any estimator that adheres to the scikit-learn API
+
+    size_pop : positive integer, (default=40)
+            Number of individuals (choromosome) in the population. 
 
     elite_size : positive integer, (default=10)
             Number of individuals in the Elite population
@@ -35,19 +37,22 @@ class BRKGA(_BaseMetaHeuristic):
 
     cxUniform_indpb : float in [0,1], (default=0.2)
              A uniform crossover modify in place the two sequence individuals.
-             Inherits from the allele of the elite chromossome with indpb.
+             Inherits from the allele of the elite chromossome with ``indpb`` chance.
 
-    size_pop : positive integer, (default=40)
-            Number of individuals (choromosome ) in the population
+    sorting_method: one of {'simple', 'NSGA2'}, (default='NSGA2')
+             How to sort the population in order to choose the Elite solutions
 
-    verbose : boolean, (default=False)
-            If true, print information in every generation
+             - If 'simple', then sort by the score parameter only
+             - If 'NSGA2', use the NSGA2 sorting mechanism, which takes into consideration the number of selected features
 
     repeat : positive int, (default=1)
             Number of times to repeat the fitting process
+    
+    verbose : boolean, (default=False)
+            If true, print information in every generation
 
     make_logbook : boolean, (default=False)
-            If True, a logbook from DEAP will be made
+            If True, a logbook from DEAP will be made. If True, a logbook from DEAP will be made. Check the implementation of ``_make_stats`` for more info
 
     parallel : boolean, (default=False)
             Set to True if you want to use multiprocessors
@@ -55,39 +60,47 @@ class BRKGA(_BaseMetaHeuristic):
     cv_metric_function : callable, (default=matthews_corrcoef)
             A metric score function as stated in the sklearn http://scikit-learn.org/stable/modules/model_evaluation.html#scoring-parameter
 
-    features_metric_function :
-            A function that return a float from the binary mask of features
+        
+    References
+    ----------
+    .. [1] Biased random-key genetic algorithms for combinatorial optimization. Resende, Mauricio. (2010).
+    
+
     """
 
-    def __init__(self, estimator=None, sorting_method='simple',
-                 elite_size=1, mutant_size=1, cxUniform_indpb=0.2,
-                 number_gen=10, size_pop=3, verbose=0, repeat=1,
-                 make_logbook=False, random_state=None, parallel=False,
-                 cv_metric_function=None, features_metric_function=None,
-                 print_fnc=None, name="BRKGA2"):
+    def __init__(self, 
+                 estimator=None, 
+                 size_pop=3,
+                 elite_size=1, 
+                 mutant_size=1,
+                 number_gen=10,
+                 cxUniform_indpb=0.2,
+                 sorting_method='NSGA2',
+                 repeat=1,
+                 verbose=False,
+                 make_logbook=False,
+                 random_state=None,
+                 parallel=False,
+                 cv_metric_function=None):
 
-        self.name = name
         self.estimator = estimator
-        self.number_gen = number_gen
-        self.verbose = verbose
-        self.repeat = repeat
-        self.parallel = parallel
-        self.make_logbook = make_logbook
-        self.random_state = random_state
-        self.cv_metric_function = cv_metric_function
-        self.features_metric_function = features_metric_function
-        self.print_fnc = print_fnc
-        self.sorting_method = sorting_method
         self.size_pop = size_pop
-
-        self.cxUniform_indpb = cxUniform_indpb
         self.elite_size = elite_size
         self.mutant_size = mutant_size
+        self.number_gen = number_gen
+        self.cxUniform_indpb = cxUniform_indpb
+        self.sorting_method = sorting_method
+        self.repeat = repeat
+        self.verbose = verbose
+        self.make_logbook = make_logbook
+        self.random_state = random_state
+        self.parallel = parallel
+        self.cv_metric_function=cv_metric_function
         
-        random.seed(self.random_state)
+        np.random.seed(self.random_state)
      
 
-    def _setup(self):
+    def _setup(self, X, y, normalize):
 
         if(self.elite_size + self.mutant_size > self.size_pop):
             raise ValueError(" Elite size({}) + Mutant_size({}) is bigger than population"
@@ -96,7 +109,7 @@ class BRKGA(_BaseMetaHeuristic):
         self._n_cross_over = self.size_pop - (self.elite_size + self.mutant_size)
         self._non_elite_size = self.size_pop - self.elite_size
 
-        super()._setup()
+        X, y= super()._setup(X,y,normalize)
         self._toolbox.register("attribute", self._gen_in)
         self._toolbox.register("individual", tools.initIterate,
                               BaseMask, self._toolbox.attribute)
@@ -107,7 +120,7 @@ class BRKGA(_BaseMetaHeuristic):
         self._toolbox.register("select", tools.selTournament, tournsize=3)
         
         if(self.sorting_method == 'simple'):
-            self._toolbox.register( "sort", sorted, key=lambda ind: ind.fitness.values[0])
+            self._toolbox.register( "sort", sorted, key=lambda ind: ind.fitness.values[0], reverse=True)
         elif(self.sorting_method == 'NSGA2'):
             self._toolbox.register( "sort", tools.selNSGA2, k=self.size_pop)
         elif(self.sorting_method == 'NSGA3'):
@@ -115,93 +128,42 @@ class BRKGA(_BaseMetaHeuristic):
         else:
             raise ValueError("The {} sorting method is not valid".format(self.sorting_method))
 
-    def fit(self, X=None, y=None, normalize=False, **arg):
-        """ Fit method
+        return X, y
 
-        Parameters
-        ----------
-        X : array of shape [n_samples, n_features]
-                The input samples
+    def _do_generation(self, pop, hof, paretoFront):
 
-        y : array of shape [n_samples, 1]
-                The input of labels
-
-        normalize : boolean, (default=False)
-                If true, StandardScaler will be applied to X
-
-        **arg : parameters
-                Set parameters
-        """
-        initial_time = time.clock()
-        self._setup()
-        self.set_params(**arg)
-
-        X, y = self._set_dataset(X=X, y=y, normalize=normalize)
-
+        # Ordering
+        ordered = self._toolbox.sort(pop)  
         
+        # Partition Elite and Non Elite -> We can repeat elites index, but no repeating non-elite!
+        father_indexes = np.random.randint( 0, self.elite_size, self._n_cross_over)
+        mother_indexes = np.random.permutation(np.arange(self.elite_size, self.elite_size + self._non_elite_size))[0:self._n_cross_over]
 
-        for i in range(self.repeat):
-            # Generate Population
-            pop = self._toolbox.population(self.size_pop)
-            hof = tools.HallOfFame(1)
-            pareto_front = tools.ParetoFront()
+        children = [self._toolbox.clone(ordered[ind]) for ind in father_indexes ]
 
-            # Evaluate the entire population
-            fitnesses = self._toolbox.map(self._toolbox.evaluate, pop)
-            for ind, fit in zip(pop, fitnesses):
-                ind.fitness.values = fit
-            del fit, ind
+        # Cross-Over
+        for ind in range(0, len(children)):
+            mother_index = mother_indexes[ind]
+            self._toolbox.mate( children[ind], ordered[mother_index])
+            del children[ind].fitness.values
 
-            pareto_front.update(pop)
-            hof.update(pop)
-            for g in range(self.number_gen):
+        # Evaluate the individuals with an invalid fitness ( new individuals)
+        fitnesses = self._toolbox.map(self._toolbox.evaluate, children)
+        for ind, fit in zip(children, fitnesses): 
+            ind.fitness.values = fit
 
-                # Ordering
-                ordered = self._toolbox.sort(pop)  
-                
-                # Cross_over between Elite and Non Elite
-                    # We can repeat elites index, but no repeating non-elite!
-                father_indexes = np.random.randint( 0, self.elite_size, self._n_cross_over)
-                mother_indexes = np.random.permutation(np.arange(self.elite_size, self.elite_size + self._non_elite_size))[0:self._n_cross_over]
+        # The botton is replaced by mutant individuals
+        mutant = self._toolbox.population(self.mutant_size)
+        fitnesses = self._toolbox.map(self._toolbox.evaluate, mutant)
+        
+        for ind, fit in zip(mutant, fitnesses):
+            ind.fitness.values = fit
 
-                children = [self._toolbox.clone(ordered[ind]) for ind in father_indexes ]
+        # The population is entirely replaced by the offspring
+        pop[:] = ordered[0:self.elite_size] + children + mutant
 
-                # Cross-Over
-                for ind in range(0, len(children)):
-                    mother_index = mother_indexes[ind]
-                    self._toolbox.mate( children[ind], ordered[mother_index])
-                    del children[ind].fitness.values
+        # Log Statistics
+        hof.update(pop)
+        paretoFront.update(pop)
 
-                # Evaluate the individuals with an invalid fitness ( new individuals)
-                fitnesses = self._toolbox.map(self._toolbox.evaluate, children)
-                for ind, fit in zip(children, fitnesses): 
-                    ind.fitness.values = fit
-
-                # The botton is replaced by mutant individuals
-                mutant = self._toolbox.population(self.mutant_size)
-                fitnesses = self._toolbox.map(self._toolbox.evaluate, mutant)
-                
-                for ind, fit in zip(mutant, fitnesses):
-                    ind.fitness.values = fit
-
-                # The population is entirely replaced by the offspring
-                pop[:] = ordered[0:self.elite_size] + children + mutant
-
-                # Log Statistics
-                hof.update(pop)
-                pareto_front.update(pop)
-                if self.make_logbook:
-                    self.logbook[i].record(gen=g,
-                                           best_fit=hof[0].fitness.values[0],
-                                           **self.stats.compile(pop))
-                    self._make_generation_log(hof, pareto_front)
-
-                if self.verbose:
-                    self._print(g, i, initial_time, time.clock())
-
-            self._make_repetition_log(hof, pareto_front)
-
-        self._estimator.fit(X=self.transform(X), y=y)
-
-        return self
-
+        return pop, hof, paretoFront

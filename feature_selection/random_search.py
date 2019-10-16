@@ -8,9 +8,9 @@ import numpy as np
 from deap import base
 from deap import tools
 
-from .base import _BaseMetaHeuristic
-from .base import BaseMask
-from .base import *
+from .meta_base import _BaseMetaHeuristic
+from .meta_base import BaseMask
+from .meta_base import *
 
 from sklearn.preprocessing import StandardScaler
 from sklearn.utils import check_X_y
@@ -19,7 +19,10 @@ from sklearn.utils import check_random_state
 
 class RandomSearch(_BaseMetaHeuristic):
     """Implementation of a Random Search Algorithm for Feature Selection.
-    It is useful as the worst case
+    
+    Each generation ``size_pop`` new random solutions are evaluated.
+
+    It is useful as a base line for other algorithms. 
 
     Parameters
     ----------
@@ -48,7 +51,8 @@ class RandomSearch(_BaseMetaHeuristic):
             A function that return a float from the binary mask of features
     """
 
-    def __init__(self, estimator=None, number_gen=5, size_pop=40, verbose=0,
+    def __init__(self, estimator=None,
+                 number_gen=5, size_pop=40, verbose=0,
                  repeat=1,
                  parallel=False, make_logbook=False, random_state=None,
                  cv_metric_function=None, features_metric_function=None,
@@ -64,73 +68,33 @@ class RandomSearch(_BaseMetaHeuristic):
         self.random_state = random_state
         self.cv_metric_function = cv_metric_function
         self.features_metric_function = features_metric_function
-        self.print_fnc = print_fnc
 
         self.size_pop = size_pop
         self.parallel = parallel
 
-    def _setup(self):
+    def _setup(self, X, y, normalize):
 
-        super()._setup()
+        X, y= super()._setup(X,y,normalize)
 
         self._toolbox.register("attribute", self._gen_in)
         self._toolbox.register("individual", tools.initIterate,
                               BaseMask, self._toolbox.attribute)
         self._toolbox.register("population", tools.initRepeat,
                               list, self._toolbox.individual)
-        self._toolbox.register("evaluate", self._evaluate)
-
-    def fit(self, X=None, y=None, normalize=False, **arg):
-        """ Fit method
-
-        Parameters
-        ----------
-        X : array of shape [n_samples, n_features]
-                The input samples
-
-        y : array of shape [n_samples, 1]
-                The input of labels
-
-        normalize : boolean, (default=False)
-                If true, StandardScaler will be applied to X
-
-        **arg : parameters
-                Set parameters
-        """
-
-        initial_time = time.clock()
-        self._setup()
-        self.set_params(**arg)
-        X, y = self._set_dataset(X=X, y=y, normalize=normalize)
+        
+        return X, y
 
         
+    def _do_generation(self, pop, hof, paretoFront):
+        pop = self._toolbox.population(n=self.size_pop)
 
-        for i in range(self.repeat):
-            hof = tools.HallOfFame(1)
-            pareto_front = tools.ParetoFront()
+        # Evaluate the entire population
+        fitnesses = self._toolbox.map(self._toolbox.evaluate, pop)
+        for ind, fit in zip(pop, fitnesses):
+            ind.fitness.values = fit
 
-            for g in range(self.number_gen):
-                pop = self._toolbox.population(n=self.size_pop)
+        # Log statistic
+        hof.update(pop)
+        paretoFront.update(pop)
 
-                # Evaluate the entire population
-                fitnesses = self._toolbox.map(self._toolbox.evaluate, pop)
-                for ind, fit in zip(pop, fitnesses):
-                    ind.fitness.values = fit
-
-                # Log statistic
-                hof.update(pop)
-                pareto_front.update(pop)
-                if self.make_logbook:
-                    self.logbook[i].record(gen=g,
-                                           best_fit=hof[0].fitness.values[0],
-                                           **self.stats.compile(pop))
-                    self._make_generation_log(hof, pareto_front)
-
-                if self.verbose:
-                    self._print(g, i, initial_time, time.clock())
-
-            self._make_repetition_log(hof, pareto_front)
-
-        self._estimator.fit(X=self.transform(X), y=y)
-
-        return self
+        return pop, hof, paretoFront

@@ -7,9 +7,9 @@ import numpy as np
 from deap import base
 from deap import tools
 
-from .base import _BaseMetaHeuristic
-from .base import BaseMask
-from .base import *
+from .meta_base import _BaseMetaHeuristic
+from .meta_base import BaseMask
+from .meta_base import *
 
 
 from sklearn.preprocessing import StandardScaler
@@ -18,7 +18,8 @@ from sklearn.utils import check_random_state
 
 
 class BinaryBlackHole(_BaseMetaHeuristic):
-    """Implementation of Binary Black Hole for Feature Selection
+    """
+    Binary Black Hole for Feature Selection.
 
     Parameters
     ----------
@@ -26,138 +27,102 @@ class BinaryBlackHole(_BaseMetaHeuristic):
             Any estimator that adheres to the scikit-learn API
 
     number_gen : positive integer, (default=10)
-            Number of generations
+            Number of generations to iterate the algorithm. The number of generations
+            can also be limited by ``time_limit`` in the ``fit`` method
 
     size_pop : positive integer, (default=40)
-            Number of individuals in the population
+            Number of stars in the population.
 
     verbose : boolean, (default=False)
             If true, print information in every generation
 
     repeat : positive int, (default=1)
-            Number of times to repeat the fitting process
+            Number of times to repeat the fitting process. This is important if one wants to 
+            repeat the fitting process in the pipeline, given the chance of getting a poor 
+            solution at first
 
     make_logbook : boolean, (default=False)
-            If True, a logbook from DEAP will be made
+            If True, a logbook from DEAP will be made. Check the implementation of ``_make_stats`` for more info
 
     parallel : boolean, (default=False)
-            Set to True if you want to use multiprocessors
+            Set to True if you want to use python's multiprocessor library for evaluating each solution in parallel
 
     cv_metric_function : callable, (default=matthews_corrcoef)
             A metric score function as stated in the sklearn http://scikit-learn.org/stable/modules/model_evaluation.html#scoring-parameter
 
-    features_metric_function : callable, (default=pow(sum(mask)/(len(mask)*5), 2))
-            A function that return a float from the binary mask of features
+    References
+    ----------
+    .. [1] Elnaz Pashaei and Nizamettin Aydin. 2017. Binary black hole algorithm for feature 
+           selection and classification on biological data.Appl. Soft Comput. 56, C (July 2017), 
+           94-106. DOI: https://doi.org/10.1016/j.asoc.2017.03.002
+
     """
 
-    def __init__(self, estimator=None, number_gen=10, size_pop=40, verbose=False,
-                 repeat=1, make_logbook=False, random_state=None, parallel=False,
-                 cv_metric_function=None, features_metric_function=None,
-                 print_fnc=None, name="BinaryBlackHole"):
+    def __init__(self, 
+                 estimator=None, 
+                 number_gen=10, 
+                 size_pop=40, 
+                 repeat=1,
+                 verbose=False, 
+                 make_logbook=False, 
+                 random_state=None, 
+                 parallel=False,
+                 cv_metric_function=None, 
+                 features_metric_function=None):
 
-        self.name = name
         self.estimator = estimator
         self.number_gen = number_gen
         self.verbose = verbose
         self.repeat = repeat
+        self.size_pop = size_pop
         self.parallel = parallel
         self.make_logbook = make_logbook
         self.random_state = random_state
         self.cv_metric_function = cv_metric_function
         self.features_metric_function = features_metric_function
-        self.print_fnc = print_fnc
 
-        self.size_pop = size_pop
+        np.random.seed(self.random_state)
 
-        random.seed(self.random_state)
+    def _do_generation(self, galaxy, hof, paretoFront):
 
-    def fit(self, X=None, y=None, normalize=False, **arg):
-        """ Fit method
+        # Evaluate the entire population
+        fitnesses = self._toolbox.map(self._toolbox.evaluate, galaxy)
+        for ind, fit in zip(galaxy, fitnesses):
+            ind.fitness.values = fit
 
-        Parameters
-        ----------
-        X : array of shape [n_samples, n_features]
-                The input samples
+        # Log statistic
+        hof.update(galaxy)
+        paretoFront.update(galaxy)
 
-        y : array of shape [n_samples, 1]
-                The input of labels
+        # Update Global Information
+        hof[0].radius = sum(hof[0].fitness.wvalues) / \
+            sum([sum(i.fitness.wvalues) for i in galaxy])
 
-        normalize : boolean, (default=False)
-                If true, StandardScaler will be applied to X
+        # Update particles
+        for part in galaxy:
+            self._toolbox.update(part, hof[0])
 
-        **arg : parameters
-                Set parameters
-        """
-        initial_time = time.clock()
-
-        self._setup()
-
-        self.set_params(**arg)
-
-        X, y = self._set_dataset(X=X, y=y, normalize=normalize)
-        
-
-        for i in range(self.repeat):
-            galaxy = self._toolbox.galaxy(n=self.size_pop)
-            hof = tools.HallOfFame(1)
-            pareto_front = tools.ParetoFront()
-
-            for g in range(self.number_gen):
-
-                # Evaluate the entire population
-                fitnesses = self._toolbox.map(self._toolbox.evaluate, galaxy)
-                for ind, fit in zip(galaxy, fitnesses):
-                    ind.fitness.values = fit
-
-                # Log statistic
-                hof.update(galaxy)
-                pareto_front.update(galaxy)
-
-                # Update Global Information
-                hof[0].radius = sum(hof[0].fitness.wvalues) / \
-                    sum([sum(i.fitness.wvalues) for i in galaxy])
-
-                # Update particles
-                for part in galaxy:
-                    self._toolbox.update(part, hof[0])
-
-                if self.make_logbook:
-                    record = self.stats.compile(galaxy)
-                    if self.verbose:
-                        self._toolbox.print("Record: {}".format(record), end=' ')
-                    self.logbook[i].record(gen=g,
-                                           best_fit=hof[0].fitness.values[0],
-                                           **record)
-                    self._make_generation_log(hof, pareto_front)
-
-                if self.verbose:
-                    self._toolbox.print("Generation: ", g, " Repetition: ", i, " Ti: ", initial_time, " Clock:", time.clock())
-
-            self._make_repetition_log(hof, pareto_front)
-
-        self._estimator.fit(X=self.transform(X), y=y)
-
-        return self
+        return galaxy, hof, paretoFront
 
     @staticmethod
     def _dist(star, blackhole):
         return np.linalg.norm([blackhole[i] - star[i] for i in range(0, len(star))])
 
     def _updateStar(self, star, blackhole):
+        star[:] = [1 if abs(np.tanh(star[x] + self._random_object.uniform(0, 1) *
+                                    (blackhole[x] - star[x]))) > self._random_object.uniform(0, 1) else 0 for x in range(0, self.n_features_)]
+
         if self._dist(star, blackhole) < blackhole.radius:
-            star[:] = self._toolbox.galaxy(n=1)[0]
-        else:
-            star[:] = [1 if abs(np.tanh(star[x] + self._random_object.uniform(0, 1) *
-                                        (blackhole[x] - star[x]))) > self._random_object.uniform(0, 1) else 0 for x in range(0, self.n_features_)]
+            star[:] = self._toolbox.population(n=1)[0]
 
+    def _setup(self, X, y, normalize):
 
-    def _setup(self):
-
-        super(BinaryBlackHole, self)._setup()
+        X, y = super()._setup(X, y, normalize)
         self._toolbox.register("attribute", self._gen_in)
         self._toolbox.register("star", tools.initIterate,
-                              BaseMask, self._toolbox.attribute)
-        self._toolbox.register("galaxy", tools.initRepeat,
-                              list, self._toolbox.star)
+                               BaseMask, self._toolbox.attribute)
+        self._toolbox.register("population", tools.initRepeat,
+                               list, self._toolbox.star)
         self._toolbox.register("update", self._updateStar)
-        self._toolbox.register("evaluate", self._evaluate)
+
+        return X, y

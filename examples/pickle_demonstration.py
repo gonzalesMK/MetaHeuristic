@@ -14,7 +14,8 @@ X, y = dataset['data'], dataset['target_names'].take(dataset['target'])
     
 hs = HarmonicSearch(random_state=0, make_logbook=True,
                     repeat=2)
-    
+
+hs._get_accuracy
 hs.fit(X,y, normalize=True)
     
 file = "HarmonicSearch"

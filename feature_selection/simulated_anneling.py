@@ -9,32 +9,48 @@ from deap import tools
 
 import copy
 
-from .base import _BaseMetaHeuristic
-from .base import BaseMask
-from .base import *
+from .meta_base import _BaseMetaHeuristic
+from .meta_base import BaseMask
+from .meta_base import *
 from sklearn.utils import check_random_state
 
 
 class SimulatedAnneling(_BaseMetaHeuristic):
-    """Implementation of a Simulated Anneling Algorithm for Feature Selection as
-    stated in the book : Fred W. Glover - Handbook of Metaheuristics.
+    """
+    
+    Implementation of Simulated Anneling Algorithm for Feature Selection
 
-    the decay of the temperature is given by temp_init/number_gen
+    The temperature range is [initial_temp, 0]. So, the decay of the temperature 
+    each generation is given by ``temp_init/number_gen``.
+     
+    The total number of evaluated solutions are: ``number_gen * repetition_schedule`` 
+
+    INCLUDE A GRAPH W/ THE METROPOLIS PROBABILITY:
 
     Parameters
     ----------
     estimator : sklearn estimator , (default=SVM)
             Any estimator that adheres to the scikit-learn API
 
+    number_gen : positive integer, (default=10)
+            Number of generations
+
     mutation_prob : float in [0,1], (default=0.05)
             Is the the probability for each value in the solution to be mutated
             when searching for some neighbor solution.
 
-    number_gen : positive integer, (default=10)
-            Number of generations
-
     initial_temp : positive integer, (default=10)
             The initial temperature
+
+    repetition_schedule: positive integer, (default=10)
+            The number of times to repeat the searching process before changing temperature 
+
+    skip: positive integer, (default=10)
+            This parameter is important when ``make_logbook`` is True. Usually, a lot
+            of generations are needed by HS to achieve convergence, given that 
+            one solution is evaluated at a time. Consequently, the amount of data 
+            saved by the ``logbook`` can be bigger than necessary. So, one can
+            choose to log data only every ``skip``iteration
 
     verbose : boolean, (default=False)
             If true, print information in every generation
@@ -51,20 +67,26 @@ class SimulatedAnneling(_BaseMetaHeuristic):
     cv_metric_function : callable, (default=matthews_corrcoef)
             A metric score function as stated in the sklearn http://scikit-learn.org/stable/modules/model_evaluation.html#scoring-parameter
 
-    features_metric_function : callable, (default=pow(sum(mask)/(len(mask)*5), 2))
-            A function that return a float from the binary mask of features
 
-    size_pop: None
-            It is needed to
+    References  
+    ----------
+    .. [1] Fred W. Glover - Handbook of Metaheuristics. 2003.
     """
 
-    def __init__(self, estimator=None, mutation_prob=0.05, initial_temp=10,
-                 repetition_schedule=10, number_gen=10, repeat=1, verbose=0,
-                 parallel=False, make_logbook=False, random_state=None,
-                 cv_metric_function=None, features_metric_function=None,
-                 print_fnc=None, skip=0, name="SimulatedAnneling", **arg):
+    def __init__(self,
+                 estimator=None, 
+                 number_gen=10, 
+                 mutation_prob=0.05, 
+                 initial_temp=1,
+                 repetition_schedule=10, 
+                 skip=10,
+                 verbose=0,
+                 repeat=1, 
+                 parallel=False, 
+                 make_logbook=False, 
+                 random_state=None,
+                 cv_metric_function=None):
 
-        self.name = name
         self.estimator = estimator
         self.number_gen = number_gen
         self.verbose = verbose
@@ -73,29 +95,28 @@ class SimulatedAnneling(_BaseMetaHeuristic):
         self.make_logbook = make_logbook
         self.random_state = random_state
         self.cv_metric_function = cv_metric_function
-        self.features_metric_function = features_metric_function
-        self.print_fnc = print_fnc
 
         self.mutation_prob = mutation_prob
         self.initial_temp = initial_temp
         self.repetition_schedule = repetition_schedule
         self.skip = skip
         self.parallel = parallel
-        self.parallel = parallel
         
-    def _setup(self):
+    def _setup(self, X, y, normalize):
 
-        super()._setup()
+        X, y = super()._setup(X,y,normalize)
         self._toolbox.register("attribute", self._gen_in)
         self._toolbox.register("individual", tools.initIterate,
                               BaseMask, self._toolbox.attribute)
         self._toolbox.register("population", tools.initRepeat,
                               list, self._toolbox.individual)
-        self._toolbox.register("evaluate", self._evaluate, X=None, y=None)
+        
         self._toolbox.register("mutate", tools.mutUniformInt, low=0, up=1,
                               indpb=self.mutation_prob)
 
-    def fit(self, X=None, y=None, normalize=False, **arg):
+        return X, y
+        
+    def fit(self, X, y, time_limit = None, normalize=False, **arg):
         """ Fit method
 
         Parameters
@@ -111,18 +132,19 @@ class SimulatedAnneling(_BaseMetaHeuristic):
 
         **arg : parameters
                 Set parameters
-        """
-        initial_time = time.clock()
-        self._setup()
-        self.set_params(**arg)
-        X, y = self._set_dataset(X=X, y=y, normalize=normalize)
 
+        """
+        
+        X, y = self._setup(X, y, normalize)
+        self._initial_time = time.clock()
+        self.set_params(**arg)
         
 
         for i in range(self.repeat):
             solution = self._toolbox.individual()
             hof = tools.HallOfFame(1)
             pareto_front = tools.ParetoFront()
+
             # Evaluate the solution
             solution.fitness.values = self._toolbox.evaluate(solution)
 
@@ -145,14 +167,16 @@ class SimulatedAnneling(_BaseMetaHeuristic):
                     pareto_front.update([solution])
 
                     g = g+1
+
                     if self.skip == 0 or g % self.skip == 0:
                         if self.make_logbook:
-                            self.logbook[i].record(gen=temp,
-                                                   best_fit=hof[0].fitness.values[0],
-                                                   **self.stats.compile([solution]))
-                            self._make_generation_log(hof, pareto_front)
-                        if self.verbose:
-                            self._print(temp, _, i, initial_time, time.clock())
+                            self._make_generation_log(g, i, [solution], hof, pareto_front)
+
+                        if self.verbose and not self.make_logbook:
+                            self._print(temp, _, i, self._initial_time, time.clock())
+                
+                    if time_limit is not None and time.clock() - self._initial_time > time_limit:
+                        break
 
             self._make_repetition_log(hof, pareto_front)
 
@@ -167,11 +191,16 @@ class SimulatedAnneling(_BaseMetaHeuristic):
 
     @staticmethod
     def _metropolis_criterion(solution, prev_solution, temp):
-        prob = np.exp((sum(solution.fitness.wvalues) -
-                       sum(prev_solution.fitness.wvalues))/temp)
+        prob = np.exp(100 * (sum(solution.fitness.wvalues) -
+                       sum(prev_solution.fitness.wvalues))/(temp))
 
         if random.random() < prob:
             return solution
         else:
             return prev_solution
+
+
+def _test_metropolis( now, before, temp):
+    return np.exp( (now - before)/ temp * 100)
+  
 

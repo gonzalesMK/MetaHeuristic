@@ -4,7 +4,7 @@ from itertools import compress
 from random import sample
 import random
 import numpy as np
-from sklearn.base import BaseEstimator, ClassifierMixin, TransformerMixin, clone
+from sklearn.base import BaseEstimator, MetaEstimatorMixin, TransformerMixin, clone
 from sklearn.model_selection import cross_val_score
 from sklearn.metrics import matthews_corrcoef
 from sklearn.metrics import make_scorer
@@ -18,7 +18,9 @@ from deap import tools
 from sklearn.preprocessing import StandardScaler
 from sklearn.utils import check_X_y
 import copy
+from timeit import time
 
+from collections import Counter
 class Fitness(base.Fitness):
 
     def __init__(self, weights=(1, -1e-5), values=(0, 0)):
@@ -30,16 +32,7 @@ class BaseMask(list, object):
 
     def __init__(self, mask):
         self[:] = mask
-        self.fitness = Fitness( (1, -1e-5) , (0, 0))
-
-    # def __getstate__(self):
-        #        self_dict = self.__dict__.copy()
-        #        return self_dict
-        #
-    # def __setstate__(self,state):
-        #        self.__dict__.update(state)
-        #
-
+        self.fitness = Fitness((1, -1e-5), (0, 0))
 
 class SelectorMixin(six.with_metaclass(ABCMeta, TransformerMixin)):
     """
@@ -70,16 +63,12 @@ class SelectorMixin(six.with_metaclass(ABCMeta, TransformerMixin)):
         else:
             raise ValueError("Mask type is {} not allowed".format(mask.dtype))
 
-        # I don't see utility in here
-        #if hasattr(x, "toarray"):
-            #            ind = np.arange(mask.shape[0])
-            #            mask = ind[mask]
-            #
         return mask
 
     def get_support(self, indices=False):
         """
         Get a mask, or integer index, of the features selected
+        
         Parameters
         ----------
         indices : boolean (default False)
@@ -130,8 +119,8 @@ class SelectorMixin(six.with_metaclass(ABCMeta, TransformerMixin)):
 
         if not mask.any():
             warn("No features were selected: either the data is"
-                " too noisy or the selection test too strict.",
-                UserWarning)
+                 " too noisy or the selection test too strict.",
+                 UserWarning)
             return np.empty(0).reshape((X.shape[0], 0))
 
         if len(mask) != X.shape[1]:
@@ -140,15 +129,14 @@ class SelectorMixin(six.with_metaclass(ABCMeta, TransformerMixin)):
         return X[:, self.safe_mask(X, mask)]
 
 
-class _BaseMetaHeuristic(BaseEstimator, SelectorMixin, ClassifierMixin):
+class _BaseMetaHeuristic(BaseEstimator, SelectorMixin, MetaEstimatorMixin):
 
-    def __init__(self, name, estimator=None, number_gen=20,
+    def __init__(self, estimator=None, number_gen=20,
                  verbose=0, repeat=1, parallel=False,
                  make_logbook=False, random_state=None,
                  cv_metric_function=make_scorer(matthews_corrcoef),
-                 features_metric_function=None, print_fnc=None):
+                 ):
 
-        self.name = name
         self.estimator = estimator
         self.number_gen = number_gen
         self.verbose = verbose
@@ -157,10 +145,8 @@ class _BaseMetaHeuristic(BaseEstimator, SelectorMixin, ClassifierMixin):
         self.make_logbook = make_logbook
         self.random_state = random_state
         self.cv_metric_function = cv_metric_function
-        self.features_metric_function = features_metric_function
-        self.print_fnc = print_fnc
 
-        random.seed(self.random_state)
+        np.random.seed(self.random_state)
 
     def _gen_in(self):
         """ 
@@ -171,7 +157,7 @@ class _BaseMetaHeuristic(BaseEstimator, SelectorMixin, ClassifierMixin):
         ones = np.ones([random_number, ], dtype=int)
         return sample(list(np.concatenate((zeros, ones), axis=0)), self.n_features_)
 
-    def _evaluate(self, individual, X, y, cv=3):
+    def _evaluate(self, individual, X, y, cv=2):
         """ 
             Evaluate method. Each individual is a mask of features.
 
@@ -195,6 +181,12 @@ class _BaseMetaHeuristic(BaseEstimator, SelectorMixin, ClassifierMixin):
         if train.shape[1] == 0:
             return 0, 1,
 
+        try:
+            index = self._all_solutions['individuals'].index(individual[:])
+            return self._all_solutions['results'][index]
+        except ValueError:
+            pass
+
         # Applying K-Fold Cross Validation
         accuracies = cross_val_score(estimator=clone(self._estimator), X=train,
                                      y=y, cv=cv,
@@ -207,6 +199,9 @@ class _BaseMetaHeuristic(BaseEstimator, SelectorMixin, ClassifierMixin):
                 feature_score = self.features_metric_function(individual)
         else:
             feature_score = sum(individual) / len(individual)
+
+        self._all_solutions['individuals'].append(individual[:])
+        self._all_solutions['results'].append( (accuracies.mean(), feature_score )  )
 
         return accuracies.mean(), feature_score
 
@@ -281,43 +276,49 @@ class _BaseMetaHeuristic(BaseEstimator, SelectorMixin, ClassifierMixin):
         # fit method of arity 2 (supervised transformation)
         return self.fit(X, y, normalize, **fit_params).transform(X)
 
-    @staticmethod
-    def _get_accuracy(ind):
-        return ind.fitness.values[0]
 
+    #@staticmethod
+    #def _get_accuracy(ind):
+    #    return ind.fitness.values[0]
+    
     @staticmethod
     def _get_features(ind):
         return sum(ind)
 
+    
     def __getstate__(self):
-        
+
         self_dict = self.__dict__.copy()
-        
         if '_toolbox' in self_dict:
             del self_dict['_toolbox']
-        
+
         if 'print_fnc' in self_dict:
             del self_dict['print_fnc']
 
-
+        if 'stats' in self_dict:
+            del self_dict['stats']
+        
         return self_dict
 
     def __setstate__(self, state):
         self.__dict__.update(state)
 
     def _make_stats(self):
-        stats_fit = tools.Statistics(key=self._get_accuracy)
+        stats_fit = tools.Statistics(key=lambda ind: ind.fitness.values[0])
         stats_size = tools.Statistics(key=sum)
         self.stats = tools.MultiStatistics(fitness=stats_fit, size=stats_size)
         self.stats.register("avg", np.mean)
         self.stats.register("std", np.std)
         self.stats.register("min", np.min)
         self.stats.register("max", np.max)
+        self.stats.register("25_percentile", np.percentile, q=25, interpolation='higher')
+        self.stats.register("50_percentile", np.percentile, q=50, interpolation='higher')
+        self.stats.register("75_percentile", np.percentile, q=75, interpolation='higher')
         self.logbook = [tools.Logbook() for i in range(self.repeat)]
 
         for i in range(self.repeat):
-            self.logbook[i].header = "gen", 'best_fit', "fitness", "size"
-        # print(self.logbook[0].keys())
+            self.logbook[i].header = "gen", 'hallOfFame', "paretoFront", "time", "fitness", "size"
+
         for i in range(self.repeat):
             self.logbook[i].chapters["fitness"].header = self.stats.fields
             self.logbook[i].chapters["size"].header = self.stats.fields
@@ -358,35 +359,55 @@ class _BaseMetaHeuristic(BaseEstimator, SelectorMixin, ClassifierMixin):
 
         self.n_features_ = X.shape[1]
 
-        if( not hasattr(self, "_toolbox")):
-            self._toolbox = base.Toolbox()
-            
-        self._toolbox.register("evaluate", self._evaluate, X=X, y=y)
+               
 
         return X, y
 
     def _set_fit(self):
         pass
 
-    def _make_generation_log(self, hof, pareto_front):
-        self.i_gen_pareto_.append(pareto_front[:])
-        self.i_gen_hof_.append(hof[0])
+    def _make_generation_log(self, gen, repetition, pop, hof, pareto_front):
+        self.i_gen_pareto_.append(copy.deepcopy(pareto_front))
+        self.i_gen_hof_.append(copy.deepcopy(hof))
+
+        record = self.stats.compile(pop)
+
+        self.logbook[repetition].record(gen=gen, hallOfFame=copy.deepcopy(hof), paretoFront=copy.deepcopy(pareto_front), time=time.clock(), **record)
+
+        if self.verbose:
+            self._toolbox.print("*********    Report {}       ************* ".format(type(self).__name__), end='\n\n')
+            self._toolbox.print("\tmin\t25%\t50%\t75%\tmax")
+            self._toolbox.print("Score:\t{:.3f}\t{:.3f}\t{:.3f}\t{:.3f}\t{:.3f}".format( record['fitness']['min'], record['fitness']['25_percentile'],record['fitness']['50_percentile'],record['fitness']['75_percentile'], record['fitness']['max']))
+            self._toolbox.print("Size:\t{:d}\t{:d}\t{:d}\t{:d}\t{:d}".format( record['size']['min'], record['size']['25_percentile'],record['size']['50_percentile'],record['size']['75_percentile'], record['size']['max']), end='\n\n')
+
+            if( hasattr(self, "number_gen") and gen != 0 ):
+                eta = (time.clock() - self._initial_time) * self.number_gen / (gen+1)
+                self._toolbox.print("Gen: {}/{} Time Elapsed: {}min {}sec Estimated Time: {} min {} s".format(gen, self.number_gen, 
+                    np.floor((time.clock()-self._initial_time)/60),(time.clock()-self._initial_time)%60, 
+                    np.floor(eta/60), eta%60))
+
+                
+            self._toolbox.print()
 
     def _make_repetition_log(self, hof, pareto_front):
         self.best_.update(hof)
         self.best_pareto_front_.update(pareto_front)
         if self.make_logbook:
-            self.pareto_front_.append(pareto_front[:])
-            self.hof_.append(hof[0])
+            self.pareto_front_.append( copy.deepcopy(pareto_front))
+            self.hof_.append(copy.deepcopy(hof))
             self.gen_pareto_.append(self.i_gen_pareto_)
             self.gen_hof_.append(self.i_gen_hof_)
             self.i_gen_pareto_ = []
             self.i_gen_hof_ = []
 
-    def _setup(self):
+    def _setup(self, X, y, normalize):
         " Initialize the toolbox and statistical variables"
 
-        if( not hasattr(self, "_toolbox")):
+        if(hasattr(self, '_all_solutions')):
+            del self._all_solutions
+        self._all_solutions = {'results':[], 'individuals':[]}
+
+        if(not hasattr(self, "_toolbox")):
             self._toolbox = base.Toolbox()
 
         if hasattr(self, "print_fnc"):
@@ -418,12 +439,28 @@ class _BaseMetaHeuristic(BaseEstimator, SelectorMixin, ClassifierMixin):
             self._estimator = self.estimator
 
         self._random_object = check_random_state(self.random_state)
-        random.seed(self.random_state)
+        np.random.seed(self.random_state)
 
         self.best_ = tools.HallOfFame(1)
         self.best_pareto_front_ = tools.ParetoFront()
 
         self._toolbox.register('clone', copy.deepcopy)
+
+        if hasattr(self, 'skip'):
+            self._skip = self.skip
+        else:
+            self._skip = 0
+
+        X, y = self._set_dataset(X=X, y=y, normalize=normalize)
+
+                # Check the number of members in each class:
+        min_n_classes =  min( Counter(y).values() )
+        if( min_n_classes >= 5  ):
+            self._toolbox.register("evaluate", self._evaluate, X=X, y=y, cv=5)
+        else :
+            self._toolbox.register("evaluate", self._evaluate, X=X, y=y, cv=2)
+        
+        return X, y
 
     def best_pareto(self):
         return self.best_pareto_front_
@@ -437,13 +474,68 @@ class _BaseMetaHeuristic(BaseEstimator, SelectorMixin, ClassifierMixin):
     def all_solutions(self):
         return self.hof_
 
-    def _print(self, gen, rep, initial_time, final_time):
-        self._toolbox.print("""Repetition: {:d} \t Generation: {:d}/{:d} 
-                Elapsed time: {:.4f} \r""".format(rep+1, gen + 1,
-                                                  self.number_gen, final_time - initial_time))
-
     def set_params(self, **params):
 
         super().set_params(**params)
+
+        return self
+
+    def _do_generation(self, pop, hof, paretoFront):
+        pass
+
+    def fit(self, X, y, time_limit = None, normalize=False, **arg):
+        """ Fit method
+
+        Parameters
+        ----------
+        X : array of shape [n_samples, n_features]
+                The input samples
+
+        y : array of shape [n_samples, 1]
+                The input of labels
+
+        normalize : boolean, (default=False)
+                If true, StandardScaler will be applied to X
+
+        **arg : parameters
+                Set parameters
+        """
+        
+
+        X,y = self._setup(X, y, normalize)
+
+        self.set_params(**arg)
+        
+        self._initial_time = time.clock()
+        for i in range(self.repeat):
+
+            pop = self._toolbox.population(n=self.size_pop)
+            
+            fitnesses = self._toolbox.map(self._toolbox.evaluate, pop)
+            for ind, fit in zip(pop, fitnesses): 
+                ind.fitness.values = fit            
+            
+            hof = tools.HallOfFame(1)
+            hof.update(pop)
+            pareto_front = tools.ParetoFront()
+            pareto_front.update(pop)
+
+            for g in range(self.number_gen):
+
+                pop, hof, pareto_front = self._do_generation( pop, hof, pareto_front)
+
+                if self._skip == 0 or g % self._skip == 0:
+                    if self.make_logbook:
+                        self._make_generation_log(g, i, pop, hof, pareto_front)
+
+                if self.verbose and not self.make_logbook:
+                    self._toolbox.print( "Generation: ", g, " Repetition: ", i, " Clock:", time.clock() - self._initial_time)
+
+                if time_limit is not None and time.clock() - self._initial_time > time_limit:
+                    break
+                
+            self._make_repetition_log(hof, pareto_front)
+
+        self._estimator.fit(X=self.transform(X), y=y)
 
         return self
