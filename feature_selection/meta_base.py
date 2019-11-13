@@ -454,10 +454,11 @@ class _BaseMetaHeuristic(BaseEstimator, SelectorMixin, MetaEstimatorMixin):
         X, y = self._set_dataset(X=X, y=y, normalize=normalize)
 
                 # Check the number of members in each class:
-        min_n_classes =  min( Counter(y).values() )
+        min_n_classes =  min(Counter(y).values())
         if( min_n_classes >= 5  ):
             self._toolbox.register("evaluate", self._evaluate, X=X, y=y, cv=5)
         else :
+            print(" Be carefull, this dataset has not enough samples to use CV=5. CV=2  set instead")
             self._toolbox.register("evaluate", self._evaluate, X=X, y=y, cv=2)
         
         return X, y
