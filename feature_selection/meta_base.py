@@ -181,11 +181,8 @@ class _BaseMetaHeuristic(BaseEstimator, SelectorMixin, MetaEstimatorMixin):
         if train.shape[1] == 0:
             return 0, 1,
 
-        try:
-            index = self._all_solutions['individuals'].index(individual[:])
-            return self._all_solutions['results'][index]
-        except ValueError:
-            pass
+        if individual[:] in self._all_solutions:
+            return self.all_solutions[individual[:]] 
 
         # Applying K-Fold Cross Validation
         accuracies = cross_val_score(estimator=clone(self._estimator), X=train,
@@ -200,8 +197,7 @@ class _BaseMetaHeuristic(BaseEstimator, SelectorMixin, MetaEstimatorMixin):
         else:
             feature_score = sum(individual) / len(individual)
 
-        self._all_solutions['individuals'].append(individual[:])
-        self._all_solutions['results'].append( (accuracies.mean(), feature_score )  )
+        self._all_solutions[individual[:]] = (accuracies.mean(), feature_score)  
 
         return accuracies.mean(), feature_score
 
@@ -405,7 +401,7 @@ class _BaseMetaHeuristic(BaseEstimator, SelectorMixin, MetaEstimatorMixin):
 
         if(hasattr(self, '_all_solutions')):
             del self._all_solutions
-        self._all_solutions = {'results':[], 'individuals':[]}
+        self._all_solutions = dict()
 
         if(not hasattr(self, "_toolbox")):
             self._toolbox = base.Toolbox()
