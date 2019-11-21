@@ -25,7 +25,7 @@ METACLASSES = [
 
 def test_check_estimator():
     for metaclass in METACLASSES:
-        print("check_estimator: ", metaclass(estimator=SVC()).name)
+        print("check_estimator: ", metaclass.__class__.__name__)
         check_estimator(metaclass)        
     
     
@@ -39,9 +39,9 @@ def test_overall():
     for metaclass in METACLASSES:
         meta = metaclass(estimator=clf, random_state=0, verbose=False,
                         make_logbook=True, repeat=1, number_gen=2,
-                        size_pop=2)
+                        )
         
-        print("Checking: ", meta.name)
+        print("Checking: ", meta.__class__.__name__)
     
         # Fit the classifier
         meta.fit(X, y, normalize=True)
@@ -50,7 +50,7 @@ def test_overall():
         X_1 = meta.transform(X)
     
         meta = metaclass(estimator=clf, random_state=0,
-                        make_logbook=True, repeat=1, number_gen=2, size_pop=2)
+                        make_logbook=True, repeat=1, number_gen=2, )
         
         # Fit and Transform
         X_2 = meta.fit_transform(X=X, y=y, normalize=True)
@@ -71,8 +71,8 @@ def test_parallel():
     for metaclass in METACLASSES :
         meta = metaclass(estimator=clf, random_state=0, make_logbook=False,
                         repeat=2, number_gen=2, parallel=True, verbose=True,
-                        size_pop=2)
-        print("Checking parallel ", meta.name)
+                        )
+        print("Checking parallel ", meta.__class__.__name__)
         
         # Fit the classifier
         meta.fit(X, y, normalize=True)
@@ -81,7 +81,7 @@ def test_parallel():
         X_1 = meta.transform(X)
     
         meta = metaclass(estimator=clf, random_state=0, make_logbook=False,
-                        repeat=2, number_gen=2, parallel=True, size_pop=2)
+                        repeat=2, number_gen=2, parallel=True, )
     
         # Fit and Transform
         X_2 = meta.fit_transform(X=X, y=y, normalize=True)
@@ -98,21 +98,21 @@ def test_unusual_errors():
     
     for metaclass in METACLASSES:
         meta = metaclass(estimator=clf, random_state=0, verbose=0,
-                        make_logbook=True, repeat=1, number_gen=2, size_pop=2)
-        print("Checking unusual error: ", meta.name)
+                        make_logbook=True, repeat=1, number_gen=2, )
+        print("Checking unusual error: ", meta.__class__.__name__)
         meta.fit(X, y, normalize=True)
     
         # Let's suppose you have a empty best 
         assert_raises(ValueError, meta.safe_mask, X, [])
 
     meta = metaclass(estimator=clf, random_state=0, verbose=0,
-                        make_logbook=True, repeat=1, number_gen=2, size_pop=2)
+                        make_logbook=True, repeat=1, number_gen=2, )
     
     #assert_raises(ValueError, meta.score_func_to_gridsearch, meta)
     
     for metaclass in [BRKGA]:
         meta = metaclass(estimator=clf, random_state=0, verbose=0,
-                        make_logbook=True, repeat=1, number_gen=2, size_pop=2,
+                        make_logbook=True, repeat=1, number_gen=2,
                         elite_size=5)
         assert_raises(ValueError, meta.fit, [ [1, 1, 1], [1,2,3] ], [1, 0])
             
@@ -121,7 +121,7 @@ def test_predict():
     X, y = dataset['data'], dataset['target_names'].take(dataset['target'])
     
     # Classifier to be used in the metaheuristic
-    sa = SimulatedAnneling(size_pop=2, number_gen=2)
+    sa = SimulatedAnneling( number_gen=2)
     sa.fit(X,y, normalize=True)
     sa.predict(X)
 
@@ -138,9 +138,9 @@ def test_score_grid_func():
     for metaclass in METACLASSES:
         meta = metaclass(classifier=clf, random_state=0, verbose=True,
                         make_logbook=True, repeat=1, number_gen=3,
-                        size_pop=2)
+                        )
         
-        print("Checking Grid: ", meta.name)
+        print("Checking Grid: ", meta.__class__.__name__)
     
         # Fit the classifier
         meta.fit(X, y, normalize=True)
