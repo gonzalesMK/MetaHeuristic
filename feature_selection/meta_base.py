@@ -453,7 +453,7 @@ class _BaseMetaHeuristic(BaseEstimator, SelectorMixin, MetaEstimatorMixin):
 
         X, y = self._set_dataset(X=X, y=y, normalize=normalize)
 
-                # Check the number of members in each class:
+        # Check the number of members in each class:
         min_n_classes =  min(Counter(y).values())
         if( min_n_classes >= 5  ):
             self._toolbox.register("evaluate", self._evaluate, X=X, y=y, cv=5)
@@ -461,6 +461,8 @@ class _BaseMetaHeuristic(BaseEstimator, SelectorMixin, MetaEstimatorMixin):
             print(" Be carefull, this dataset has not enough samples to use CV=5. CV=2  set instead")
             self._toolbox.register("evaluate", self._evaluate, X=X, y=y, cv=2)
         
+        # This array are suppose to store the unbiased estimations of the quality of each solution if X_test and y_test are given
+        self.unbiased_scalar = []
         return X, y
 
     def best_pareto(self):
@@ -484,7 +486,7 @@ class _BaseMetaHeuristic(BaseEstimator, SelectorMixin, MetaEstimatorMixin):
     def _do_generation(self, pop, hof, paretoFront):
         pass
 
-    def fit(self, X, y, time_limit = None, normalize=False, **arg):
+    def fit(self, X, y, time_limit = None, normalize=False, X_test=None, y_test=None, **arg):
         """ Fit method
 
         Parameters
@@ -535,6 +537,12 @@ class _BaseMetaHeuristic(BaseEstimator, SelectorMixin, MetaEstimatorMixin):
                 if time_limit is not None and time.clock() - self._initial_time > time_limit:
                     break
                 
+                # Unbiased estimation of the algorithm 
+                if not (X_test is None) and not( y_test is None):
+                    self._estimator.fit(X=self.transform(X), y=y)
+                    score = self.cv_metric_function(self._estimator,X_test, y_test)
+                    self.unbiased_scalar.append(score)
+
             self._make_repetition_log(hof, pareto_front)
 
         self._estimator.fit(X=self.transform(X), y=y)
