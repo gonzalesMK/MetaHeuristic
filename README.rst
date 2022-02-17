@@ -1,6 +1,6 @@
 .. -*- mode: rst -*-
 
-|Travis|_ |Coverage|_ |CircleCI|_ |Pypi|_
+|Coverage|_ |Pypi|_
 
 .. |Travis| image:: https://travis-ci.org/gonzalesMK/MetaHeuristic.svg?branch=master
 .. _Travis: https://travis-ci.org/gonzalesMK/MetaHeuristic
