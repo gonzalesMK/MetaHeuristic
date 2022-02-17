@@ -1,15 +1,9 @@
 .. -*- mode: rst -*-
 
-|Travis|_ |Coverage|_ |CircleCI|_ |Pypi|_
-
-.. |Travis| image:: https://travis-ci.org/gonzalesMK/MetaHeuristic.svg?branch=master
-.. _Travis: https://travis-ci.org/gonzalesMK/MetaHeuristic
+|Coverage|_ |Pypi|_
 
 .. |Coverage| image:: https://coveralls.io/repos/github/gonzalesMK/MetaHeuristic/badge.svg?branch=master
 .. _Coverage: https://coveralls.io/github/gonzalesMK/MetaHeuristic?branch=master
-
-.. |CircleCI| image:: https://circleci.com/gh/gonzalesMK/MetaHeuristic/tree/master.svg?style=shield&circle-token=:circle-token
-.. _CircleCI: https://circleci.com/gh/gonzalesMK/MetaHeuristic/tree/master
 
 .. |Pypi| image:: https://badge.fury.io/py/metaheuristic.svg
 .. _Pypi: https://badge.fury.io/py/metaheuristic
